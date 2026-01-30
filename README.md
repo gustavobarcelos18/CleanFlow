@@ -1,73 +1,130 @@
-# Welcome to your Lovable project
+# CleanFlow
 
-## Project info
+O **CleanFlow** é um microSaaS de agendamento e gestão operacional para negócios que trabalham com hora marcada, como clínicas, estúdios, oficinas, estética e serviços em geral.
 
-**URL**: https://lovable.dev/projects/dd33d768-88ae-4f8f-97fe-0b10b6ce732a
+A ideia central é reduzir o caos operacional e automatizar tarefas repetitivas, deixando a equipe focada no atendimento e no faturamento.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Como o CleanFlow funciona
 
-**Use Lovable**
+O sistema é organizado em módulos que se integram em um único fluxo.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dd33d768-88ae-4f8f-97fe-0b10b6ce732a) and start prompting.
+### 1. Agenda inteligente
 
-Changes made via Lovable will be committed automatically to this repo.
+A agenda é o núcleo do CleanFlow.
 
-**Use your preferred IDE**
+- Agendamento por profissional, serviço e unidade
+- Visualização diária, semanal e mensal
+- Bloqueio automático de horários indisponíveis
+- Regras de duração por tipo de serviço
+- Evita conflitos de agenda automaticamente
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Cada agendamento gera um registro único que conecta cliente, serviço, profissional e valores.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+### 2. Clientes (CRM simples)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+O CleanFlow mantém um cadastro centralizado de clientes:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Nome, telefone, e-mail e histórico
+- Histórico completo de atendimentos
+- Preferências e observações internas
+- Associação direta com agendamentos e pagamentos
 
-# Step 3: Install the necessary dependencies.
-npm i
+Isso permite atendimento mais rápido e personalizado.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+### 3. Comunicação automatizada
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+O sistema envia mensagens automáticas para reduzir faltas e retrabalho.
 
-**Use GitHub Codespaces**
+- Confirmação de agendamento
+- Lembretes automáticos
+- Avisos de reagendamento ou cancelamento
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Canais suportados:
+- WhatsApp
+- E-mail
+- SMS (opcional)
 
-## What technologies are used for this project?
+As mensagens são disparadas com base em eventos da agenda.
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 4. Financeiro e caixa
 
-## How can I deploy this project?
+Cada atendimento pode gerar movimentação financeira.
 
-Simply open [Lovable](https://lovable.dev/projects/dd33d768-88ae-4f8f-97fe-0b10b6ce732a) and click on Share -> Publish.
+- Controle de valores recebidos
+- Formas de pagamento (dinheiro, cartão, PIX, etc.)
+- Caixa diário e relatórios
+- Separação por unidade ou profissional
 
-## Can I connect a custom domain to my Lovable project?
+O objetivo é dar visão clara do faturamento sem depender de planilhas externas.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 5. Ordens de serviço e orçamentos (opcional)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Para negócios que precisam de etapas antes da execução:
+
+- Criação de orçamentos
+- Aprovação pelo cliente
+- Conversão automática em atendimento
+- Histórico de alterações
+
+Muito útil para oficinas, manutenção e serviços técnicos.
+
+---
+
+### 6. Multiunidade e multiusuário
+
+O CleanFlow foi pensado para escalar.
+
+- Suporte a múltiplas unidades
+- Controle de permissões (admin, atendente, profissional)
+- Cada usuário vê apenas o que precisa
+
+Arquitetura multi-tenant desde a base.
+
+---
+
+### 7. LGPD e segurança
+
+- Dados isolados por tenant
+- Controle de acesso por perfil
+- Logs de ações importantes
+- Preparado para exclusão e anonimização de dados
+
+---
+
+## Objetivo do projeto
+
+O CleanFlow não tenta ser um ERP gigante.
+
+O foco é:
+- Simplicidade
+- Automação
+- Fluxo claro de trabalho
+- Menos tarefas manuais
+- Mais previsibilidade operacional
+
+---
+
+## Stack tecnológica
+
+- Frontend: React + Vite
+- UI: Tailwind CSS + shadcn-ui
+- Backend: API REST (FastAPI / Node, conforme ambiente)
+- Banco de dados: PostgreSQL
+- Integrações: WhatsApp, e-mail, SMS
+- Deploy: Lovable / Netlify / Cloud
+
+---
+
+## Status
+
+Projeto em evolução contínua, com foco em microSaaS escalável e modular.
