@@ -1,0 +1,18 @@
+.reports-page {
+  cursor: default;
+  user-select: none;
+}
+
+.reports-page input {
+  cursor: text;
+  user-select: text;
+}
+
+.reports-page button {
+  cursor: pointer;
+}
+
+.reports-page .selectable-text {
+  cursor: text;
+  user-select: text;
+}

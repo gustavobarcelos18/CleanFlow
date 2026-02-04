@@ -1,0 +1,40 @@
+project_id = "cvaoarkkmkuchmaivsld"
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.notificar-renovacao-pacotes]
+verify_jwt = false
+
+[functions.ai-route-whatsapp]
+verify_jwt = false
+
+[functions.provision-phone-number]
+verify_jwt = true
+
+[functions.process-phone-webhook]
+verify_jwt = false
+
+[functions.criar-assinatura-numero]
+verify_jwt = true
+
+[functions.cancelar-assinatura-numero]
+verify_jwt = true
+
+[functions.webhook-phone-subscription]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.send-whatsapp-batch]
+verify_jwt = false
+
+[functions.enviar-whatsapp]
+verify_jwt = true
