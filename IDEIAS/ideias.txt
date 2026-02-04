@@ -1,0 +1,10 @@
+1) Colocar ícone de olho no momento de fazer login
+
+2) adicionar cadastro de cliente via whatsapp automatizado e permitindo confirmação ou alteração do médico
+e sempre confirmando com o cliente sobre os dados imputados
+
+3) dashboard interativa na homepage
+
+4) arrumar a seção profissionais da dashboard após logado
+
+5) fazer integração com o whatsapp

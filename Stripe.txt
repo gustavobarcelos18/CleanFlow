@@ -1,0 +1,19 @@
+Stripe Webhook Signing Secret: 	whsec_l3siDFaLN9isez4ZgNKEoMivUt0ZRglb
+Destination ID: 		we_1SbSueGigRe8DsVJQavAkgFJ
+Endpoint URL: 			https://iqlkaqvhvkjximxdksns.supabase.co/functions/v
+Chave Publicável:		pk_live_51ONgx4GigRe8DsVJMakoIwTK7gijQ0YtjfiOcUgfTyfh9tPTQVn1lvQQcJiqghpPTzvLEH46maxtWZl2tc6FGy5S00jqNf7PKy
+Chave Secreta:			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
+
+💳 Cartão para Teste de Sucesso (Aprovado)
+Use este cartão para simular uma compra bem-sucedida:
+
+Número do Cartão: 4242 4242 4242 4242
+Validade: Qualquer data futura (ex: 12/30 ou 12/2030)
+CVC (Código de Segurança): Qualquer número de 3 dígitos (ex: 123)
+CEP (Zip Code): Qualquer CEP válido (ex: 12345-678 ou 01001-000)
+Outros Cenários (Opcional)
+Se você quiser testar o que acontece quando um cartão falha, use estes números:
+
+Cartão Recusado (Genérico): 4000 0000 0000 0002
+Saldo Insuficiente: 4000 0000 0000 0099
+Para todos esses, a validade e o CVC podem ser quaisquer números válidos.
