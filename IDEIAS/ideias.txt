@@ -1,10 +1,22 @@
-1) Colocar ícone de olho no momento de fazer login
+=-=-=-=-=-=-=-=PARA FAZER -=-=-=-=-=-=-=-=-
 
-2) adicionar cadastro de cliente via whatsapp automatizado e permitindo confirmação ou alteração do médico
+- Adicionar cadastro de cliente via whatsapp automatizado e permitindo confirmação ou alteração do médico
 e sempre confirmando com o cliente sobre os dados imputados
 
-3) dashboard interativa na homepage
+- Comprando os creditos da meta e revender para os clientes utilizarem
 
-4) arrumar a seção profissionais da dashboard após logado
+- Dashboard interativa na homepage
 
-5) fazer integração com o whatsapp
+- Fazer integração com o whatsapp
+
+- Arrumar a homepage de forma mais bonita, deixar mais profissional
+
+- Arrumar a página de login de forma mais bonita, deixar mais profissional
+
+- Fazer login com apple na aba de login
+
+-=-=-=-=-=-=-=-=- FEITO -=-=-=-=-=-=-=-=-
+
+- Adicionar um olho para ver a senha no login e na pagina de cadastro.
+
+- Arrumar a seção profissionais da dashboard após logado

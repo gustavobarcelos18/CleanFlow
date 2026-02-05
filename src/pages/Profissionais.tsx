@@ -11,8 +11,7 @@ import {
   Loader2,
   Search,
   Mail,
-  Phone,
-  Phone,
+  Phone as IconeTelefone,
   FileText,
   Upload
 } from "lucide-react";
@@ -60,7 +59,7 @@ const Profissionais = () => {
         .order('nome');
 
       if (error) throw error;
-      setProfessionals(data || []);
+      setProfessionals((data as any) || []);
     } catch (error) {
       console.error('Erro ao buscar profissionais:', error);
       toast({
@@ -158,7 +157,7 @@ const Profissionais = () => {
                   )}
                   {professional.telefone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <IconeTelefone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{professional.telefone}</span>
                     </div>
                   )}

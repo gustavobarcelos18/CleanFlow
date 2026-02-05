@@ -52,21 +52,21 @@ export function useUserRoles() {
 
     try {
       // Fetch organization roles from user_unit_roles
-      const { data: unitRoles, error: unitRolesError } = await supabase
-        .from('user_unit_roles')
+      const { data: unitRoles, error: unitRolesError } = await (supabase
+        .from('user_unit_roles' as any)
         .select('role')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as any);
 
       if (unitRolesError) {
         console.error('[useUserRoles] Error fetching unit roles:', unitRolesError);
       }
 
       // Fetch system roles from system_users
-      const { data: systemUser, error: systemError } = await supabase
-        .from('system_users')
+      const { data: systemUser, error: systemError } = await (supabase
+        .from('system_users' as any)
         .select('system_role, active')
         .eq('id', user.id)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (systemError) {
         console.error('[useUserRoles] Error fetching system user:', systemError);

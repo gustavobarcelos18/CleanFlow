@@ -11,6 +11,8 @@ import { BillingProvider } from "@/hooks/useBilling";
 import { BillingBanner } from "@/components/billing/BillingBanner";
 import { RequireRole, RoleGuards } from "@/components/auth/RequireRole";
 import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/erros/ErrorBoundary";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import("./pages/Landing"));
@@ -118,6 +120,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Wrapper para injetar IDs de contexto no ErrorBoundary
+ */
+function ErrorBoundaryWrapper({ children }: { children: React.ReactNode }) {
+  const { user, profile } = useAuth();
+  const orgContext = useOrganizationContext();
+
+  return (
+    <ErrorBoundary
+      user_id={user?.id}
+      tenant_id={profile?.tenant_id}
+      organization_id={profile?.organization_id}
+      organization_unit_id={orgContext?.currentUnit?.id}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="cleanflow-ui-theme">
@@ -129,429 +150,432 @@ const App = () => (
             <TenantProvider>
               <OrganizationProvider>
                 <BillingProvider>
-                  <Suspense
-                    fallback={
-                      <div className="flex items-center justify-center min-h-screen">
-                        <p className="text-muted-foreground">Carregando...</p>
-                      </div>
-                    }
-                  >
-                    <Routes>
-                      <Route path="/" element={<Landing />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<Signup />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/support" element={<SupportIndex />} />
-                      <Route path="/agendar" element={<AgendamentoPublico />} />
-                      <Route path="/onboarding-negocio" element={<OnboardingNegocio />} />
-                      <Route path="/patient-login" element={<PatientLogin />} />
-                      <Route path="/patient-portal" element={<PatientPortal />} />
+                  <ErrorBoundaryWrapper>
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center min-h-screen">
+                          <p className="text-muted-foreground">Carregando...</p>
+                        </div>
+                      }
+                    >
+                      <Routes>
+                        {/* ... existing routes ... */}
+                        <Route path="/" element={<Landing />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/privacy" element={<Privacy />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/support" element={<SupportIndex />} />
+                        <Route path="/agendar" element={<AgendamentoPublico />} />
+                        <Route path="/onboarding-negocio" element={<OnboardingNegocio />} />
+                        <Route path="/patient-login" element={<PatientLogin />} />
+                        <Route path="/patient-portal" element={<PatientPortal />} />
 
-                      {/* Admin Routes - Protected by support roles */}
-                      <Route path="/admin/rede" element={<MultiUnitDashboard />} />
-                      <Route path="/workshop" element={<WorkshopDashboard />} />
-                      <Route path="/legal" element={<LegalDashboard />} />
-                      <Route path="/beauty" element={<BeautyDashboard />} />
-                      <Route path="/admin/login" element={<AdminLogin />} />
-                      <Route path="/admin/signup-master" element={<AdminSignupMaster />} />
-                      <Route
-                        path="/admin/dashboard"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminDashboard />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/change-password"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminChangePassword />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/tenants"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminTenants />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/users"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminUsers />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/reports"
-                        element={
-                          <RequireRole roles={[...RoleGuards.support, ...RoleGuards.financial]}>
-                            <AdminReports />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/observability"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminObservability />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/providers"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminProviders />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/integrations"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <AdminIntegrations />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/api-keys"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <IntegracoesApi />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/plugins"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <PluginsManager />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/org-governance"
-                        element={
-                          <RequireRole roles={RoleGuards.financial}> {/* Apenas Org Admins/Finance */}
-                            <OrgGovernance />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/planos"
-                        element={
-                          <RequireRole roles={RoleGuards.financial}>
-                            <Planos />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/coupons"
-                        element={
-                          <RequireRole roles={RoleGuards.financial}>
-                            <AdminCoupons />
-                          </RequireRole>
-                        }
-                      />
+                        {/* Admin Routes - Protected by support roles */}
+                        <Route path="/admin/rede" element={<MultiUnitDashboard />} />
+                        <Route path="/workshop" element={<WorkshopDashboard />} />
+                        <Route path="/legal" element={<LegalDashboard />} />
+                        <Route path="/beauty" element={<BeautyDashboard />} />
+                        <Route path="/admin/login" element={<AdminLogin />} />
+                        <Route path="/admin/signup-master" element={<AdminSignupMaster />} />
+                        <Route
+                          path="/admin/dashboard"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminDashboard />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/change-password"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminChangePassword />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/tenants"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminTenants />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/users"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminUsers />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/reports"
+                          element={
+                            <RequireRole roles={[...RoleGuards.support, ...RoleGuards.financial]}>
+                              <AdminReports />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/observability"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminObservability />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/providers"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminProviders />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/integrations"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <AdminIntegrations />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/api-keys"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <IntegracoesApi />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/plugins"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <PluginsManager />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/org-governance"
+                          element={
+                            <RequireRole roles={RoleGuards.financial}>
+                              <OrgGovernance />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/planos"
+                          element={
+                            <RequireRole roles={RoleGuards.financial}>
+                              <Planos />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/coupons"
+                          element={
+                            <RequireRole roles={RoleGuards.financial}>
+                              <AdminCoupons />
+                            </RequireRole>
+                          }
+                        />
 
-                      <Route
-                        path="/admin"
-                        element={
-                          <ProtectedRoute>
-                            <AdminIndex />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <Index />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/agenda"
-                        element={
-                          <ProtectedRoute>
-                            <Agenda />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/procedimentos"
-                        element={
-                          <ProtectedRoute>
-                            <Procedimentos />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/pacotes"
-                        element={
-                          <ProtectedRoute>
-                            <Pacotes />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/pacientes"
-                        element={
-                          <ProtectedRoute>
-                            <Pacientes />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/profissionais"
-                        element={
-                          <ProtectedRoute>
-                            <Profissionais />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/profissionais/recontratar"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <RecontratarProfissionalCsv />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/tipos-profissional"
-                        element={
-                          <ProtectedRoute>
-                            <TiposProfissional />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/especialidades"
-                        element={
-                          <ProtectedRoute>
-                            <Especialidades />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/exames"
-                        element={
-                          <ProtectedRoute>
-                            <Exames />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/perfil"
-                        element={
-                          <ProtectedRoute>
-                            <Perfil />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/configuracoes"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <Configuracoes />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/flowchat"
-                        element={
-                          <ProtectedRoute>
-                            <FlowChat />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/relatorios"
-                        element={
-                          <ProtectedRoute>
-                            <Relatorios />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/analytics"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <AnalyticsDashboard />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/prontuarios"
-                        element={
-                          <ProtectedRoute>
-                            <Prontuarios />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/atendimento"
-                        element={
-                          <ProtectedRoute>
-                            <Atendimento />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/planos-saude"
-                        element={
-                          <ProtectedRoute>
-                            <PlanosSaude />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/caixa-diario"
-                        element={
-                          <RequireRole roles={RoleGuards.financial}>
-                            <CaixaDiario />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/whatsapp-dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <WhatsAppDashboard />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/configuracoes-whatsapp"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <ConfiguracoesWhatsApp />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/lista-espera"
-                        element={
-                          <ProtectedRoute>
-                            <ListaEspera />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/financeiro"
-                        element={
-                          <RequireRole roles={RoleGuards.financial}>
-                            <Financeiro />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/unidades"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <Unidades />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/governanca"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <GovernancaTenant />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/automations"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <AutomationsFlowBuilder />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/lista-espera"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <ListaEsperaManager />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/tickets"
-                        element={
-                          <ProtectedRoute>
-                            <AdminIndex />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/governanca-tenant"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <GovernancaTenant />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/integracoes-api"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <IntegracoesApi />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/admin/whatsapp"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <AdminWhatsApp />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/tickets"
-                        element={<SupportTickets />}
-                      />
-                      <Route
-                        path="/admin/support-settings"
-                        element={
-                          <RequireRole roles={RoleGuards.support}>
-                            <SupportSettings />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/alarmes-lembretes"
-                        element={<AlarmesLembretes />}
-                      />
-                      <Route
-                        path="/admin/alarmes-lembretes"
-                        element={
-                          <RequireRole roles={RoleGuards.config}>
-                            <AdminAlarmesLembretes />
-                          </RequireRole>
-                        }
-                      />
-                      <Route
-                        path="/organization-manager"
-                        element={
-                          <RequireRole roles={RoleGuards.orgLevel}>
-                            <OrganizationManager />
-                          </RequireRole>
-                        }
-                      />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
+                        <Route
+                          path="/admin"
+                          element={
+                            <ProtectedRoute>
+                              <AdminIndex />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <Index />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/agenda"
+                          element={
+                            <ProtectedRoute>
+                              <Agenda />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/procedimentos"
+                          element={
+                            <ProtectedRoute>
+                              <Procedimentos />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/pacotes"
+                          element={
+                            <ProtectedRoute>
+                              <Pacotes />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/pacientes"
+                          element={
+                            <ProtectedRoute>
+                              <Pacientes />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/profissionais"
+                          element={
+                            <ProtectedRoute>
+                              <Profissionais />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/profissionais/recontratar"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <RecontratarProfissionalCsv />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/tipos-profissional"
+                          element={
+                            <ProtectedRoute>
+                              <TiposProfissional />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/especialidades"
+                          element={
+                            <ProtectedRoute>
+                              <Especialidades />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/exames"
+                          element={
+                            <ProtectedRoute>
+                              <Exames />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/perfil"
+                          element={
+                            <ProtectedRoute>
+                              <Perfil />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/configuracoes"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <Configuracoes />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/flowchat"
+                          element={
+                            <ProtectedRoute>
+                              <FlowChat />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/relatorios"
+                          element={
+                            <ProtectedRoute>
+                              <Relatorios />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/analytics"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <AnalyticsDashboard />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/prontuarios"
+                          element={
+                            <ProtectedRoute>
+                              <Prontuarios />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/atendimento"
+                          element={
+                            <ProtectedRoute>
+                              <Atendimento />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/planos-saude"
+                          element={
+                            <ProtectedRoute>
+                              <PlanosSaude />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/caixa-diario"
+                          element={
+                            <RequireRole roles={RoleGuards.financial}>
+                              <CaixaDiario />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/whatsapp-dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <WhatsAppDashboard />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/configuracoes-whatsapp"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <ConfiguracoesWhatsApp />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/lista-espera"
+                          element={
+                            <ProtectedRoute>
+                              <ListaEspera />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/financeiro"
+                          element={
+                            <RequireRole roles={RoleGuards.financial}>
+                              <Financeiro />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/unidades"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <Unidades />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/governanca"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <GovernancaTenant />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/automations"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <AutomationsFlowBuilder />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/lista-espera"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <ListaEsperaManager />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/tickets"
+                          element={
+                            <ProtectedRoute>
+                              <AdminIndex />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/governanca-tenant"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <GovernancaTenant />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/integracoes-api"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <IntegracoesApi />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/admin/whatsapp"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <AdminWhatsApp />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/tickets"
+                          element={<SupportTickets />}
+                        />
+                        <Route
+                          path="/admin/support-settings"
+                          element={
+                            <RequireRole roles={RoleGuards.support}>
+                              <SupportSettings />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/alarmes-lembretes"
+                          element={<AlarmesLembretes />}
+                        />
+                        <Route
+                          path="/admin/alarmes-lembretes"
+                          element={
+                            <RequireRole roles={RoleGuards.config}>
+                              <AdminAlarmesLembretes />
+                            </RequireRole>
+                          }
+                        />
+                        <Route
+                          path="/organization-manager"
+                          element={
+                            <RequireRole roles={RoleGuards.orgLevel}>
+                              <OrganizationManager />
+                            </RequireRole>
+                          }
+                        />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </ErrorBoundaryWrapper>
                 </BillingProvider>
               </OrganizationProvider>
             </TenantProvider>

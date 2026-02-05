@@ -30,6 +30,7 @@ export default {
           hover: "hsl(var(--primary-hover))",
           light: "hsl(var(--primary-light))",
         },
+        "medical-cyan": "hsl(var(--medical-cyan))",
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

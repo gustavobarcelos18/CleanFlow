@@ -37,19 +37,19 @@ const fixedItems = [
     title: "Dashboard",
     icon: Home,
     href: "/dashboard",
-    color: "text-primary"
+    color: "text-medical-cyan"
   },
   {
     title: "Agenda do Dia",
     icon: Calendar,
     href: "/agenda",
-    color: "text-primary"
+    color: "text-medical-cyan"
   },
   {
     title: "Atendimento",
     icon: FileEdit,
     href: "/atendimento",
-    color: "text-primary"
+    color: "text-medical-cyan"
   }
 ];
 

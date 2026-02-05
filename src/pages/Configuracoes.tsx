@@ -56,8 +56,10 @@ import {
   Save,
   Layers,
   CreditCard,
-  Users
+  Users,
+  HelpCircle
 } from "lucide-react";
+import { useRef } from "react";
 import FinanceiroConfig from "@/components/configuracoes/FinanceiroConfig";
 import SegmentoConfig from "@/components/configuracoes/SegmentoConfig";
 import PlanosConfig from "@/components/configuracoes/PlanosConfig";
@@ -106,30 +108,29 @@ const Configuracoes = () => {
     }
   }, [tenantData]);
 
-  // Apply font size and colors immediately for preview
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  // Apply font size and colors ONLY to the preview container
   useEffect(() => {
-    const root = document.documentElement;
+    const previewElement = previewRef.current;
+    if (!previewElement) return;
 
     // Font Size
     if (clinicData.fontSize) {
-      root.style.fontSize = `${clinicData.fontSize}px`;
+      previewElement.style.fontSize = `${clinicData.fontSize}px`;
     }
 
     // Colors
     if (clinicData.primaryColor) {
       const hsl = hexToHSL(clinicData.primaryColor);
-      root.style.setProperty('--primary', hsl);
-      // Also update ring and sidebar-primary to match
-      root.style.setProperty('--ring', hsl);
-      root.style.setProperty('--sidebar-primary', hsl);
+      previewElement.style.setProperty('--primary', hsl);
+      previewElement.style.setProperty('--ring', hsl);
     }
 
     if (clinicData.accentColor) {
       const hsl = hexToHSL(clinicData.accentColor);
-      root.style.setProperty('--accent', hsl);
+      previewElement.style.setProperty('--accent', hsl);
     }
-
-    // Cleanup/Revert is handled by useTenantData when component unmounts or tenantData changes
   }, [clinicData.fontSize, clinicData.primaryColor, clinicData.accentColor]);
 
   const handleSaveConfiguracoes = async () => {
@@ -227,6 +228,7 @@ const Configuracoes = () => {
   };
 
   return (
+
     <MainLayout>
       <div className="space-y-6">
         <div>
@@ -535,7 +537,10 @@ const Configuracoes = () => {
                   </div>
 
                   {/* Preview Section */}
-                  <div className="mt-8 p-6 border rounded-lg bg-background/50">
+                  <div
+                    ref={previewRef}
+                    className="mt-8 p-6 border rounded-lg bg-background/50"
+                  >
                     <h4 className="text-sm font-medium text-muted-foreground mb-4">Visualização</h4>
                     <div className="space-y-4">
                       <div>

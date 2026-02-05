@@ -18,17 +18,20 @@ export function useSidebarWidth() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
-        .from('user_preferences')
+      const { data } = await (supabase
+        .from('user_preferences' as any)
         .select('sidebar_width')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (data?.sidebar_width) {
         setWidth(data.sidebar_width);
       }
-    } catch (error) {
-      console.error('Erro ao carregar largura da sidebar:', error);
+    } catch (error: any) {
+      // Ignora erro se a tabela não existir ou outro erro de busca, mantendo o fallback DEFAULT_WIDTH
+      if (error?.code !== 'PGRST116' && error?.status !== 404) {
+        console.error('Erro ao carregar largura da sidebar:', error);
+      }
     }
   };
 
@@ -37,15 +40,15 @@ export function useSidebarWidth() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
-        .from('user_preferences')
+      await (supabase
+        .from('user_preferences' as any)
         .upsert({
           user_id: user.id,
           sidebar_width: newWidth,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
-        });
+        } as any) as any);
     } catch (error) {
       console.error('Erro ao salvar largura da sidebar:', error);
     }
