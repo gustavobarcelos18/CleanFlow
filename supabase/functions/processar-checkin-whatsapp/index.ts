@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
   if (corsResponse) return corsResponse;
 
   const logger = new EdgeLogger();
-  
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -29,12 +29,15 @@ Deno.serve(async (req) => {
     const { agendamento_id, paciente_id, tenant_id, etapa, valor, foto_url } = payload;
 
     // Buscar ou criar registro de check-in
-    let { data: checkin, error: errorCheckin } = await supabase
+    const checkinResponse = await supabase
       .from('checkin_whatsapp')
       .select('*')
       .eq('agendamento_id', agendamento_id)
       .eq('paciente_id', paciente_id)
       .single();
+
+    let checkin = checkinResponse.data;
+    const errorCheckin = checkinResponse.error;
 
     if (errorCheckin && errorCheckin.code !== 'PGRST116') {
       throw errorCheckin;
@@ -68,7 +71,7 @@ Deno.serve(async (req) => {
     const tipoServico = (agendamento?.servicos as any)?.tipo || 'geral';
 
     // Processar cada etapa
-    let updateData: any = { etapa_atual: etapa };
+    const updateData: any = { etapa_atual: etapa };
     let proximaEtapa = '';
     let mensagemResposta = '';
 
@@ -159,7 +162,7 @@ Deno.serve(async (req) => {
         updateData.status = 'completo';
         updateData.pronto_atendimento = true;
         proximaEtapa = 'concluido';
-        
+
         mensagemResposta = '✅ *Check-in concluído!*\n\n' +
           '🎉 Você está pronto para o atendimento!\n\n' +
           'Seus dados foram registrados com sucesso. Aguarde sua consulta.';
@@ -199,7 +202,7 @@ Deno.serve(async (req) => {
 
     // Atualizar check-in
     updateData.etapa_atual = proximaEtapa || etapa;
-    
+
     const { error: errorUpdate } = await supabase
       .from('checkin_whatsapp')
       .update(updateData)

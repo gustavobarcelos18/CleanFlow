@@ -24,7 +24,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Interceptor para logging automático de erros
 const originalFrom = supabase.from.bind(supabase);
 
-// @ts-ignore - Sobrescrevendo para adicionar interceptor de erro mantendo tipagem original onde possível
+// @ts-expect-error - Sobrescrevendo para adicionar interceptor de erro mantendo tipagem original onde possível
 supabase.from = function <T extends string & keyof Database['public']['Tables']>(table: T) {
   const query = originalFrom(table);
   const originalThen = query.then?.bind(query);

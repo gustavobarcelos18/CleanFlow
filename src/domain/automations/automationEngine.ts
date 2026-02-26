@@ -113,10 +113,11 @@ export const automationEngine = {
         const config = node.config_json;
 
         switch (config.condition_type) {
-            case 'check_risk_noshow':
+            case 'check_risk_noshow': {
                 // Verificar risco no payload (agendamento já tem o score calculado)
                 const score = context.data?.agendamento?.no_show_score || 0;
                 return score >= (config.threshold || 70);
+            }
 
             case 'check_unit':
                 return context.data?.unidade_id === config.unit_id;

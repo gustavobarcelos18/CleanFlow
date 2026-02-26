@@ -20,7 +20,7 @@ function sanitize(text: string | undefined): string {
     if (!text) return "";
 
     // Exemplo básico de sanitização: remover padrões de e-mail e tokens
-    let cleanText = text
+    const cleanText = text
         .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]")
         .replace(/eyJ[a-zA-Z0-9._-]{10,}/g, "[TOKEN]");
 

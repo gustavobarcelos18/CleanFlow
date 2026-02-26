@@ -49,17 +49,40 @@ const Profissionais = () => {
   const fetchProfessionals = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data: profData, error: profError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          especialidades:especialidade_id(nome)
-        `)
+        .select('*')
         .eq('role', 'profissional')
         .order('nome');
 
-      if (error) throw error;
-      setProfessionals((data as any) || []);
+      if (profError) throw profError;
+
+      // Extract unique IDs safely
+      const especialidadeIds = [...new Set(profData.map(p => p.especialidade_id).filter(Boolean))];
+
+      let especialidadesMap: Record<string, string> = {};
+      if (especialidadeIds.length > 0) {
+        const { data: espData, error: espError } = await supabase
+          .from('especialidades')
+          .select('id, nome')
+          .in('id', especialidadeIds);
+
+        if (!espError && espData) {
+          especialidadesMap = espData.reduce((acc, curr) => {
+            acc[curr.id] = curr.nome;
+            return acc;
+          }, {} as Record<string, string>);
+        }
+      }
+
+      const professionalsWithEspecialidades = profData.map(p => ({
+        ...p,
+        especialidades: p.especialidade_id && especialidadesMap[p.especialidade_id]
+          ? { nome: especialidadesMap[p.especialidade_id] }
+          : null
+      }));
+
+      setProfessionals((professionalsWithEspecialidades as any) || []);
     } catch (error) {
       console.error('Erro ao buscar profissionais:', error);
       toast({

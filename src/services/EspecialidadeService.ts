@@ -190,7 +190,7 @@ export class EspecialidadeService {
     static buscarSugestoes(termo: string, area?: string): EspecialidadeCFM[] {
         const termoLower = termo.toLowerCase();
 
-        let especialidades = area
+        const especialidades = area
             ? this.buscarPorArea(area)
             : [
                 ...especialidadesMedicas,

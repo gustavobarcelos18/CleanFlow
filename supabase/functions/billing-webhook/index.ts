@@ -38,7 +38,7 @@ serve(async (req) => {
         const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
 
         let event;
-        let provider = 'stripe'; // Default to stripe for now
+        const provider = 'stripe'; // Default to stripe for now
 
         // Signature Verification
         if (webhookSecret && stripeKey && signature) {
@@ -68,7 +68,7 @@ serve(async (req) => {
         }
 
         let processed = false;
-        let details = {};
+        const details = {};
 
         logStep("Processing event", { type: event.type, id: event.id });
 

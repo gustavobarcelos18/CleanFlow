@@ -573,7 +573,7 @@ export default function OnboardingSegmento({ onComplete, onBack }: OnboardingSeg
           </div>
         );
 
-      case 6:
+      case 6: {
         const segmento = SEGMENTOS.find(s => s.codigo === segmentoSelecionado);
         const modo = MODOS_AGENDA.find(m => m.valor === modoAgenda);
         return (
@@ -656,6 +656,7 @@ export default function OnboardingSegmento({ onComplete, onBack }: OnboardingSeg
             </div>
           </div>
         );
+      }
 
       default:
         return null;

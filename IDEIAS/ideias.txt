@@ -15,8 +15,18 @@ e sempre confirmando com o cliente sobre os dados imputados
 
 - Fazer login com apple na aba de login
 
+- Integrar os planos com Stripe
+
+- 
+
+- Integrar OPA Messenger com o CleanFlow, dando aos clientes link personalizado para
+divulgar o OPA, ganhando desconto nas mensalidades. Clientes que mais divulgarem ganharão
+prêmios como copos, garrafas térmicas, agendas, etc personalizadas CleanFlow + OPA Messenger.
+
 -=-=-=-=-=-=-=-=- FEITO -=-=-=-=-=-=-=-=-
 
 - Adicionar um olho para ver a senha no login e na pagina de cadastro.
 
-- Arrumar a seção profissionais da dashboard após logado
+- Arrumar a seção profissionais da dashboard após logado.
+
+- ErroBoundary configurado.

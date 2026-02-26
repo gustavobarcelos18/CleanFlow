@@ -108,7 +108,7 @@ export default function AgendamentoPublico() {
       const endHour = 18;
 
       for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute of [0, 30]) {
+        for (const minute of [0, 30]) {
           const slotTime = new Date(selectedDate);
           slotTime.setHours(hour, minute, 0, 0);
 

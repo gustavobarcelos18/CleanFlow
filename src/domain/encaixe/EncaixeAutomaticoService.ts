@@ -248,7 +248,7 @@ Responda:
 
                 return { tipo: 'confirmacao', acao: 'Agendamento confirmado!' };
 
-            case 'encaixe':
+            case 'encaixe': {
                 // Buscar oferta pendente para este paciente
                 const { data: oferta } = await supabase
                     .from('encaixe_ofertas')
@@ -264,8 +264,9 @@ Responda:
                     return { tipo: 'encaixe', acao: 'Horário reservado com sucesso!' };
                 }
                 break;
+            }
 
-            case 'cancelamento':
+            case 'cancelamento': {
                 // Cancelar próximo agendamento
                 const { data: agendamentoCancelar } = await supabase
                     .from('agenda')
@@ -289,6 +290,7 @@ Responda:
                     return { tipo: 'cancelamento', acao: 'Agendamento cancelado.' };
                 }
                 break;
+            }
         }
 
         return null;

@@ -278,6 +278,7 @@ const AdminReports = () => {
       }
 
       // Registrar exportação
+      // @ts-expect-error: o tipo 'registrar_exportacao' pode não estar presente em Database['public']['Functions'] no types.ts
       await supabase.rpc('registrar_exportacao', {
         p_user_id: user.id,
         p_export_type: 'support_report',
@@ -328,7 +329,7 @@ const AdminReports = () => {
       ],
     });
 
-    // @ts-ignore
+    // @ts-expect-error: tipagem customizada do autoTable no jsPDF
     finalY = doc.lastAutoTable.finalY + 15;
 
     // Tickets por Status
@@ -341,7 +342,7 @@ const AdminReports = () => {
       body: reportData.ticketsByStatus.map(item => [item.name, item.value]),
     });
 
-    // @ts-ignore
+    // @ts-expect-error: tipagem customizada do autoTable no jsPDF
     finalY = doc.lastAutoTable.finalY + 15;
 
     // Performance da Equipe
