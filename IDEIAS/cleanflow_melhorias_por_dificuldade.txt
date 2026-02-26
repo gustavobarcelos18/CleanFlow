@@ -1,0 +1,81 @@
+CLEANFLOW — MELHORIAS ORGANIZADAS POR NÍVEL DE DIFICULDADE
+(Resumo prático para virar backlog e sprint)
+
+================================================================================
+NÍVEL: FÁCIL ✅
+================================================================================
+1) Acessibilidade (a11y) em botões de ícone
+   - Adicionar aria-label / descrições nos botões de ícone (ex.: Agenda.tsx, Sidebar.tsx)
+   - Objetivo: melhorar suporte a leitores de tela e padronizar interação
+
+2) Experiência de carregamento premium (básico)
+   - Trocar “Carregando...” e spinners simples por Skeleton do shadcn/ui
+   - Começar pelas listas e telas com maior uso (Pacientes, Profissionais, Agenda)
+
+3) Mensagens amigáveis para falhas de rede
+   - Padronizar feedback quando Supabase retornar 404/500
+   - Evitar “quebra” de UI por erro não tratado
+
+================================================================================
+NÍVEL: MÉDIO 🟡
+================================================================================
+4) Otimização de queries Supabase (redução de payload)
+   - Evitar select('*') em páginas como Pacientes.tsx e Profissionais.tsx
+   - Selecionar apenas colunas necessárias
+   - Resultado: menos dados trafegados, mais rápido, menos custo
+
+5) Paginação controlada (server-side)
+   - Implementar paginação nas listas (range/limit)
+   - Integrar com React Query mantendo dados anteriores (menos “pisca” na UI)
+
+6) Consistência de tema e identidade visual (proteção do visual)
+   - Criar SidebarContext para gerenciar estado visual do menu
+   - Evitar que variáveis globais do tema da clínica alterem a identidade do software
+
+================================================================================
+NÍVEL: DIFÍCIL 🔥
+================================================================================
+7) Tipagem rigorosa TypeScript (redução de any em massa)
+   - Gerar e usar tipos automáticos do Supabase de forma sistemática
+   - Eliminar any em hooks e serviços críticos (useAuth.tsx, useUserRoles.tsx, etc.)
+   - Resultado: menos bugs silenciosos, IDE mais feliz, ESLint mais limpo
+
+8) Remover setTimeout do fluxo de autenticação
+   - Substituir setTimeout em useAuth.tsx por lógica robusta baseada em promises/eventos
+   - Ajustar onAuthStateChange para evitar race conditions e estados inconsistentes
+
+================================================================================
+NÍVEL: MUITO DIFÍCIL 🧨
+================================================================================
+9) Centralização do Supabase Realtime
+   - Evitar múltiplos canais por componente
+   - Criar hook/contexto global para gerenciar inscrições
+   - Garantir cleanup perfeito para não vazar conexões nem duplicar eventos
+
+10) Refatoração da Agenda (arquivo gigante)
+   - Quebrar Agenda.tsx (800+ linhas) em subcomponentes:
+     - AgendaTimelineView (linha do tempo)
+     - AgendaCardView (cards)
+     - AgendaNavigation (data/filtros)
+     - AgendaDialogs (dialogs criar/editar)
+   - Resultado: manutenção mais fácil, testes mais simples, menos risco de regressão
+
+11) Operações de lote via RPC (Stored Procedures) no Supabase
+   - Para reorganização de horários e múltiplos updates (Agenda.tsx), usar RPC
+   - Reduzir loops com vários updates sequenciais
+   - Resultado: performance e consistência melhores, menos chance de falha parcial
+
+================================================================================
+BÔNUS (ROBUSTEZ / SUPORTE) 🛡️
+================================================================================
+12) ErrorBoundary global + registro para suporte
+   - Implementar ErrorBoundary global para capturar erros de renderização
+   - Registrar erro de forma segura e criar ticket no backend com contexto mínimo
+
+================================================================================
+SUGESTÃO DE ORDEM PRÁTICA (pra sentir evolução rápido) 🎯
+================================================================================
+- Começar: FÁCIL (a11y + Skeleton + mensagens de erro)
+- Depois: MÉDIO (queries + paginação + SidebarContext)
+- Em seguida: DIFÍCIL (tipos Supabase + remover setTimeout do auth)
+- Por fim: MUITO DIFÍCIL (Realtime central + Agenda refatorada + RPC)
