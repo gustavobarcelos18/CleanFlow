@@ -1,50 +1,49 @@
 import React from "react";
-import {
-  Target,
-  Heart,
-  Zap,
-  Shield,
-  Users,
-  TrendingUp
-} from "lucide-react";
+import { Target, Heart, Zap, Shield, Users, TrendingUp } from "lucide-react";
 
 const pillars = [
   {
     icon: Target,
     title: "Foco no Profissional",
-    description: "Desenvolvido para profissionais liberais e empresas de serviços. Cada funcionalidade foi pensada para resolver problemas reais de agendamento e gestão.",
-    color: "from-blue-500 to-cyan-500"
+    description:
+      "Desenvolvido para profissionais liberais e empresas de serviços. Cada funcionalidade foi pensada para resolver problemas reais de agendamento e gestão.",
+    color: "from-blue-500 to-cyan-500",
   },
   {
     icon: Zap,
     title: "Automação Inteligente",
-    description: "Reduza 80% do trabalho manual com automações de WhatsApp, confirmações automáticas e IA que prevê faltas antes que aconteçam.",
-    color: "from-purple-500 to-pink-500"
+    description:
+      "Reduza 80% do trabalho manual com automações de WhatsApp, confirmações automáticas e IA que prevê faltas antes que aconteçam.",
+    color: "from-purple-500 to-pink-500",
   },
   {
     icon: Heart,
     title: "Experiência do Cliente",
-    description: "Portal do cliente, agendamento online, confirmações por WhatsApp e lembretes automáticos. Seus clientes vão amar.",
-    color: "from-red-500 to-orange-500"
+    description:
+      "Portal do cliente, agendamento online, confirmações por WhatsApp e lembretes automáticos. Seus clientes vão amar.",
+    color: "from-red-500 to-orange-500",
   },
   {
     icon: TrendingUp,
     title: "Crescimento Sustentável",
-    description: "Analytics em tempo real, insights acionáveis e relatórios que ajudam você a tomar decisões baseadas em dados para crescer seu negócio.",
-    color: "from-green-500 to-emerald-500"
+    description:
+      "Analytics em tempo real, insights acionáveis e relatórios que ajudam você a tomar decisões baseadas em dados para crescer seu negócio.",
+    color: "from-green-500 to-emerald-500",
   },
   {
     icon: Shield,
     title: "Segurança Máxima",
-    description: "100% conforme LGPD, criptografia end-to-end, backup automático e auditoria completa. Seus dados e dos seus clientes estão seguros.",
-    color: "from-yellow-500 to-orange-500"
+    description:
+      "100% conforme LGPD, criptografia end-to-end, backup automático e auditoria completa. Seus dados e dos seus clientes estão seguros.",
+    color: "from-yellow-500 to-orange-500",
   },
   {
     icon: Users,
     title: "Suporte Dedicado",
-    description: "Time brasileiro disponível para ajudar. Onboarding personalizado, treinamento completo e suporte contínuo para seu sucesso.",
-    color: "from-indigo-500 to-purple-500"
-  }
+    description:
+      "Time brasileiro disponível para ajudar. Onboarding personalizado, treinamento completo e suporte contínuo para seu sucesso.",
+    color: "from-indigo-500 to-purple-500",
+  },
 ];
 
 const activities = [
@@ -67,13 +66,13 @@ export function ValuePillars() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Perfeito para
-              <span className="block mt-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="block mt-2 pb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Diversos Segmentos
               </span>
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300">
-              Seja você profissional autônomo ou empresa com equipe,
-              o CleanFlow se adapta ao seu negócio
+              Seja você profissional autônomo ou empresa com equipe, o CleanFlow
+              se adapta ao seu negócio
             </p>
           </div>
 
@@ -95,7 +94,8 @@ export function ValuePillars() {
 
           <div className="mt-8 text-center">
             <p className="text-slate-600 dark:text-slate-400">
-              E muitos outros segmentos que trabalham com agendamento de horários
+              E muitos outros segmentos que trabalham com agendamento de
+              horários
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export function ValuePillars() {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Por que escolher o
-            <span className="block mt-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="block mt-2 pb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               CleanFlow?
             </span>
           </h2>
@@ -124,10 +124,14 @@ export function ValuePillars() {
                 className="group relative bg-slate-50 dark:bg-slate-900 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-transparent overflow-hidden"
               >
                 {/* Gradient Background on Hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${pillar.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${pillar.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                />
 
                 {/* Icon */}
-                <div className={`relative inline-flex p-4 rounded-2xl bg-gradient-to-br ${pillar.color} mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div
+                  className={`relative inline-flex p-4 rounded-2xl bg-gradient-to-br ${pillar.color} mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                >
                   <Icon className="h-8 w-8 text-white" />
                 </div>
 
@@ -147,7 +151,7 @@ export function ValuePillars() {
         {/* Stats */}
         <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2 pb-1">
               1.200+
             </div>
             <div className="text-sm text-slate-600 dark:text-slate-400">
@@ -155,7 +159,7 @@ export function ValuePillars() {
             </div>
           </div>
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 pb-1">
               70%
             </div>
             <div className="text-sm text-slate-600 dark:text-slate-400">
@@ -163,7 +167,7 @@ export function ValuePillars() {
             </div>
           </div>
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 pb-1">
               99.9%
             </div>
             <div className="text-sm text-slate-600 dark:text-slate-400">
@@ -171,7 +175,7 @@ export function ValuePillars() {
             </div>
           </div>
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2 pb-1">
               4.8/5
             </div>
             <div className="text-sm text-slate-600 dark:text-slate-400">

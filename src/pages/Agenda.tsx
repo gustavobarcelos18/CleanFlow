@@ -9,12 +9,31 @@ import { EditAppointmentDialog } from "@/components/schedule/EditAppointmentDial
 import { NextDayPreview } from "@/components/schedule/NextDayPreview";
 import { MonthlyCalendar } from "@/components/schedule/MonthlyCalendar";
 import { DigitalClock } from "@/components/schedule/DigitalClock";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Filter, Search, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Filter,
+  Search,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, addDays, subDays, startOfDay, endOfDay, isToday, isValid } from "date-fns";
+import {
+  format,
+  addDays,
+  subDays,
+  startOfDay,
+  endOfDay,
+  isToday,
+  isValid,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { detectConflict, calculateAdjustments } from "@/lib/scheduleConflicts";
@@ -33,32 +52,45 @@ import {
 const Agenda = () => {
   const [viewMode, setViewMode] = useState<"cards" | "timeline">("timeline");
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [appointmentsWithConflicts, setAppointmentsWithConflicts] = useState<any[]>([]);
+  const [appointmentsWithConflicts, setAppointmentsWithConflicts] = useState<
+    any[]
+  >([]);
   const [nextDayAppointments, setNextDayAppointments] = useState<any[]>([]);
 
-
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
-  const [deletingAppointmentId, setDeletingAppointmentId] = useState<string | null>(null);
+  const [editingAppointmentId, setEditingAppointmentId] = useState<
+    string | null
+  >(null);
+  const [deletingAppointmentId, setDeletingAppointmentId] = useState<
+    string | null
+  >(null);
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
-  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
+  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<
+    string | null
+  >(null);
   const [rescheduleTime, setRescheduleTime] = useState("");
-  const [conflictAdjustDialogOpen, setConflictAdjustDialogOpen] = useState(false);
+  const [conflictAdjustDialogOpen, setConflictAdjustDialogOpen] =
+    useState(false);
   const [conflictAdjustData, setConflictAdjustData] = useState<{
     appointmentId: string;
     newTime: string;
     affectedCount: number;
   } | null>(null);
-  const [newAppointmentDialogOpen, setNewAppointmentDialogOpen] = useState(false);
+  const [newAppointmentDialogOpen, setNewAppointmentDialogOpen] =
+    useState(false);
   const [newAppointmentTime, setNewAppointmentTime] = useState("");
   const { toast } = useToast();
 
-  const { data: appointmentsData, isLoading: isLoadingAppointments, refetch: refetchAppointments } = useAgendaDia({
-    date: selectedDate
+  const {
+    data: appointmentsData,
+    isLoading: isLoadingAppointments,
+    refetch: refetchAppointments,
+  } = useAgendaDia({
+    date: selectedDate,
   });
 
   const { data: nextDayData, isLoading: isLoadingNextDay } = useAgendaDia({
-    date: addDays(selectedDate, 1)
+    date: addDays(selectedDate, 1),
   });
 
   useEffect(() => {
@@ -67,26 +99,27 @@ const Agenda = () => {
         const inicioDate = apt?.inicio ? new Date(apt.inicio) : null;
         const fimDate = apt?.fim ? new Date(apt.fim) : null;
 
-        const safeTime = inicioDate && isValid(inicioDate)
-          ? format(inicioDate, 'HH:mm')
-          : '--:--';
+        const safeTime =
+          inicioDate && isValid(inicioDate)
+            ? format(inicioDate, "HH:mm")
+            : "--:--";
 
-        const safeDuration = (inicioDate && fimDate && isValid(inicioDate) && isValid(fimDate))
-          ? Math.round((fimDate.getTime() - inicioDate.getTime()) / 60000)
-          : 30; // default de 30 min
+        const safeDuration =
+          inicioDate && fimDate && isValid(inicioDate) && isValid(fimDate)
+            ? Math.round((fimDate.getTime() - inicioDate.getTime()) / 60000)
+            : 30; // default de 30 min
 
         return {
           id: apt.id,
-          patientName: apt.pacientes?.nome || 'Paciente',
+          patientName: apt.pacientes?.nome || "Paciente",
           time: safeTime,
-          doctor: apt.profiles?.nome || 'Profissional',
-          status: apt.status || 'pending',
-          phone: apt.pacientes?.telefone || '',
-          duration: safeDuration,
+          doctor: apt.profiles?.nome || "Profissional",
+          status: apt.status || "pending",
+          phone: apt.pacientes?.telefone || "",
           duration: safeDuration,
           ordem: apt.ordem,
           inicio: apt.inicio,
-          riskLevel: apt.no_show_risk_level
+          riskLevel: apt.no_show_risk_level,
         };
       });
 
@@ -102,13 +135,13 @@ const Agenda = () => {
           apt.id,
           aptInicio,
           aptFim,
-          formattedAppointments
+          formattedAppointments,
         );
 
         return {
           ...apt,
           hasConflict: !!conflict,
-          conflictMinutes: conflict?.overlapMinutes || 0
+          conflictMinutes: conflict?.overlapMinutes || 0,
         };
       });
 
@@ -122,24 +155,26 @@ const Agenda = () => {
         const inicioDate = apt?.inicio ? new Date(apt.inicio) : null;
         const fimDate = apt?.fim ? new Date(apt.fim) : null;
 
-        const safeTime = inicioDate && isValid(inicioDate)
-          ? format(inicioDate, 'HH:mm')
-          : '--:--';
+        const safeTime =
+          inicioDate && isValid(inicioDate)
+            ? format(inicioDate, "HH:mm")
+            : "--:--";
 
-        const safeDuration = (inicioDate && fimDate && isValid(inicioDate) && isValid(fimDate))
-          ? Math.round((fimDate.getTime() - inicioDate.getTime()) / 60000)
-          : 30;
+        const safeDuration =
+          inicioDate && fimDate && isValid(inicioDate) && isValid(fimDate)
+            ? Math.round((fimDate.getTime() - inicioDate.getTime()) / 60000)
+            : 30;
 
         return {
           id: apt.id,
-          patientName: apt.pacientes?.nome || 'Paciente',
+          patientName: apt.pacientes?.nome || "Paciente",
           time: safeTime,
-          doctor: apt.profiles?.nome || 'Profissional',
-          status: apt.status || 'pending',
-          phone: apt.pacientes?.telefone || '',
+          doctor: apt.profiles?.nome || "Profissional",
+          status: apt.status || "pending",
+          phone: apt.pacientes?.telefone || "",
           duration: safeDuration,
           ordem: apt.ordem,
-          inicio: apt.inicio
+          inicio: apt.inicio,
         };
       });
 
@@ -150,22 +185,22 @@ const Agenda = () => {
   // Configurar realtime
   useEffect(() => {
     const channel = supabase
-      .channel('agenda-changes')
+      .channel("agenda-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'agenda'
+          event: "*",
+          schema: "public",
+          table: "agenda",
         },
         (payload) => {
-          console.log('Mudança na agenda:', payload);
+          console.log("Mudança na agenda:", payload);
           // Usar um pequeno delay para evitar múltiplas chamadas simultâneas
           setTimeout(() => {
             // Invalidate queries to trigger refetch
             refetchAppointments();
           }, 100);
-        }
+        },
       )
       .subscribe();
 
@@ -181,15 +216,15 @@ const Agenda = () => {
   // }, [viewMode, selectedDate]);
 
   const handlePreviousDay = () => {
-    setSelectedDate(prev => subDays(prev, 1));
+    setSelectedDate((prev) => subDays(prev, 1));
   };
 
   const handleNextDay = () => {
-    setSelectedDate(prev => addDays(prev, 1));
+    setSelectedDate((prev) => addDays(prev, 1));
   };
 
   const handleNavigateToNextDay = () => {
-    setSelectedDate(prev => addDays(prev, 1));
+    setSelectedDate((prev) => addDays(prev, 1));
   };
 
   const handleToday = () => {
@@ -229,12 +264,15 @@ const Agenda = () => {
     { id: "slot-17:30", time: "17:30" },
   ];
 
-  const handleAppointmentMove = async (appointmentId: string, newTime: string) => {
+  const handleAppointmentMove = async (
+    appointmentId: string,
+    newTime: string,
+  ) => {
     try {
-      const appointment = appointments.find(app => app.id === appointmentId);
+      const appointment = appointments.find((app) => app.id === appointmentId);
       if (!appointment) return;
 
-      const [hours, minutes] = newTime.split(':');
+      const [hours, minutes] = newTime.split(":");
       const newInicio = new Date(appointment.inicio);
       newInicio.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
@@ -246,14 +284,15 @@ const Agenda = () => {
       if (newInicio < now) {
         toast({
           title: "Horário inválido",
-          description: "Não é possível mover um agendamento para um horário que já passou.",
-          variant: "destructive"
+          description:
+            "Não é possível mover um agendamento para um horário que já passou.",
+          variant: "destructive",
         });
         return;
       }
 
       // Detectar conflitos de horário
-      const conflictingAppointments = appointments.filter(app => {
+      const conflictingAppointments = appointments.filter((app) => {
         if (app.id === appointmentId) return false;
 
         const appInicio = new Date(app.inicio);
@@ -261,16 +300,16 @@ const Agenda = () => {
         appFim.setMinutes(appInicio.getMinutes() + app.duration);
 
         // Verificar se há sobreposição
-        return (newInicio < appFim && newFim > appInicio);
+        return newInicio < appFim && newFim > appInicio;
       });
 
       // Atualização otimista - atualizar UI imediatamente
-      const updatedAppointments = appointments.map(app => {
+      const updatedAppointments = appointments.map((app) => {
         if (app.id === appointmentId) {
           return {
             ...app,
             time: newTime,
-            inicio: newInicio.toISOString()
+            inicio: newInicio.toISOString(),
           };
         }
         return app;
@@ -278,8 +317,12 @@ const Agenda = () => {
 
       // Reajustar appointments conflitantes
       let adjustedAppointments = [...updatedAppointments];
-      const dbUpdates: Array<{ id: string, inicio: string, fim: string }> = [
-        { id: appointmentId, inicio: newInicio.toISOString(), fim: newFim.toISOString() }
+      const dbUpdates: Array<{ id: string; inicio: string; fim: string }> = [
+        {
+          id: appointmentId,
+          inicio: newInicio.toISOString(),
+          fim: newFim.toISOString(),
+        },
       ];
 
       if (conflictingAppointments.length > 0) {
@@ -288,15 +331,17 @@ const Agenda = () => {
         for (const conflicting of conflictingAppointments) {
           const conflictInicio = nextAvailableTime;
           const conflictFim = new Date(nextAvailableTime);
-          conflictFim.setMinutes(conflictInicio.getMinutes() + conflicting.duration);
+          conflictFim.setMinutes(
+            conflictInicio.getMinutes() + conflicting.duration,
+          );
 
           // Atualizar no estado local
-          adjustedAppointments = adjustedAppointments.map(app => {
+          adjustedAppointments = adjustedAppointments.map((app) => {
             if (app.id === conflicting.id) {
               return {
                 ...app,
-                time: format(conflictInicio, 'HH:mm'),
-                inicio: conflictInicio.toISOString()
+                time: format(conflictInicio, "HH:mm"),
+                inicio: conflictInicio.toISOString(),
               };
             }
             return app;
@@ -306,7 +351,7 @@ const Agenda = () => {
           dbUpdates.push({
             id: conflicting.id,
             inicio: conflictInicio.toISOString(),
-            fim: conflictFim.toISOString()
+            fim: conflictFim.toISOString(),
           });
 
           nextAvailableTime = conflictFim;
@@ -317,7 +362,7 @@ const Agenda = () => {
       setAppointments(adjustedAppointments);
 
       // Atualizar também appointmentsWithConflicts para refletir mudança imediata
-      const updatedWithConflicts = adjustedAppointments.map(apt => {
+      const updatedWithConflicts = adjustedAppointments.map((apt) => {
         const aptInicio = new Date(apt.inicio);
         const aptFim = new Date(aptInicio);
         aptFim.setMinutes(aptInicio.getMinutes() + apt.duration);
@@ -326,13 +371,13 @@ const Agenda = () => {
           apt.id,
           aptInicio,
           aptFim,
-          adjustedAppointments
+          adjustedAppointments,
         );
 
         return {
           ...apt,
           hasConflict: !!conflict,
-          conflictMinutes: conflict?.overlapMinutes || 0
+          conflictMinutes: conflict?.overlapMinutes || 0,
         };
       });
       setAppointmentsWithConflicts(updatedWithConflicts);
@@ -340,28 +385,29 @@ const Agenda = () => {
       // Salvar todas as mudanças no banco
       for (const update of dbUpdates) {
         const { error } = await supabase
-          .from('agenda')
+          .from("agenda")
           .update({
             inicio: update.inicio,
-            fim: update.fim
+            fim: update.fim,
           })
-          .eq('id', update.id);
+          .eq("id", update.id);
 
         if (error) throw error;
       }
 
       toast({
         title: "Sucesso",
-        description: conflictingAppointments.length > 0
-          ? `Horário atualizado! ${conflictingAppointments.length} consulta(s) reajustada(s).`
-          : "Horário atualizado com sucesso!"
+        description:
+          conflictingAppointments.length > 0
+            ? `Horário atualizado! ${conflictingAppointments.length} consulta(s) reajustada(s).`
+            : "Horário atualizado com sucesso!",
       });
     } catch (error) {
-      console.error('Erro ao mover agendamento:', error);
+      console.error("Erro ao mover agendamento:", error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o horário.",
-        variant: "destructive"
+        variant: "destructive",
       });
       // Reverter para estado do banco
       refetchAppointments();
@@ -380,14 +426,16 @@ const Agenda = () => {
   };
 
   const handleResolveConflict = async (appointmentId: string) => {
-    const appointment = appointmentsWithConflicts.find(apt => apt.id === appointmentId);
+    const appointment = appointmentsWithConflicts.find(
+      (apt) => apt.id === appointmentId,
+    );
     if (!appointment) return;
 
     // Mostrar dialog para ajustar horário
     setConflictAdjustData({
       appointmentId,
       newTime: appointment.time,
-      affectedCount: 0 // Calculado ao confirmar
+      affectedCount: 0, // Calculado ao confirmar
     });
     setRescheduleTime(appointment.time);
     setConflictAdjustDialogOpen(true);
@@ -397,10 +445,12 @@ const Agenda = () => {
     if (!conflictAdjustData || !rescheduleTime) return;
 
     try {
-      const appointment = appointments.find(app => app.id === conflictAdjustData.appointmentId);
+      const appointment = appointments.find(
+        (app) => app.id === conflictAdjustData.appointmentId,
+      );
       if (!appointment) return;
 
-      const [hours, minutes] = rescheduleTime.split(':');
+      const [hours, minutes] = rescheduleTime.split(":");
       const newInicio = new Date(appointment.inicio);
       newInicio.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
@@ -409,14 +459,14 @@ const Agenda = () => {
         conflictAdjustData.appointmentId,
         newInicio,
         appointment.duration,
-        appointments
+        appointments,
       );
 
       // Se há ajustes necessários e o usuário não viu o aviso ainda
       if (adjustments.length > 0 && conflictAdjustData.affectedCount === 0) {
         setConflictAdjustData({
           ...conflictAdjustData,
-          affectedCount: adjustments.length
+          affectedCount: adjustments.length,
         });
         return; // Mostrar aviso primeiro
       }
@@ -426,27 +476,27 @@ const Agenda = () => {
         {
           id: conflictAdjustData.appointmentId,
           inicio: newInicio,
-          fim: new Date(newInicio.getTime() + appointment.duration * 60000)
+          fim: new Date(newInicio.getTime() + appointment.duration * 60000),
         },
-        ...adjustments
+        ...adjustments,
       ];
 
       // Atualizar no banco
       for (const update of updates) {
         const { error } = await supabase
-          .from('agenda')
+          .from("agenda")
           .update({
             inicio: update.inicio.toISOString(),
-            fim: update.fim.toISOString()
+            fim: update.fim.toISOString(),
           })
-          .eq('id', update.id);
+          .eq("id", update.id);
 
         if (error) throw error;
       }
 
       toast({
         title: "Sucesso",
-        description: `Horário ajustado. ${adjustments.length > 0 ? `${adjustments.length} agendamento(s) posterior(es) também foram ajustados.` : ''}`
+        description: `Horário ajustado. ${adjustments.length > 0 ? `${adjustments.length} agendamento(s) posterior(es) também foram ajustados.` : ""}`,
       });
 
       // Recarregar
@@ -455,11 +505,11 @@ const Agenda = () => {
       setConflictAdjustData(null);
       setRescheduleTime("");
     } catch (error) {
-      console.error('Erro ao ajustar horários:', error);
+      console.error("Erro ao ajustar horários:", error);
       toast({
         title: "Erro",
         description: "Não foi possível ajustar os horários.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -469,16 +519,18 @@ const Agenda = () => {
       toast({
         title: "Erro",
         description: "Por favor, informe o novo horário.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
-      const appointment = appointments.find(app => app.id === rescheduleAppointmentId);
+      const appointment = appointments.find(
+        (app) => app.id === rescheduleAppointmentId,
+      );
       if (!appointment) return;
 
-      const [hours, minutes] = rescheduleTime.split(':');
+      const [hours, minutes] = rescheduleTime.split(":");
       const newInicio = new Date(appointment.inicio);
       newInicio.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
@@ -490,38 +542,41 @@ const Agenda = () => {
       if (newInicio < now) {
         toast({
           title: "Horário inválido",
-          description: "Não é possível reagendar para um horário que já passou.",
-          variant: "destructive"
+          description:
+            "Não é possível reagendar para um horário que já passou.",
+          variant: "destructive",
         });
         return;
       }
 
       // Atualizar no banco
       const { error } = await supabase
-        .from('agenda')
+        .from("agenda")
         .update({
           inicio: newInicio.toISOString(),
-          fim: newFim.toISOString()
+          fim: newFim.toISOString(),
         })
-        .eq('id', rescheduleAppointmentId);
+        .eq("id", rescheduleAppointmentId);
 
       if (error) throw error;
 
       // Atualizar UI
-      setAppointments(prev => prev.map(app => {
-        if (app.id === rescheduleAppointmentId) {
-          return {
-            ...app,
-            time: rescheduleTime,
-            inicio: newInicio.toISOString()
-          };
-        }
-        return app;
-      }));
+      setAppointments((prev) =>
+        prev.map((app) => {
+          if (app.id === rescheduleAppointmentId) {
+            return {
+              ...app,
+              time: rescheduleTime,
+              inicio: newInicio.toISOString(),
+            };
+          }
+          return app;
+        }),
+      );
 
       toast({
         title: "Sucesso",
-        description: "Horário atualizado com sucesso!"
+        description: "Horário atualizado com sucesso!",
       });
 
       // Fechar diálogo e limpar estado
@@ -529,11 +584,11 @@ const Agenda = () => {
       setRescheduleAppointmentId(null);
       setRescheduleTime("");
     } catch (error) {
-      console.error('Erro ao reagendar:', error);
+      console.error("Erro ao reagendar:", error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o horário.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -543,25 +598,27 @@ const Agenda = () => {
 
     try {
       const { error } = await supabase
-        .from('agenda')
+        .from("agenda")
         .delete()
-        .eq('id', deletingAppointmentId);
+        .eq("id", deletingAppointmentId);
 
       if (error) throw error;
 
       // Atualizar UI imediatamente
-      setAppointments(prev => prev.filter(app => app.id !== deletingAppointmentId));
+      setAppointments((prev) =>
+        prev.filter((app) => app.id !== deletingAppointmentId),
+      );
 
       toast({
         title: "Sucesso",
-        description: "Agendamento excluído com sucesso!"
+        description: "Agendamento excluído com sucesso!",
       });
     } catch (error) {
-      console.error('Erro ao excluir agendamento:', error);
+      console.error("Erro ao excluir agendamento:", error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir o agendamento.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setDeletingAppointmentId(null);
@@ -573,7 +630,9 @@ const Agenda = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{getPageTitle()}</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              {getPageTitle()}
+            </h1>
             <p className="text-muted-foreground">
               Gerenciar consultas e horários
             </p>
@@ -620,10 +679,7 @@ const Agenda = () => {
             </Button>
 
             {!isToday(selectedDate) && (
-              <Button
-                variant="outline"
-                onClick={handleToday}
-              >
+              <Button variant="outline" onClick={handleToday}>
                 Hoje
               </Button>
             )}
@@ -678,7 +734,9 @@ const Agenda = () => {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Carregando agendamentos...</p>
+              <p className="text-muted-foreground">
+                Carregando agendamentos...
+              </p>
             </div>
           </div>
         ) : (
@@ -697,8 +755,9 @@ const Agenda = () => {
                 <>
                   <div className="mb-4 p-4 bg-muted rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Arrastar e Soltar:</strong> Arraste os agendamentos para reorganizar os horários.
-                      As alterações serão salvas automaticamente.
+                      <strong>Arrastar e Soltar:</strong> Arraste os
+                      agendamentos para reorganizar os horários. As alterações
+                      serão salvas automaticamente.
                     </p>
                   </div>
                   <DragSchedule
@@ -717,7 +776,8 @@ const Agenda = () => {
                 <>
                   <div className="mb-4 p-4 bg-muted rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Arrastar e Soltar:</strong> Arraste os cards para reorganizar a ordem dos agendamentos.
+                      <strong>Arrastar e Soltar:</strong> Arraste os cards para
+                      reorganizar a ordem dos agendamentos.
                     </p>
                   </div>
                   <DragSchedule
@@ -758,21 +818,28 @@ const Agenda = () => {
             setEditingAppointmentId(null);
           }}
         >
-          <Button style={{ display: 'none' }} />
+          <Button style={{ display: "none" }} />
         </EditAppointmentDialog>
       )}
 
-      <AlertDialog open={!!deletingAppointmentId} onOpenChange={() => setDeletingAppointmentId(null)}>
+      <AlertDialog
+        open={!!deletingAppointmentId}
+        onOpenChange={() => setDeletingAppointmentId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este agendamento? Esta ação não
+              pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -780,14 +847,19 @@ const Agenda = () => {
       </AlertDialog>
 
       {/* Dialog de ajuste de conflito */}
-      <AlertDialog open={conflictAdjustDialogOpen} onOpenChange={setConflictAdjustDialogOpen}>
+      <AlertDialog
+        open={conflictAdjustDialogOpen}
+        onOpenChange={setConflictAdjustDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Ajustar Horário Conflitante</AlertDialogTitle>
             <AlertDialogDescription>
               {conflictAdjustData?.affectedCount === 0 ? (
                 <>
-                  <p className="mb-4">Ajuste o horário deste agendamento para resolver o conflito:</p>
+                  <p className="mb-4">
+                    Ajuste o horário deste agendamento para resolver o conflito:
+                  </p>
                   <Input
                     type="time"
                     value={rescheduleTime}
@@ -797,28 +869,37 @@ const Agenda = () => {
                 </>
               ) : (
                 <p>
-                  Este ajuste afetará <strong>{conflictAdjustData?.affectedCount}</strong> agendamento(s) posterior(es),
-                  que serão automaticamente remarcados. Deseja continuar?
+                  Este ajuste afetará{" "}
+                  <strong>{conflictAdjustData?.affectedCount}</strong>{" "}
+                  agendamento(s) posterior(es), que serão automaticamente
+                  remarcados. Deseja continuar?
                 </p>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setConflictAdjustDialogOpen(false);
-              setConflictAdjustData(null);
-              setRescheduleTime("");
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setConflictAdjustDialogOpen(false);
+                setConflictAdjustData(null);
+                setRescheduleTime("");
+              }}
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmConflictAdjust}>
-              {conflictAdjustData?.affectedCount === 0 ? "Verificar Ajuste" : "Confirmar Alterações"}
+              {conflictAdjustData?.affectedCount === 0
+                ? "Verificar Ajuste"
+                : "Confirmar Alterações"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>
+      <AlertDialog
+        open={rescheduleDialogOpen}
+        onOpenChange={setRescheduleDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Novo Horário</AlertDialogTitle>
@@ -835,11 +916,13 @@ const Agenda = () => {
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setRescheduleDialogOpen(false);
-              setRescheduleAppointmentId(null);
-              setRescheduleTime("");
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setRescheduleDialogOpen(false);
+                setRescheduleAppointmentId(null);
+                setRescheduleTime("");
+              }}
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmReschedule}>

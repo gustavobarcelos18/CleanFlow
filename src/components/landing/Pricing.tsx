@@ -1,241 +1,185 @@
 import React from "react";
-import { Check, X, Sparkles, Zap, Building2, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Check, X, Sparkles, Zap, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const plans = [
+const planos = [
   {
-    name: "Free Solo",
-    description: "Perfeito para começar",
-    price: "R$ 0",
-    period: "/mês",
+    nome: "Básico",
+    descricao: "Para começar com organização",
+    preco: "R$ 97",
+    periodo: "/mês",
     icon: Sparkles,
-    color: "from-slate-600 to-slate-800",
-    features: [
-      { text: "Até 50 clientes", included: true },
-      { text: "1 profissional", included: true },
-      { text: "Agenda básica", included: true },
-      { text: "WhatsApp manual", included: true },
-      { text: "Relatórios básicos", included: true },
-      { text: "Automações", included: false },
-      { text: "IA Anti Faltas", included: false },
-      { text: "API & Webhooks", included: false },
+    recursos: [
+      { texto: "Agenda online", ok: true },
+      { texto: "1 profissional", ok: true },
+      { texto: "Lembretes manuais", ok: true },
+      { texto: "Suporte por e-mail", ok: true },
+      { texto: "IA anti-faltas", ok: false },
+      { texto: "WhatsApp automático", ok: false },
     ],
-    cta: "Começar Grátis",
-    popular: false,
+    cta: "Começar agora",
+    destaque: false,
   },
   {
-    name: "Pro Solo",
-    description: "Para profissionais autônomos",
-    price: "R$ 299",
-    period: "/mês",
+    nome: "Pro",
+    descricao: "O mais escolhido para crescer",
+    preco: "R$ 197",
+    periodo: "/mês",
     icon: Zap,
-    color: "from-blue-600 to-cyan-600",
-    features: [
-      { text: "Clientes ilimitados", included: true },
-      { text: "1 profissional", included: true },
-      { text: "Agenda completa", included: true },
-      { text: "WhatsApp automático", included: true },
-      { text: "IA Anti Faltas", included: true },
-      { text: "Automações ilimitadas", included: true },
-      { text: "Analytics avançado", included: true },
-      { text: "API & Webhooks", included: true },
+    recursos: [
+      { texto: "Agenda inteligente", ok: true },
+      { texto: "IA anti-faltas (score)", ok: true },
+      { texto: "WhatsApp automático", ok: true },
+      { texto: "Encaixes e fila virtual", ok: true },
+      { texto: "Analytics de receita", ok: true },
+      { texto: "Suporte prioritário", ok: true },
     ],
-    cta: "Começar Teste Grátis",
-    popular: true,
+    cta: "Começar agora",
+    destaque: true,
   },
   {
-    name: "Empresa",
-    description: "Para empresas com equipe",
-    price: "R$ 699",
-    period: "/mês + R$ 99/profissional",
+    nome: "Empresa",
+    descricao: "Para clínicas e múltiplas salas",
+    preco: "R$ 397",
+    periodo: "/mês + R$ 49/prof.",
     icon: Building2,
-    color: "from-purple-600 to-pink-600",
-    features: [
-      { text: "Tudo do Pro Solo", included: true },
-      { text: "Profissionais ilimitados", included: true },
-      { text: "Multi-usuário", included: true },
-      { text: "Gestão de equipe", included: true },
-      { text: "Financeiro completo", included: true },
-      { text: "Prontuário/Histórico", included: true },
-      { text: "Integrações avançadas", included: true },
-      { text: "Suporte prioritário", included: true },
+    recursos: [
+      { texto: "Tudo do plano Pro", ok: true },
+      { texto: "Múltiplos profissionais", ok: true },
+      { texto: "Controle de permissões", ok: true },
+      { texto: "Multi-salas", ok: true },
+      { texto: "Integração via API", ok: true },
+      { texto: "Gerente de conta dedicado", ok: true },
     ],
-    cta: "Falar com Vendas",
-    popular: false,
-  },
-  {
-    name: "Multi-unidades",
-    description: "Para redes e franquias",
-    price: "R$ 699",
-    period: "/mês por unidade (10% desc.)",
-    icon: Network,
-    color: "from-orange-600 to-red-600",
-    features: [
-      { text: "Tudo do Empresa", included: true },
-      { text: "Unidades ilimitadas", included: true },
-      { text: "Governança centralizada", included: true },
-      { text: "Analytics consolidado", included: true },
-      { text: "Configurações por unidade", included: true },
-      { text: "White label (opcional)", included: true },
-      { text: "Gerente de conta dedicado", included: true },
-      { text: "SLA garantido", included: true },
-    ],
-    cta: "Falar com Especialista",
-    popular: false,
+    cta: "Falar com vendas",
+    destaque: false,
   },
 ];
 
 export function Pricing() {
   return (
-    <section className="py-24 bg-white dark:bg-slate-950" id="planos">
+    <section className="py-16 md:py-24 bg-[#0B1220]" id="planos">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 mb-6">
-            <Sparkles className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-300">
-              Planos Transparentes
-            </span>
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400 mb-3">
+              Planos
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
+              Invista menos que o valor de{" "}
+              <span className="text-orange-400">
+                uma única consulta perdida.
+              </span>
+            </h2>
+            <p className="text-[#A9B7D0] mt-3">
+              Cancele quando quiser. ROI visível já na primeira semana.
+            </p>
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Escolha o plano ideal para
-            <span className="block mt-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              o seu negócio
-            </span>
-          </h2>
-
-          <p className="text-xl text-slate-600 dark:text-slate-300">
-            Comece grátis e faça upgrade quando precisar. Sem taxas ocultas,
-            sem contratos longos, cancele quando quiser.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto pt-8">
-          {plans.map((plan, index) => {
-            const Icon = plan.icon;
-            return (
-              <div
-                key={index}
-                className={`relative rounded-2xl p-8 ${plan.popular
-                  ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-2xl scale-105 border-4 border-blue-400"
-                  : "bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700"
+          {/* Plans grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {planos.map((plano) => {
+              const Icon = plano.icon;
+              return (
+                <div
+                  key={plano.nome}
+                  className={`rounded-2xl p-6 border flex flex-col transition-all duration-300 relative ${
+                    plano.destaque
+                      ? "bg-gradient-to-b from-[#0B1220] to-[#071020] border-cyan-400/40 shadow-xl shadow-cyan-400/10 scale-[1.02]"
+                      : "bg-[#070B12] border-[#1B2A40] hover:border-[#2A3D55]"
                   }`}
-              >
-                {/* Popular Badge */}
-                {plan.popular && (
-                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
-                    <span className="px-4 py-1.5 text-xs font-bold rounded-full bg-yellow-400 text-slate-900 shadow-lg whitespace-nowrap">
-                      MAIS POPULAR
-                    </span>
-                  </div>
-                )}
-
-                {/* Icon */}
-                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${plan.color} mb-4`}>
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-
-                {/* Plan Name */}
-                <h3 className={`text-2xl font-bold mb-2 ${plan.popular ? "text-white" : "text-slate-900 dark:text-white"}`}>
-                  {plan.name}
-                </h3>
-
-                <p className={`text-sm mb-6 ${plan.popular ? "text-blue-100" : "text-slate-600 dark:text-slate-400"}`}>
-                  {plan.description}
-                </p>
-
-                {/* Price */}
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-4xl font-bold ${plan.popular ? "text-white" : "text-slate-900 dark:text-white"}`}>
-                      {plan.price}
-                    </span>
-                    <span className={`text-sm ${plan.popular ? "text-blue-100" : "text-slate-600 dark:text-slate-400"}`}>
-                      {plan.period}
-                    </span>
-                  </div>
-                </div>
-
-                {/* CTA Button */}
-                <Button
-                  asChild
-                  className={`w-full mb-6 ${plan.popular
-                    ? "bg-white text-blue-600 hover:bg-blue-50"
-                    : "bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700"
-                    }`}
                 >
-                  <Link to="/signup">
-                    {plan.cta}
-                  </Link>
-                </Button>
-
-                {/* Features */}
-                <ul className="space-y-3">
-                  {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <Check className={`h-5 w-5 flex-shrink-0 ${plan.popular ? "text-green-300" : "text-green-600 dark:text-green-400"}`} />
-                      ) : (
-                        <X className={`h-5 w-5 flex-shrink-0 ${plan.popular ? "text-blue-200" : "text-slate-400"}`} />
-                      )}
-                      <span className={`text-sm ${feature.included
-                        ? plan.popular ? "text-white" : "text-slate-700 dark:text-slate-300"
-                        : plan.popular ? "text-blue-200" : "text-slate-400"
-                        }`}>
-                        {feature.text}
+                  {/* Badge */}
+                  {plano.destaque && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                      <span className="px-4 py-1 rounded-full text-xs font-bold bg-orange-500 text-white whitespace-nowrap">
+                        MAIS ESCOLHIDO
                       </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
+                    </div>
+                  )}
 
-        {/* Additional Info */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-2xl p-8 border border-blue-200 dark:border-blue-800">
-            <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
-              Todos os planos incluem:
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">Atualizações gratuitas</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">Backup automático</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">Suporte por e-mail</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">SSL e criptografia</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">Conformidade LGPD</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">99.9% uptime</span>
-              </div>
-            </div>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
+                      plano.destaque
+                        ? "bg-cyan-400/15 border border-cyan-400/25"
+                        : "bg-[#1B2A40] border border-[#1B2A40]"
+                    }`}
+                  >
+                    <Icon
+                      className={`h-5 w-5 ${plano.destaque ? "text-cyan-400" : "text-[#A9B7D0]"}`}
+                      aria-hidden="true"
+                    />
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white">{plano.nome}</h3>
+                  <p className="text-[#A9B7D0] text-sm mt-1 mb-4">
+                    {plano.descricao}
+                  </p>
+
+                  <div className="mb-6">
+                    <span className="text-4xl font-black text-white">
+                      {plano.preco}
+                    </span>
+                    <span className="text-[#A9B7D0] text-sm ml-1">
+                      {plano.periodo}
+                    </span>
+                  </div>
+
+                  <Link to="/signup" className="mb-6">
+                    <Button
+                      className={`w-full font-bold ${
+                        plano.destaque
+                          ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25"
+                          : "bg-[#1B2A40] hover:bg-[#2A3D55] text-white"
+                      }`}
+                    >
+                      {plano.cta}
+                    </Button>
+                  </Link>
+
+                  <ul className="space-y-2.5 flex-1">
+                    {plano.recursos.map((r) => (
+                      <li
+                        key={r.texto}
+                        className="flex items-center gap-2.5 text-sm"
+                      >
+                        {r.ok ? (
+                          <Check
+                            className="h-4 w-4 text-cyan-400 shrink-0"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <X
+                            className="h-4 w-4 text-[#1B2A40] shrink-0"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span
+                          className={
+                            r.ok ? "text-[#EAF2FF]" : "text-[#A9B7D0]/40"
+                          }
+                        >
+                          {r.texto}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </div>
-        </div>
 
-        {/* FAQ Link */}
-        <div className="mt-12 text-center">
-          <p className="text-slate-600 dark:text-slate-400">
-            Dúvidas sobre os planos?{" "}
-            <a href="#faq" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
-              Veja as perguntas frequentes
-            </a>
-          </p>
+          {/* Risk reversal + urgency */}
+          <div className="mt-10 text-center space-y-2">
+            <p className="text-white font-semibold">
+              Teste sem cartão. Cancele quando quiser.
+            </p>
+            <p className="text-[#A9B7D0] text-sm">
+              ⚡ Onboarding assistido — vagas limitadas este mês.
+            </p>
+          </div>
         </div>
       </div>
     </section>

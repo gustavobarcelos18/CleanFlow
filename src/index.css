@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════
+   FLUID BASE FONT-SIZE — afeta TODO o site via rem.
+   14px em mobile → 16px em 1080p → 18px em 1440p → 20px em 4K
+   Tailwind usa rem, então todos os textos, paddings
+   e ícones escalam automaticamente junto.
+════════════════════════════════════════════════════════ */
+html {
+  font-size: clamp(14px, 1.1vw, 20px);
+}
+
 /* Agenda Inteligente - Sistema de Design Clínico */
 
 @layer base {
@@ -92,55 +102,59 @@
     --sidebar-ring: 210 100% 45%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(210 100% 45%), hsl(210 100% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(210 100% 98%), hsl(210 100% 95%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(210 100% 45%),
+      hsl(210 100% 55%)
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(210 100% 98%),
+      hsl(210 100% 95%)
+    );
   }
 
   .dark {
-    /* Dark mode for clinical environments - maintain medical professionalism */
-    --background: 215 25% 10%;
-    --foreground: 210 17% 95%;
+    /* Punch Graphite Theme */
+    --background: 222 47% 5%; /* #070B12 */
+    --foreground: 216 100% 96%; /* #EAF2FF */
 
-    --medical-cyan: 210 100% 55%;
+    --card: 222 47% 8%; /* #0B1220 */
+    --card-foreground: 216 100% 96%;
+    --card-hover: 222 47% 10%;
 
-    --card: 215 20% 12%;
-    --card-foreground: 210 17% 95%;
-    --card-hover: 215 25% 15%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 216 100% 96%;
 
-    --popover: 215 20% 12%;
-    --popover-foreground: 210 17% 95%;
+    --primary: 189 84% 54%; /* #22D3EE - Cyan */
+    --primary-foreground: 222 47% 5%;
+    --primary-hover: 189 94% 43%; /* #06B6D4 */
 
-    --primary: 210 100% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 100% 48%;
-    --primary-light: 210 100% 15%;
+    /* CTA Laranja */
+    --cta-orange: 25 95% 53%; /* #F97316 */
+    --cta-orange-hover: 27 84% 47%; /* #EA580C */
 
     --success: 152 69% 45%;
     --success-foreground: 0 0% 100%;
-    --success-light: 152 69% 15%;
 
-    --warning: 38 92% 55%;
+    --warning: 25 95% 53%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 38 92% 15%;
 
-    --secondary: 215 20% 18%;
-    --secondary-foreground: 210 17% 95%;
-    --secondary-hover: 215 20% 22%;
+    --secondary: 215 40% 18%; /* #1B2A40 - Bordas/Secondary */
+    --secondary-foreground: 218 30% 74%; /* #A9B7D0 */
 
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 15% 65%;
+    --muted: 215 40% 15%;
+    --muted-foreground: 218 30% 74%;
 
-    --accent: 215 20% 18%;
-    --accent-foreground: 210 17% 95%;
+    --accent: 189 84% 54%;
+    --accent-foreground: 222 47% 5%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-light: 0 72% 15%;
 
-    --border: 215 20% 20%;
-    --input: 215 20% 20%;
-    --input-border: 215 20% 25%;
-    --ring: 210 100% 55%;
+    --border: 215 40% 18%; /* #1B2A40 */
+    --input: 215 40% 18%;
+    --ring: 189 84% 54%;
 
     --sidebar-background: 215 25% 8%;
     --sidebar-foreground: 210 17% 90%;
@@ -152,8 +166,16 @@
     --sidebar-ring: 210 100% 55%;
 
     /* Dark gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(210 100% 55%), hsl(210 100% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(215 25% 12%), hsl(215 20% 15%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(210 100% 55%),
+      hsl(210 100% 65%)
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(215 25% 12%),
+      hsl(215 20% 15%)
+    );
   }
 }
 
@@ -172,4 +194,88 @@
       linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+
+  /* ─────────────────────────────────────────
+     Landing V2: Fluid & High-DPI Helpers
+     Escala automaticamente a partir de ~1080p
+  ──────────────────────────────────────────── */
+
+  /* Fluid section padding que cresce com a tela */
+  .landing-section {
+    padding-top: clamp(3.5rem, 7vw, 9rem);
+    padding-bottom: clamp(3.5rem, 7vw, 9rem);
+  }
+
+  /* Headline Hero principal – cresce até ~96px em 4K */
+  .headline-punch {
+    font-size: clamp(2.75rem, 5.5vw, 6rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 900;
+  }
+
+  /* Subheadline fluida */
+  .subheadline-fluid {
+    font-size: clamp(1.05rem, 1.4vw, 1.5rem);
+    line-height: 1.6;
+  }
+
+  /* Section h2 fluida */
+  .h2-fluid {
+    font-size: clamp(1.75rem, 3vw, 3.5rem);
+    line-height: 1.15;
+    font-weight: 700;
+  }
+
+  /* Container da landing que se expande progressivamente */
+  .landing-container {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 5rem);
+    max-width: clamp(900px, 92vw, 1700px);
+  }
+
+  /* Grid de cards com auto-fill fluido */
+  .cards-grid-fluid {
+    display: grid;
+    gap: clamp(1rem, 2vw, 2rem);
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(clamp(260px, 28vw, 360px), 1fr)
+    );
+  }
+}
+
+/* ══════════════════════════════════════════
+   SCROLLBAR CUSTOMIZADA — Tema Graphite/Cyan
+   Webkit (Chrome, Edge, Brave, Safari)
+═══════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070b12;
+  border-left: 1px solid #1b2a40;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #22d3ee 0%, #0891b2 100%);
+  border-radius: 9999px;
+  border: 2px solid #070b12;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #38bdf8 0%, #22d3ee 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: #070b12;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #22d3ee #070b12;
 }

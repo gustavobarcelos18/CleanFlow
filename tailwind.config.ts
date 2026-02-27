@@ -3,14 +3,26 @@ import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.5rem",
+        lg: "2rem",
+        xl: "3rem",
+        "2xl": "4rem",
+      },
       screens: {
-        "2xl": "1400px",
+        "2xl": "1536px",
+        "3xl": "1920px",
       },
     },
     extend: {
@@ -114,16 +126,42 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      screens: {
+        "3xl": "1920px",
+        "4xl": "2560px",
+      },
+      fontSize: {
+        "fluid-sm": ["clamp(0.875rem, 0.8vw, 1rem)", { lineHeight: "1.5" }],
+        "fluid-base": ["clamp(1rem, 1.05vw, 1.25rem)", { lineHeight: "1.6" }],
+        "fluid-lg": ["clamp(1.125rem, 1.2vw, 1.5rem)", { lineHeight: "1.5" }],
+        "fluid-xl": ["clamp(1.25rem, 1.5vw, 1.875rem)", { lineHeight: "1.4" }],
+        "fluid-2xl": ["clamp(1.5rem, 2vw, 2.5rem)", { lineHeight: "1.3" }],
+        "fluid-3xl": ["clamp(1.875rem, 2.5vw, 3rem)", { lineHeight: "1.2" }],
+        "fluid-4xl": ["clamp(2.25rem, 3.5vw, 4rem)", { lineHeight: "1.1" }],
+        "fluid-5xl": ["clamp(2.5rem, 5vw, 6rem)", { lineHeight: "1.0" }],
+        "fluid-6xl": ["clamp(3rem, 6vw, 8rem)", { lineHeight: "0.95" }],
+      },
+      spacing: {
+        section: "clamp(4rem, 8vw, 10rem)",
+        "section-sm": "clamp(2rem, 4vw, 5rem)",
+      },
+      maxWidth: {
+        "8xl": "96rem",
+        "9xl": "120rem",
+      },
       boxShadow: {
-        "sm": "var(--shadow-sm)",
-        "DEFAULT": "var(--shadow)",
-        "lg": "var(--shadow-lg)",
-        "medical": "var(--shadow-medical)",
+        sm: "var(--shadow-sm)",
+        DEFAULT: "var(--shadow)",
+        lg: "var(--shadow-lg)",
+        medical: "var(--shadow-medical)",
       },
       backgroundImage: {
-        "gradient-primary": "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-hover)))",
-        "gradient-success": "linear-gradient(135deg, hsl(var(--success)), hsl(142 71% 40%))",
-        "gradient-medical": "linear-gradient(135deg, hsl(var(--primary-light)), hsl(var(--background)))",
+        "gradient-primary":
+          "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-hover)))",
+        "gradient-success":
+          "linear-gradient(135deg, hsl(var(--success)), hsl(142 71% 40%))",
+        "gradient-medical":
+          "linear-gradient(135deg, hsl(var(--primary-light)), hsl(var(--background)))",
       },
     },
   },

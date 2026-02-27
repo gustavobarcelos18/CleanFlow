@@ -1,168 +1,142 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
+import { ArrowRight, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-[#070B12]">
+      {/* Background glow effects */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+      {/* Grid overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(#22D3EE 1px, transparent 1px), linear-gradient(90deg, #22D3EE 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-      <div className="relative container mx-auto px-4 py-24 md:py-32">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
-            <Sparkles className="h-4 w-4 text-blue-400" />
-            <span className="text-sm font-medium text-blue-300">
-              Plataforma Completa de Gestão para Profissionais e Empresas
-            </span>
-          </div>
-
-          {/* Main Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-            Gerencie sua Agenda com
-            <span className="block mt-2 bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
-              Inteligência Artificial
-            </span>
+      <div className="relative landing-container py-16 md:py-24 3xl:py-36">
+        <div className="max-w-5xl 2xl:max-w-7xl mx-auto text-center space-y-8">
+          {/* Main headline — escala fluida até ~96px em 4K */}
+          <h1 className="headline-punch">
+            Menos faltas. <span className="text-cyan-400">Agenda cheia.</span>
+            <br />
+            <span className="text-orange-500">Mais dinheiro no caixa.</span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Agenda inteligente, automações de WhatsApp, IA para reduzir faltas,
-            analytics avançado. Para médicos, dentistas, advogados, psicólogos,
-            estética, oficinas e muito mais.
+          <p className="text-lg md:text-xl text-[#A9B7D0] max-w-3xl mx-auto leading-relaxed">
+            O CleanFlow automatiza confirmações no WhatsApp, preenche buracos na
+            agenda e dá visão clara de ocupação e receita.{" "}
+            <strong className="text-white">Sem bagunça.</strong>
           </p>
 
-          {/* Supported Activities */}
-          <div className="flex flex-wrap justify-center gap-3 text-sm">
-            <span className="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-200">
-              Saúde
-            </span>
-            <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-200">
-              Estética
-            </span>
-            <span className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-200">
-              Advocacia
-            </span>
-            <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-200">
-              Psicologia
-            </span>
-            <span className="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/30 text-pink-200">
-              Beleza
-            </span>
-            <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-200">
-              Oficinas
-            </span>
-            <span className="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-200">
-              Consultorias
-            </span>
+          {/* Social proof chips */}
+          <div
+            className="flex flex-wrap justify-center gap-3 text-sm"
+            aria-label="Garantias"
+          >
+            {["Setup em minutos", "Sem cartão no teste", "LGPD by design"].map(
+              (chip) => (
+                <div
+                  key={chip}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0B1220] border border-[#1B2A40] text-[#EAF2FF]"
+                >
+                  <CheckCircle
+                    className="h-3.5 w-3.5 text-cyan-400 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span>{chip}</span>
+                </div>
+              ),
+            )}
           </div>
 
-          {/* Key Benefits */}
-          <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-xl md:text-2xl font-medium pt-8">
-            <div className="flex items-center gap-3">
-              <Zap className="h-8 w-8 md:h-10 md:w-10 text-yellow-400" />
-              <span className="text-slate-200">Reduz 70% das faltas</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8 md:h-10 md:w-10 text-green-400" />
-              <span className="text-slate-200">100% seguro e LGPD</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-8 w-8 md:h-10 md:w-10 text-purple-400" />
-              <span className="text-slate-200">IA integrada</span>
-            </div>
-          </div>
+          {/* Benefits bullets */}
+          <ul
+            className="flex flex-col items-center gap-2 text-[#A9B7D0] text-base"
+            aria-label="Principais benefícios"
+          >
+            {[
+              "Confirmação automática, sem secretária correndo atrás",
+              "Encaixe inteligente pra reduzir buracos na agenda",
+              "Relatórios claros pra você decidir rápido",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <CheckCircle
+                  className="h-4 w-4 text-cyan-400 shrink-0"
+                  aria-hidden="true"
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-6 text-lg shadow-2xl shadow-blue-500/50 group"
-            >
-              <Link to="/signup">
-                Começar Grátis Agora
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-slate-600 text-white hover:bg-slate-800 px-8 py-6 text-lg"
-            >
-              <Link to="/about">
-                Ver Demonstração
-              </Link>
-            </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <Link to="/signup">
+              <Button
+                size="lg"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-8 py-6 shadow-xl shadow-orange-500/30 group transition-all"
+              >
+                Começar agora
+                <ArrowRight
+                  className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
+                  aria-hidden="true"
+                />
+              </Button>
+            </Link>
+            <Link to="/signup">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-[#1B2A40] text-[#EAF2FF] hover:bg-[#0B1220] hover:border-cyan-400/40 text-base px-8 py-6 transition-all"
+              >
+                Ver demonstração
+              </Button>
+            </Link>
           </div>
 
-          {/* Social Proof */}
-          <div className="pt-8 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 border-2 border-slate-900"
-                  />
-                ))}
-              </div>
-              <div className="text-left ml-2">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <svg
-                      key={i}
-                      className="w-4 h-4 fill-yellow-400"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-400">
-                  <span className="font-semibold text-white">1.200+</span> profissionais confiam
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* Lead magnet link */}
+          <a
+            href="#checklist"
+            className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300 underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"
+          >
+            Quero o checklist anti-faltas grátis
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
 
-        {/* Dashboard Preview */}
-        <div className="mt-16 relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10" />
-          <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl shadow-blue-500/20 group">
-            <div className="bg-slate-900 p-3 flex items-center gap-2 border-b border-slate-700">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-              </div>
-              <div className="flex-1 text-center text-sm text-slate-400">
-                CleanFlow Dashboard
-              </div>
+          {/* Social proof bar */}
+          <div className="mt-8 pt-8 border-t border-[#1B2A40] flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#A9B7D0]">
+            <div className="flex -space-x-2" aria-label="Avatares de usuários">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-[#070B12]"
+                  aria-hidden="true"
+                />
+              ))}
             </div>
-            <div className="aspect-video bg-slate-900 relative">
-              <img
-                src="/assets/dashboard-mockup.png"
-                alt="CleanFlow Dashboard Interface"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Fallback if image is missing
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement?.classList.add('flex', 'items-center', 'justify-center', 'bg-gradient-to-br', 'from-slate-800', 'to-slate-900');
-                  const fallbackDiv = document.createElement('div');
-                  fallbackDiv.innerHTML = '<div class="text-center space-y-4"><p class="text-slate-300 text-lg">Dashboard Preview</p></div>';
-                  e.currentTarget.parentElement?.appendChild(fallbackDiv);
-                }}
-              />
+            <span>
+              <strong className="text-white">+1.200 profissionais</strong> já
+              automatizaram suas agendas
+            </span>
+            <div className="flex gap-0.5" aria-label="Avaliação 5 estrelas">
+              {[...Array(5)].map((_, i) => (
+                <svg
+                  key={i}
+                  className="w-4 h-4 fill-orange-400"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                </svg>
+              ))}
+              <span className="ml-1.5 text-[#A9B7D0]">4.9/5</span>
             </div>
           </div>
         </div>

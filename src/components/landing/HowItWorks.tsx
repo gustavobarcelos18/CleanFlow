@@ -1,88 +1,83 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Settings, Stethoscope, Calendar, MessageCircle, Activity } from "lucide-react";
-import { FluxoCompletoDialog } from "./FluxoCompletoDialog";
+import React from "react";
+import { Settings, MessageSquare, BarChart3 } from "lucide-react";
+
+const passos = [
+  {
+    numero: "01",
+    icon: Settings,
+    titulo: "Configura agenda e serviços",
+    descricao:
+      "Cadastre profissionais, salas, horários e procedimentos. Leva minutos.",
+  },
+  {
+    numero: "02",
+    icon: MessageSquare,
+    titulo: "Liga as automações de WhatsApp",
+    descricao:
+      "Confirmações, lembretes e encaixes automáticos funcionando no mesmo dia.",
+  },
+  {
+    numero: "03",
+    icon: BarChart3,
+    titulo: "Acompanha ocupação, faltas e caixa",
+    descricao: "Painel em tempo real com tudo que importa. Decisão em minutos.",
+  },
+];
 
 export function HowItWorks() {
-  const [fluxoDialogOpen, setFluxoDialogOpen] = useState(false);
-
-  const steps = [
-    {
-      number: 1,
-      icon: Settings,
-      title: "Configure seu modo de agenda",
-      description: "Escolha: agenda por profissional de saúde ou por consultório/sala",
-    },
-    {
-      number: 2,
-      icon: Stethoscope,
-      title: "Cadastre procedimentos e especialidades",
-      description: "Procedimentos médicos, duração, preço e especialidades (odonto, fisio, estética, clínica geral...)",
-    },
-    {
-      number: 3,
-      icon: Calendar,
-      title: "Paciente agenda pelo link",
-      description: "Link público com consentimento LGPD integrado",
-    },
-    {
-      number: 4,
-      icon: MessageCircle,
-      title: "Confirmações automáticas e encaixes",
-      description:
-        "CleanFlow gerencia lembretes de consultas e preenche vagas automaticamente com pacientes da lista de espera",
-    },
-    {
-      number: 5,
-      icon: Activity,
-      title: "Acompanhe no Painel do Dia da Clínica",
-      description: "Recepcionistas visualizam riscos de falta por paciente e fazem ações preventivas rapidamente",
-    },
-  ];
-
   return (
-    <>
-      <FluxoCompletoDialog open={fluxoDialogOpen} onOpenChange={setFluxoDialogOpen} />
-      <section id="como-funciona" className="py-12 md:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto">
-          <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 md:mb-4">
-              Da marcação da consulta ao atendimento sem transtornos
+    <section className="py-16 md:py-24 bg-[#070B12]" id="como-funciona">
+      <div className="container mx-auto px-4">
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400 mb-3">
+              Simples assim
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
+              Como funciona em{" "}
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                3 passos
+              </span>
             </h2>
+            <p className="text-[#A9B7D0] mt-3 text-base max-w-xl mx-auto">
+              Configurou uma vez. O sistema trabalha pra você 24 horas por dia.
+            </p>
           </div>
 
-          <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
-            {steps.map((step) => {
-              const Icon = step.icon;
+          {/* Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Connector line (desktop) */}
+            <div
+              className="hidden md:block absolute top-10 left-[calc(33%_+_48px)] right-[calc(33%_+_48px)] h-px bg-gradient-to-r from-cyan-400/30 to-cyan-400/30"
+              aria-hidden="true"
+            />
+
+            {passos.map((passo) => {
+              const Icon = passo.icon;
               return (
                 <div
-                  key={step.number}
-                  className="flex gap-6 items-start bg-card border border-border rounded-xl p-6 hover:shadow-medical transition-shadow"
+                  key={passo.numero}
+                  className="bg-[#0B1220] border border-[#1B2A40] rounded-2xl p-8 text-center hover:border-cyan-400/30 transition-colors duration-300 relative"
                 >
-                  <div className="flex-shrink-0">
-                    <div className="h-14 w-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">
-                      {step.number}
-                    </div>
+                  <div className="w-16 h-16 mx-auto bg-cyan-400/10 border border-cyan-400/20 rounded-2xl flex items-center justify-center mb-5">
+                    <Icon
+                      className="h-8 w-8 text-cyan-400"
+                      aria-hidden="true"
+                    />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Icon className="h-6 w-6 text-primary" />
-                      <h3 className="text-xl font-semibold text-foreground">{step.title}</h3>
-                    </div>
-                    <p className="text-muted-foreground">{step.description}</p>
-                  </div>
+                  <h3 className="text-lg font-bold text-white mb-3">
+                    {passo.titulo}
+                  </h3>
+                  <p className="text-[#A9B7D0] text-sm leading-relaxed">
+                    {passo.descricao}
+                  </p>
                 </div>
               );
             })}
           </div>
-
-          <div className="text-center mt-12">
-            <Button variant="outline" size="lg" onClick={() => setFluxoDialogOpen(true)}>
-              Ver fluxo completo
-            </Button>
-          </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
