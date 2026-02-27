@@ -51,7 +51,9 @@ const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminReports = lazy(() => import("./pages/admin/Reports"));
 const AdminObservability = lazy(() => import("./pages/admin/Observability"));
 const AdminProviders = lazy(() => import("./pages/admin/Providers"));
-const RecontratarProfissionalCsv = lazy(() => import("./pages/admin/RecontratarProfissionalCsv"));
+const RecontratarProfissionalCsv = lazy(
+  () => import("./pages/admin/RecontratarProfissionalCsv"),
+);
 const AdminIntegrations = lazy(() => import("./pages/admin/Integrations"));
 const AdminCoupons = lazy(() => import("./pages/admin/Coupons"));
 const Prontuarios = lazy(() => import("./pages/Prontuarios"));
@@ -60,15 +62,21 @@ const PatientLogin = lazy(() => import("./pages/PatientLogin"));
 const PatientPortal = lazy(() => import("./pages/PatientPortal"));
 const AgendamentoPublico = lazy(() => import("./pages/AgendamentoPublico"));
 const WhatsAppDashboard = lazy(() => import("./pages/WhatsAppDashboard"));
-const ConfiguracoesWhatsApp = lazy(() => import("./pages/ConfiguracoesWhatsApp"));
+const ConfiguracoesWhatsApp = lazy(
+  () => import("./pages/ConfiguracoesWhatsApp"),
+);
 const ListaEspera = lazy(() => import("./pages/ListaEspera"));
 const Financeiro = lazy(() => import("./pages/Financeiro"));
 const OnboardingNegocio = lazy(() => import("./pages/OnboardingNegocio"));
 const Unidades = lazy(() => import("./pages/Unidades"));
 const OrganizationManager = lazy(() => import("./pages/OrganizationManager"));
 const GovernancaTenant = lazy(() => import("./pages/admin/GovernancaTenant"));
-const AutomationsFlowBuilder = lazy(() => import("./pages/admin/AutomationsFlowBuilder"));
-const ListaEsperaManager = lazy(() => import("./pages/admin/ListaEsperaManager"));
+const AutomationsFlowBuilder = lazy(
+  () => import("./pages/admin/AutomationsFlowBuilder"),
+);
+const ListaEsperaManager = lazy(
+  () => import("./pages/admin/ListaEsperaManager"),
+);
 const AnalyticsDashboard = lazy(() => import("./pages/AnalyticsDashboard"));
 const IntegracoesApi = lazy(() => import("./pages/admin/IntegracoesApi"));
 const PluginsManager = lazy(() => import("./pages/admin/Plugins"));
@@ -76,7 +84,9 @@ const OrgGovernance = lazy(() => import("./pages/admin/OrgGovernance"));
 const Planos = lazy(() => import("./pages/admin/Planos"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const AlarmesLembretes = lazy(() => import("./pages/AlarmesLembretes"));
-const AdminAlarmesLembretes = lazy(() => import("./pages/admin/AdminAlarmesLembretes"));
+const AdminAlarmesLembretes = lazy(
+  () => import("./pages/admin/AdminAlarmesLembretes"),
+);
 const SupportSettings = lazy(() => import("./pages/admin/SupportSettings"));
 const AdminWhatsApp = lazy(() => import("./pages/admin/WhatsApp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -93,7 +103,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const loadSegment = async () => {
       if (session?.user) {
-        const savedSegment = localStorage.getItem('cleanflow_segment') || 'saude';
+        const savedSegment =
+          localStorage.getItem("cleanflow_segment") || "saude";
         await fetchSegment(savedSegment);
       }
     };
@@ -141,7 +152,7 @@ function ErrorBoundaryWrapper({ children }: { children: React.ReactNode }) {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="cleanflow-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="cleanflow-ui-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -167,18 +178,39 @@ const App = () => (
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/support" element={<SupportIndex />} />
-                        <Route path="/agendar" element={<AgendamentoPublico />} />
-                        <Route path="/onboarding-negocio" element={<OnboardingNegocio />} />
-                        <Route path="/patient-login" element={<PatientLogin />} />
-                        <Route path="/patient-portal" element={<PatientPortal />} />
+                        <Route
+                          path="/agendar"
+                          element={<AgendamentoPublico />}
+                        />
+                        <Route
+                          path="/onboarding-negocio"
+                          element={<OnboardingNegocio />}
+                        />
+                        <Route
+                          path="/patient-login"
+                          element={<PatientLogin />}
+                        />
+                        <Route
+                          path="/patient-portal"
+                          element={<PatientPortal />}
+                        />
 
                         {/* Admin Routes - Protected by support roles */}
-                        <Route path="/admin/rede" element={<MultiUnitDashboard />} />
-                        <Route path="/workshop" element={<WorkshopDashboard />} />
+                        <Route
+                          path="/admin/rede"
+                          element={<MultiUnitDashboard />}
+                        />
+                        <Route
+                          path="/workshop"
+                          element={<WorkshopDashboard />}
+                        />
                         <Route path="/legal" element={<LegalDashboard />} />
                         <Route path="/beauty" element={<BeautyDashboard />} />
                         <Route path="/admin/login" element={<AdminLogin />} />
-                        <Route path="/admin/signup-master" element={<AdminSignupMaster />} />
+                        <Route
+                          path="/admin/signup-master"
+                          element={<AdminSignupMaster />}
+                        />
                         <Route
                           path="/admin/dashboard"
                           element={
@@ -214,7 +246,12 @@ const App = () => (
                         <Route
                           path="/admin/reports"
                           element={
-                            <RequireRole roles={[...RoleGuards.support, ...RoleGuards.financial]}>
+                            <RequireRole
+                              roles={[
+                                ...RoleGuards.support,
+                                ...RoleGuards.financial,
+                              ]}
+                            >
                               <AdminReports />
                             </RequireRole>
                           }
@@ -540,10 +577,7 @@ const App = () => (
                             </RequireRole>
                           }
                         />
-                        <Route
-                          path="/tickets"
-                          element={<SupportTickets />}
-                        />
+                        <Route path="/tickets" element={<SupportTickets />} />
                         <Route
                           path="/admin/support-settings"
                           element={

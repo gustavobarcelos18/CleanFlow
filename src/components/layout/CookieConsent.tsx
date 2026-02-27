@@ -33,8 +33,10 @@ export function CookieConsent() {
               Cookies e Privacidade
             </h3>
             <p className="text-sm text-muted-foreground">
-              Utilizamos cookies para melhorar sua experiência, analisar o tráfego do site e personalizar conteúdo. 
-              Ao clicar em "Aceitar", você concorda com o uso de cookies conforme nossa Política de Privacidade.
+              Utilizamos cookies para melhorar sua experiência, analisar o
+              tráfego do site e personalizar conteúdo. Ao clicar em "Aceitar",
+              você concorda com o uso de cookies conforme nossa Política de
+              Privacidade.
             </p>
           </div>
           <div className="flex gap-3 w-full sm:w-auto">
@@ -45,10 +47,7 @@ export function CookieConsent() {
             >
               Recusar
             </Button>
-            <Button
-              onClick={acceptCookies}
-              className="flex-1 sm:flex-none"
-            >
+            <Button onClick={acceptCookies} className="flex-1 sm:flex-none">
               Aceitar
             </Button>
           </div>

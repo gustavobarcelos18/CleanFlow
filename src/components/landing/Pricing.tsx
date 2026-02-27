@@ -127,17 +127,20 @@ export function Pricing() {
                     </span>
                   </div>
 
-                  <Link to="/signup" className="mb-6">
-                    <Button
-                      className={`w-full font-bold ${
-                        plano.destaque
-                          ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25"
-                          : "bg-[#1B2A40] hover:bg-[#2A3D55] text-white"
-                      }`}
-                    >
-                      {plano.cta}
-                    </Button>
-                  </Link>
+                  <Button
+                    onClick={() =>
+                      document
+                        .getElementById("planos")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                    className={`w-full font-bold mb-6 ${
+                      plano.destaque
+                        ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25"
+                        : "bg-[#1B2A40] hover:bg-[#2A3D55] text-white"
+                    }`}
+                  >
+                    {plano.cta}
+                  </Button>
 
                   <ul className="space-y-2.5 flex-1">
                     {plano.recursos.map((r) => (

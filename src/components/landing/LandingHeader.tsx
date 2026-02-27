@@ -82,23 +82,22 @@ export function LandingHeader() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/signup">
+            <Link to="/login">
               <Button
                 size="sm"
                 variant="outline"
-                className="border-[#1B2A40] text-[#A9B7D0] hover:bg-[#1B2A40] hover:text-white text-sm"
+                className="border-[#1B2A40] text-[#A9B7D0] hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-white text-sm transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.1)]"
               >
-                Ver demonstração
+                Login
               </Button>
             </Link>
-            <Link to="/signup">
-              <Button
-                size="sm"
-                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold shadow-lg shadow-orange-500/25 transition-all"
-              >
-                Começar agora
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              onClick={() => scrollToSection("planos")}
+              className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold shadow-lg shadow-orange-500/25 transition-all"
+            >
+              Começar agora
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -127,26 +126,23 @@ export function LandingHeader() {
                 ))}
                 <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-[#1B2A40]">
                   <Link
-                    to="/signup"
+                    to="/login"
                     className="w-full"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Button
                       variant="outline"
-                      className="w-full border-[#1B2A40] text-[#A9B7D0] hover:bg-[#1B2A40]"
+                      className="w-full border-[#1B2A40] text-[#A9B7D0] hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-white transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.1)]"
                     >
-                      Ver demonstração
+                      Login
                     </Button>
                   </Link>
-                  <Link
-                    to="/signup"
-                    className="w-full"
-                    onClick={() => setMobileMenuOpen(false)}
+                  <Button
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                    onClick={() => scrollToSection("planos")}
                   >
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold">
-                      Começar agora
-                    </Button>
-                  </Link>
+                    Começar agora
+                  </Button>
                 </div>
               </nav>
             </SheetContent>

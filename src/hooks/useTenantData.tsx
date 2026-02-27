@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TenantData {
   nome: string;
@@ -29,7 +36,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTenantData = useCallback(async () => {
-    const impersonationId = localStorage.getItem('support_impersonation_tenant_id');
+    const impersonationId = localStorage.getItem(
+      "support_impersonation_tenant_id",
+    );
     const targetTenantId = impersonationId || profile?.tenant_id;
 
     if (!targetTenantId) {
@@ -40,9 +49,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('tenants')
-        .select('nome, tipo, cnpj, razao_social, nome_fantasia, font_size, cor_primaria, cor_acao')
-        .eq('id', targetTenantId)
+        .from("tenants")
+        .select(
+          "nome, tipo, cnpj, razao_social, nome_fantasia, font_size, cor_primaria, cor_acao",
+        )
+        .eq("id", targetTenantId)
         .maybeSingle();
 
       if (error) throw error;
@@ -55,11 +66,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           nome_fantasia: data.nome_fantasia,
           font_size: data.font_size || 16,
           cor_primaria: data.cor_primaria,
-          cor_acao: data.cor_acao
+          cor_acao: data.cor_acao,
         });
       }
     } catch (error) {
-      console.error('Erro ao buscar dados do tenant:', error);
+      console.error("Erro ao buscar dados do tenant:", error);
       setTenantData({
         nome: "Empresa",
         tipo: "clinica",
@@ -68,7 +79,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         nome_fantasia: null,
         font_size: 16,
         cor_primaria: null,
-        cor_acao: null
+        cor_acao: null,
       });
     } finally {
       setIsLoading(false);
@@ -79,28 +90,39 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     fetchTenantData();
   }, [fetchTenantData]);
 
-  // Apply font size to document root
+  // Apply font size to document root, but NOT on the landing page
   useEffect(() => {
-    if (tenantData?.font_size) {
+    const isLandingPage = window.location.pathname === "/";
+
+    if (tenantData?.font_size && !isLandingPage) {
       document.documentElement.style.fontSize = `${tenantData.font_size}px`;
+    } else if (isLandingPage) {
+      // Reset to browser default on landing page
+      document.documentElement.style.fontSize = "";
     }
-  }, [tenantData?.font_size]);
+  }, [tenantData?.font_size, window.location.pathname]);
 
   const updateTenantData = useCallback((data: Partial<TenantData>) => {
-    setTenantData(prev => prev ? { ...prev, ...data } : null);
+    setTenantData((prev) => (prev ? { ...prev, ...data } : null));
   }, []);
 
   // Display name: prefer nome_fantasia, fallback to razao_social, then nome
-  const displayName = tenantData?.nome_fantasia || tenantData?.razao_social || tenantData?.nome || "Empresa";
+  const displayName =
+    tenantData?.nome_fantasia ||
+    tenantData?.razao_social ||
+    tenantData?.nome ||
+    "Empresa";
 
   return (
-    <TenantContext.Provider value={{
-      tenantData,
-      isLoading,
-      refreshTenantData: fetchTenantData,
-      updateTenantData,
-      displayName
-    }}>
+    <TenantContext.Provider
+      value={{
+        tenantData,
+        isLoading,
+        refreshTenantData: fetchTenantData,
+        updateTenantData,
+        displayName,
+      }}
+    >
       {children}
     </TenantContext.Provider>
   );
@@ -109,7 +131,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 export function useTenantData() {
   const context = useContext(TenantContext);
   if (context === undefined) {
-    throw new Error('useTenantData must be used within a TenantProvider');
+    throw new Error("useTenantData must be used within a TenantProvider");
   }
   return context;
 }

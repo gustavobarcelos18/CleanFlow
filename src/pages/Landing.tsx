@@ -21,6 +21,8 @@ const Landing = () => {
 
   useEffect(() => {
     setTheme("dark");
+    // Ensure root font size is reset on landing page
+    document.documentElement.style.fontSize = "";
   }, [setTheme]);
 
   return (

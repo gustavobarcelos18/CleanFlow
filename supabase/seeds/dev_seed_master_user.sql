@@ -5,8 +5,8 @@
 DO $$
 DECLARE
   v_user_id uuid;
-  v_email text := 'SEU_EMAIL_AQUI'; -- SUBSTITUA AQUI
-  v_password text := 'SUA_SENHA_AQUI'; -- SUBSTITUA AQUI
+  v_email text := 'gustavobarcelos699@gmail.com'; -- Novo email solicitado
+  v_password text := '@XpTo1234'; -- Nova senha solicitada
 BEGIN
   -- 1. Verificar/Criar usuário no auth.users
   SELECT id INTO v_user_id FROM auth.users WHERE email = v_email;

@@ -2,7 +2,12 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Clock,
   User,
@@ -13,7 +18,7 @@ import {
   XCircle,
   Edit,
   Trash2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 
 interface AppointmentCardProps {
@@ -21,7 +26,15 @@ interface AppointmentCardProps {
   patientName: string;
   time: string;
   doctor: string;
-  status: "confirmed" | "pending" | "cancelled" | "completed" | "no-show" | "risk-high" | "risk-medium" | "risk-low";
+  status:
+    | "confirmed"
+    | "pending"
+    | "cancelled"
+    | "completed"
+    | "no-show"
+    | "risk-high"
+    | "risk-medium"
+    | "risk-low";
   phone?: string;
   riskLevel?: "high" | "medium" | "low";
   className?: string;
@@ -39,7 +52,7 @@ const statusConfig = {
     bgColor: "bg-success-light",
     borderColor: "border-success/20",
     icon: CheckCircle,
-    iconColor: "text-success"
+    iconColor: "text-success",
   },
   pending: {
     label: "Pendente",
@@ -47,7 +60,7 @@ const statusConfig = {
     bgColor: "bg-warning-light",
     borderColor: "border-warning/20",
     icon: Clock,
-    iconColor: "text-warning"
+    iconColor: "text-warning",
   },
   cancelled: {
     label: "Cancelado",
@@ -55,7 +68,7 @@ const statusConfig = {
     bgColor: "bg-destructive-light",
     borderColor: "border-destructive/20",
     icon: XCircle,
-    iconColor: "text-destructive"
+    iconColor: "text-destructive",
   },
   completed: {
     label: "Realizado",
@@ -63,7 +76,7 @@ const statusConfig = {
     bgColor: "bg-blue-500/10 dark:bg-blue-500/20",
     borderColor: "border-blue-500/30",
     icon: CheckCircle,
-    iconColor: "text-blue-600 dark:text-blue-400"
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   "no-show": {
     label: "Faltou",
@@ -71,7 +84,7 @@ const statusConfig = {
     bgColor: "bg-destructive-light",
     borderColor: "border-destructive/20",
     icon: XCircle,
-    iconColor: "text-destructive"
+    iconColor: "text-destructive",
   },
   "risk-high": {
     label: "Alto Risco",
@@ -79,7 +92,7 @@ const statusConfig = {
     bgColor: "bg-destructive-light",
     borderColor: "border-destructive/20",
     icon: AlertTriangle,
-    iconColor: "text-destructive"
+    iconColor: "text-destructive",
   },
   "risk-medium": {
     label: "Médio Risco",
@@ -87,7 +100,7 @@ const statusConfig = {
     bgColor: "bg-warning-light",
     borderColor: "border-warning/20",
     icon: AlertTriangle,
-    iconColor: "text-warning"
+    iconColor: "text-warning",
   },
   "risk-low": {
     label: "Baixo Risco",
@@ -95,8 +108,8 @@ const statusConfig = {
     bgColor: "bg-success-light",
     borderColor: "border-success/20",
     icon: CheckCircle,
-    iconColor: "text-success"
-  }
+    iconColor: "text-success",
+  },
 };
 
 export function AppointmentCard({
@@ -112,19 +125,22 @@ export function AppointmentCard({
   onDelete,
   hasConflict,
   conflictMinutes,
-  onResolveConflict
+  onResolveConflict,
 }: AppointmentCardProps) {
-  const config = statusConfig[status as keyof typeof statusConfig] ?? statusConfig.pending;
+  const config =
+    statusConfig[status as keyof typeof statusConfig] ?? statusConfig.pending;
   const StatusIcon = config.icon;
 
   return (
-    <div className={cn(
-      "p-6 rounded-lg border transition-all duration-200 hover:shadow-md flex flex-col",
-      config.bgColor,
-      config.borderColor,
-      hasConflict && "ring-2 ring-orange-500/50",
-      className
-    )}>
+    <div
+      className={cn(
+        "p-6 rounded-lg border transition-all duration-200 hover:shadow-md flex flex-col",
+        config.bgColor,
+        config.borderColor,
+        hasConflict && "ring-2 ring-orange-500/50",
+        className,
+      )}
+    >
       {/* Cabeçalho com Nome do Paciente e Status */}
       <div className="flex items-start justify-between mb-4 gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -156,34 +172,52 @@ export function AppointmentCard({
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Sobreposição de {conflictMinutes} minutos com agendamento anterior</p>
-                <p className="text-xs text-muted-foreground mt-1">Clique para ajustar</p>
+                <p>
+                  Sobreposição de {conflictMinutes} minutos com agendamento
+                  anterior
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Clique para ajustar
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
-        <Badge variant={config.variant} className="text-sm px-2.5 py-1 flex-shrink-0">
+        <Badge
+          variant={config.variant}
+          className="text-sm px-2.5 py-1 flex-shrink-0"
+        >
           {config.label}
         </Badge>
       </div>
 
       {/* Informações de Horário e Contato */}
-      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border/50">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span className="font-medium">{time}</span>
+      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-[#1B2A40]">
+        <div className="flex items-center gap-2 text-sm text-[#A9B7D0]">
+          <Clock className="h-4 w-4 text-cyan-400" />
+          <span className="font-bold">{time}</span>
         </div>
         {phone && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Phone className="h-4 w-4" />
-            <span className="font-medium">{phone}</span>
+          <div className="flex items-center gap-2 text-sm text-[#A9B7D0]">
+            <Phone className="h-4 w-4 text-cyan-400" />
+            <span className="font-bold">{phone}</span>
           </div>
         )}
-        {riskLevel && riskLevel !== 'low' && (
+        {riskLevel && riskLevel !== "low" && (
           <div className="flex items-center gap-2 text-sm">
-            <AlertTriangle className={cn("h-4 w-4", riskLevel === 'high' ? "text-destructive" : "text-warning")} />
-            <span className={cn("font-medium", riskLevel === 'high' ? "text-destructive" : "text-warning")}>
-              {riskLevel === 'high' ? 'Risco Alto' : 'Risco Médio'}
+            <AlertTriangle
+              className={cn(
+                "h-4 w-4",
+                riskLevel === "high" ? "text-orange-500" : "text-cyan-400",
+              )}
+            />
+            <span
+              className={cn(
+                "font-black uppercase tracking-tighter text-[10px]",
+                riskLevel === "high" ? "text-orange-500" : "text-cyan-400",
+              )}
+            >
+              {riskLevel === "high" ? "Risco Crítico" : "Risco Médio"}
             </span>
           </div>
         )}

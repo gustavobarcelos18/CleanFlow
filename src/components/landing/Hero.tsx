@@ -30,73 +30,60 @@ export function Hero() {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-[#A9B7D0] max-w-3xl mx-auto leading-relaxed">
-            O CleanFlow automatiza confirmações no WhatsApp, preenche buracos na
-            agenda e dá visão clara de ocupação e receita.{" "}
-            <strong className="text-white">Sem bagunça.</strong>
+            O CleanFlow automatiza confirmações no WhatsApp, <br />
+            preenche buracos na agenda e dá visão clara de ocupação e
+            receita.{" "}
           </p>
 
-          {/* Social proof chips */}
-          <div
-            className="flex flex-wrap justify-center gap-3 text-sm"
-            aria-label="Garantias"
-          >
-            {["Setup em minutos", "Sem cartão no teste", "LGPD by design"].map(
-              (chip) => (
-                <div
-                  key={chip}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#0B1220] border border-[#1B2A40] text-[#EAF2FF]"
-                >
-                  <CheckCircle
-                    className="h-3.5 w-3.5 text-cyan-400 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span>{chip}</span>
-                </div>
-              ),
-            )}
+          {/* Main highlights — simplificados e horizontais para maior leveza */}
+          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-[#A9B7D0] text-sm md:text-base max-w-4xl mx-auto">
+            <div className="flex items-center gap-2">
+              <CheckCircle
+                className="h-4 w-4 text-cyan-400 shrink-0 opacity-70"
+                aria-hidden="true"
+              />
+              <span>Confirmação automática</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle
+                className="h-4 w-4 text-cyan-400 shrink-0 opacity-70"
+                aria-hidden="true"
+              />
+              <span>Setup em minutos</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle
+                className="h-4 w-4 text-cyan-400 shrink-0 opacity-70"
+                aria-hidden="true"
+              />
+              <span>Visão clara de caixa</span>
+            </div>
           </div>
-
-          {/* Benefits bullets */}
-          <ul
-            className="flex flex-col items-center gap-2 text-[#A9B7D0] text-base"
-            aria-label="Principais benefícios"
-          >
-            {[
-              "Confirmação automática, sem secretária correndo atrás",
-              "Encaixe inteligente pra reduzir buracos na agenda",
-              "Relatórios claros pra você decidir rápido",
-            ].map((item) => (
-              <li key={item} className="flex items-center gap-2">
-                <CheckCircle
-                  className="h-4 w-4 text-cyan-400 shrink-0"
-                  aria-hidden="true"
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link to="/signup">
-              <Button
-                size="lg"
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-8 py-6 shadow-xl shadow-orange-500/30 group transition-all"
-              >
-                Começar agora
-                <ArrowRight
-                  className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
-                  aria-hidden="true"
-                />
-              </Button>
-            </Link>
-            <Link to="/signup">
+            <Button
+              size="lg"
+              onClick={() =>
+                document
+                  .getElementById("planos")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-8 py-6 shadow-xl shadow-orange-500/30 group transition-all"
+            >
+              Começar agora
+              <ArrowRight
+                className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
+                aria-hidden="true"
+              />
+            </Button>
+            <Link to="/login">
               <Button
                 size="lg"
                 variant="outline"
-                className="border-[#1B2A40] text-[#EAF2FF] hover:bg-[#0B1220] hover:border-cyan-400/40 text-base px-8 py-6 transition-all"
+                className="border-[#1B2A40] text-[#EAF2FF] hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-white text-base px-8 py-6 transition-all hover:shadow-[0_0_20px_rgba(34,211,238,0.15)]"
               >
-                Ver demonstração
+                Login
               </Button>
             </Link>
           </div>

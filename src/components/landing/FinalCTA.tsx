@@ -25,25 +25,28 @@ export function FinalCTA() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-          <Link to="/signup">
-            <Button
-              size="lg"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-10 py-6 shadow-2xl shadow-orange-500/30 group transition-all"
-            >
-              Começar agora
-              <ArrowRight
-                className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
-                aria-hidden="true"
-              />
-            </Button>
-          </Link>
-          <Link to="/signup">
+          <Button
+            size="lg"
+            onClick={() =>
+              document
+                .getElementById("planos")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-10 py-6 shadow-2xl shadow-orange-500/30 group transition-all"
+          >
+            Começar agora
+            <ArrowRight
+              className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"
+              aria-hidden="true"
+            />
+          </Button>
+          <Link to="/login">
             <Button
               size="lg"
               variant="outline"
-              className="border-[#1B2A40] text-[#EAF2FF] hover:bg-[#0B1220] hover:border-cyan-400/40 text-base px-10 py-6 transition-all"
+              className="border-[#1B2A40] text-[#EAF2FF] hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-white text-base px-10 py-6 transition-all hover:shadow-[0_0_20px_rgba(34,211,238,0.15)]"
             >
-              Ver demonstração
+              Login
             </Button>
           </Link>
         </div>

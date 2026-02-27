@@ -3,7 +3,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { AlertsPopover } from "@/components/layout/AlertsPopover";
 import { WhatsAppNotificationBadge } from "@/components/admin/WhatsAppNotificationBadge";
@@ -12,13 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { startOfDay, endOfDay } from "date-fns";
-import {
-  User,
-  Calendar,
-  Clock,
-  Users,
-  LogOut
-} from "lucide-react";
+import { User, Calendar, Clock, Users, LogOut } from "lucide-react";
 
 interface HeaderProps {
   className?: string;
@@ -29,14 +27,14 @@ export function Header({ className }: HeaderProps) {
   const [stats, setStats] = useState({
     today: 0,
     pending: 0,
-    waiting: 0
+    waiting: 0,
   });
 
-  const currentDate = new Date().toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  const currentDate = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   useEffect(() => {
@@ -51,78 +49,81 @@ export function Header({ className }: HeaderProps) {
 
       // Consultas de hoje
       const { data: todayData } = await supabase
-        .from('agenda')
-        .select('id', { count: 'exact', head: true })
-        .gte('inicio', dayStart.toISOString())
-        .lte('inicio', dayEnd.toISOString());
+        .from("agenda")
+        .select("id", { count: "exact", head: true })
+        .gte("inicio", dayStart.toISOString())
+        .lte("inicio", dayEnd.toISOString());
 
       // Pendentes de confirmação
       const { data: pendingData } = await supabase
-        .from('agenda')
-        .select('id', { count: 'exact', head: true })
-        .gte('inicio', dayStart.toISOString())
-        .lte('inicio', dayEnd.toISOString())
-        .eq('confirmado', false)
-        .eq('status', 'agendado');
+        .from("agenda")
+        .select("id", { count: "exact", head: true })
+        .gte("inicio", dayStart.toISOString())
+        .lte("inicio", dayEnd.toISOString())
+        .eq("confirmado", false)
+        .eq("status", "agendado");
 
       // Lista de espera
       const { data: waitingData } = await supabase
-        .from('lista_espera')
-        .select('id', { count: 'exact', head: true })
-        .eq('ativo', true);
+        .from("lista_espera")
+        .select("id", { count: "exact", head: true })
+        .eq("ativo", true);
 
       setStats({
         today: todayData?.length || 0,
         pending: pendingData?.length || 0,
-        waiting: waitingData?.length || 0
+        waiting: waitingData?.length || 0,
       });
     } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
+      console.error("Erro ao buscar estatísticas:", error);
     }
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
       .toUpperCase()
       .substring(0, 2);
   };
 
   return (
-    <header className={cn("bg-card border-b border-border p-4", className)}>
-      <div className="flex items-center justify-between">
+    <header
+      className={cn(
+        "bg-[#070B12]/80 backdrop-blur-md border-b border-[#1B2A40] px-6 h-20 flex items-center sticky top-0 z-40",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between w-full">
         {/* Date and Quick Stats */}
         <div className="flex items-center gap-6">
           <div>
-            <h2 className="text-xl font-semibold text-foreground capitalize">
+            <h2 className="text-xl font-bold text-white capitalize tracking-tight">
               {currentDate}
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-[#A9B7D0]">
               Painel de controle da clínica
             </p>
           </div>
 
           {/* Quick Stats - Only show when there's data */}
           {(stats.today > 0 || stats.pending > 0 || stats.waiting > 0) && (
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
               {stats.today > 0 && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-primary-light rounded-lg">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">{stats.today} consultas hoje</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-400/10 border border-cyan-400/20 rounded-full">
+                  <Calendar className="h-3.5 w-3.5 text-cyan-400" />
+                  <span className="text-xs font-bold text-cyan-400">
+                    {stats.today} hoje
+                  </span>
                 </div>
               )}
               {stats.pending > 0 && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-warning-light rounded-lg">
-                  <Clock className="h-4 w-4 text-warning" />
-                  <span className="text-sm font-medium text-warning">{stats.pending} pendentes</span>
-                </div>
-              )}
-              {stats.waiting > 0 && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-success-light rounded-lg">
-                  <Users className="h-4 w-4 text-success" />
-                  <span className="text-sm font-medium text-success">{stats.waiting} na espera</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full">
+                  <Clock className="h-3.5 w-3.5 text-orange-500" />
+                  <span className="text-xs font-bold text-orange-500">
+                    {stats.pending} alertas
+                  </span>
                 </div>
               )}
             </div>
@@ -130,51 +131,53 @@ export function Header({ className }: HeaderProps) {
         </div>
 
         {/* User Actions */}
-        <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
+        <div className="flex items-center gap-3">
           <ThemeToggle />
-
-          {/* WhatsApp Notifications */}
-          <WhatsAppNotificationBadge />
-
-          {/* Alarm Notifications */}
-          <AlarmNotificationBell />
-
-          {/* Notifications */}
+          <div className="h-6 w-px bg-[#1B2A40] mx-1" />
           <AlertsPopover />
 
-          {/* User Profile */}
-          <Button variant="ghost" className="gap-2" asChild>
+          <Button
+            variant="ghost"
+            className="flex items-center gap-3 hover:bg-[#1B2A40]/50 transition-all duration-200 py-1.5 px-2 rounded-xl"
+            asChild
+          >
             <Link to="/perfil">
-              <Avatar className="w-8 h-8">
+              <Avatar className="w-9 h-9 border-2 border-cyan-400/20 shadow-lg shadow-cyan-500/10">
                 {profile?.avatar_url ? (
                   <AvatarImage src={profile.avatar_url} alt={profile.nome} />
                 ) : (
-                  <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                    {profile?.nome ? getInitials(profile.nome) : <User className="h-4 w-4" />}
+                  <AvatarFallback className="bg-cyan-400/20 text-cyan-400 text-xs font-black">
+                    {profile?.nome ? (
+                      getInitials(profile.nome)
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
                   </AvatarFallback>
                 )}
               </Avatar>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium">{profile?.nome || user?.email}</p>
-                <p className="text-xs text-muted-foreground">
-                  {profile?.role === "admin" ? "Administrador" : profile?.role === "profissional" ? "Profissional" : "Usuário"}
+                <p className="text-sm font-black text-white leading-tight">
+                  {profile?.nome || user?.email}
+                </p>
+                <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-0.5">
+                  {profile?.role === "admin"
+                    ? "Administrador"
+                    : profile?.role === "profissional"
+                      ? "Profissional"
+                      : "Usuário"}
                 </p>
               </div>
             </Link>
           </Button>
 
-          {/* Logout */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={() => signOut()}>
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Sair do CleanFlow</p>
-            </TooltipContent>
-          </Tooltip>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-[#A9B7D0] hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+            onClick={() => signOut()}
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </header>

@@ -10,7 +10,7 @@ const perfis = [
     headline: "Você quer ordem e confirmação automática",
     descricao:
       "Chega de WhatsApp manual e agenda de papel. Configure em minutos e veja as confirmações acontecerem sozinhas.",
-    cta: "Ver demonstração",
+    cta: "Começar agora",
     destaque: false,
   },
   {
@@ -19,7 +19,7 @@ const perfis = [
     headline: "Você precisa reduzir faltas e ter visão financeira",
     descricao:
       "A IA cuida dos no-shows, encaixes preenchem buracos e você finalmente sabe quanto entrou no caixa.",
-    cta: "Ver demonstração",
+    cta: "Começar agora",
     destaque: true,
   },
   {
@@ -28,7 +28,7 @@ const perfis = [
     headline: "Você quer governança e controle por função",
     descricao:
       "Gerencie equipes, salas e unidades com permissões por função. Analytics consolidado sem bagunça.",
-    cta: "Ver demonstração",
+    cta: "Começar agora",
     destaque: false,
   },
 ];
@@ -86,7 +86,7 @@ export function TargetAudience() {
                     {p.descricao}
                   </p>
                   <div className="mt-6">
-                    <Link to="/signup">
+                    <Link to="/login">
                       <Button
                         size="sm"
                         variant="outline"

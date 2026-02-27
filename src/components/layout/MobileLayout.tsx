@@ -3,11 +3,8 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { Button } from "@/components/ui/button";
 import { Menu, AlertTriangle, LogOut } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +24,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   const [impersonationId, setImpersonationId] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = localStorage.getItem('support_impersonation_tenant_id');
+    const id = localStorage.getItem("support_impersonation_tenant_id");
     setImpersonationId(id);
   }, []);
 
@@ -39,8 +36,8 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   }, [profile, loading, navigate, impersonationId]);
 
   const handleExitImpersonation = () => {
-    localStorage.removeItem('support_impersonation_tenant_id');
-    window.location.href = '/admin/tenants';
+    localStorage.removeItem("support_impersonation_tenant_id");
+    window.location.href = "/admin/tenants";
   };
 
   const ImpersonationBanner = () => (
@@ -65,7 +62,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#070B12]">
         {impersonationId && <ImpersonationBanner />}
         <div className="flex flex-col h-screen">
           {/* Mobile Header with Menu Button */}
@@ -86,9 +83,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           </div>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto p-4">
-            {children}
-          </main>
+          <main className="flex-1 overflow-auto p-4">{children}</main>
         </div>
         <SupportChatWidget />
       </div>
@@ -96,21 +91,30 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   }
 
   // Desktop layout
+  const { isResizing } = useSidebarWidth();
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#070B12]">
       {impersonationId && <ImpersonationBanner />}
       <div className="flex">
         {/* Sidebar - z-40 para ficar acima do conteúdo */}
-        <div className="fixed left-0 top-0 h-full z-40" style={{ top: impersonationId ? '44px' : '0' }}>
+        <div
+          className="fixed left-0 top-0 h-full z-40"
+          style={{ top: impersonationId ? "44px" : "0" }}
+        >
           <Sidebar />
         </div>
 
         {/* Main Content - z-0 para ficar abaixo do sidebar */}
-        <div className="flex-1 transition-all duration-200 ease-out relative z-0" style={{ marginLeft: `${width}px` }}>
+        <div
+          className={cn(
+            "flex-1 relative z-0",
+            !isResizing && "transition-all duration-200 ease-out",
+          )}
+          style={{ marginLeft: `${width}px` }}
+        >
           <Header />
-          <main className="p-6">
-            {children}
-          </main>
+          <main className="p-6">{children}</main>
         </div>
       </div>
       <SupportChatWidget />
