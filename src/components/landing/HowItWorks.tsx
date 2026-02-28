@@ -26,7 +26,10 @@ const passos = [
 
 export function HowItWorks() {
   return (
-    <section className="py-16 md:py-24 bg-[#070B12]" id="como-funciona">
+    <section
+      className="py-16 md:py-24 bg-transparent relative z-10"
+      id="como-funciona"
+    >
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           {/* Header */}

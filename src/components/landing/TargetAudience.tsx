@@ -59,20 +59,9 @@ export function TargetAudience() {
                       : "bg-[#0B1220] border-[#1B2A40]"
                   }`}
                 >
-                  {p.destaque && (
-                    <span className="self-start mb-4 text-xs font-bold px-3 py-1 rounded-full bg-cyan-400/15 text-cyan-400 border border-cyan-400/20">
-                      Mais comum
-                    </span>
-                  )}
-                  <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
-                      p.destaque
-                        ? "bg-cyan-400/15 border border-cyan-400/25"
-                        : "bg-[#1B2A40] border border-[#1B2A40]"
-                    }`}
-                  >
+                  <div className="mb-4">
                     <Icon
-                      className={`h-5 w-5 ${p.destaque ? "text-cyan-400" : "text-[#A9B7D0]"}`}
+                      className={`h-6 w-6 ${p.destaque ? "text-cyan-400" : "text-[#A9B7D0]"} opacity-80`}
                       aria-hidden="true"
                     />
                   </div>
@@ -86,15 +75,18 @@ export function TargetAudience() {
                     {p.descricao}
                   </p>
                   <div className="mt-6">
-                    <Link to="/login">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full border-[#1B2A40] text-[#A9B7D0] hover:bg-[#1B2A40] hover:text-white transition-all"
-                      >
-                        {p.cta}
-                      </Button>
-                    </Link>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        document
+                          .getElementById("planos")
+                          ?.scrollIntoView({ behavior: "smooth" })
+                      }
+                      className="w-full border-[#1B2A40] text-[#A9B7D0] hover:bg-[#1B2A40] hover:text-white transition-all"
+                    >
+                      {p.cta}
+                    </Button>
                   </div>
                 </div>
               );

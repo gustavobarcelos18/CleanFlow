@@ -1,12 +1,35 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Lock, Unlock, AlertTriangle } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface AccountLock {
   id: string;
@@ -30,9 +53,9 @@ export const AccountLockManagement = () => {
   const loadLocks = async () => {
     try {
       const { data, error } = await supabase
-        .from('account_locks')
-        .select('*')
-        .order('locked_at', { ascending: false });
+        .from("account_locks")
+        .select("*")
+        .order("locked_at", { ascending: false });
 
       if (error) throw error;
       setLocks(data || []);
@@ -50,9 +73,9 @@ export const AccountLockManagement = () => {
   const handleUnlock = async (email: string) => {
     try {
       const { error } = await supabase
-        .from('account_locks')
+        .from("account_locks")
         .delete()
-        .eq('email', email);
+        .eq("email", email);
 
       if (error) throw error;
 
@@ -112,7 +135,9 @@ export const AccountLockManagement = () => {
                 <TableRow key={lock.id}>
                   <TableCell className="font-medium">{lock.email}</TableCell>
                   <TableCell>
-                    <Badge variant="destructive">{lock.failed_attempts} falhas</Badge>
+                    <Badge variant="destructive">
+                      {lock.failed_attempts} falhas
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {isLocked(lock.locked_until) ? (
@@ -121,13 +146,11 @@ export const AccountLockManagement = () => {
                         Bloqueado
                       </Badge>
                     ) : (
-                      <Badge variant="outline">
-                        Expirado
-                      </Badge>
+                      <Badge variant="outline">Expirado</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {new Date(lock.locked_until).toLocaleString('pt-BR')}
+                    {new Date(lock.locked_until).toLocaleString("pt-BR")}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {lock.reason}
@@ -143,15 +166,20 @@ export const AccountLockManagement = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Desbloquear conta</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Desbloquear conta
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Tem certeza que deseja desbloquear a conta {lock.email}?
-                              O usuário poderá tentar fazer login novamente.
+                              Tem certeza que deseja desbloquear a conta{" "}
+                              {lock.email}? O usuário poderá tentar fazer login
+                              novamente.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleUnlock(lock.email)}>
+                            <AlertDialogAction
+                              onClick={() => handleUnlock(lock.email)}
+                            >
                               Desbloquear
                             </AlertDialogAction>
                           </AlertDialogFooter>

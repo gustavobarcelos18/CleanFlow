@@ -11,42 +11,22 @@ const faqs = [
   {
     pergunta: "Funciona com WhatsApp Business?",
     resposta:
-      "Sim. A integração é nativa com WhatsApp Business API. Seus clientes recebem mensagens da sua conta, com seu nome e foto.",
-  },
-  {
-    pergunta: "Os dados dos pacientes são seguros?",
-    resposta:
-      "100%. Criptografia ponta a ponta, servidores certificados e todos os termos de consentimento LGPD assinados no próprio agendamento.",
-  },
-  {
-    pergunta: "Como faço a migração da agenda atual?",
-    resposta:
-      "Nossa equipe de onboarding importa os dados da sua agenda atual durante a configuração. Não começa do zero.",
-  },
-  {
-    pergunta: "Funciona para multiunidade?",
-    resposta:
-      "Sim. O plano Empresa gerencia múltiplas salas e profissionais. Para redes com mais unidades, fale com nossa equipe.",
-  },
-  {
-    pergunta: "Qual é o suporte disponível?",
-    resposta:
-      "Chat em tempo real, e-mail e vídeo-chamada de onboarding. Plano Pro e Empresa têm atendimento prioritário.",
+      "Sim. A integração é nativa. Seus clientes recebem mensagens da sua conta, com seu nome e foto.",
   },
   {
     pergunta: "Posso testar antes de pagar?",
     resposta:
-      "Sim. 7 dias com acesso completo. Sem cartão de crédito, sem compromisso.",
+      "Sim. 7 dias de acesso completo. Sem cartão de crédito e sem burocracia para testar.",
   },
   {
-    pergunta: "Posso importar minha base de clientes?",
+    pergunta: "Como faço a migração da agenda atual?",
     resposta:
-      "Sim. Importamos via planilha Excel/CSV. Nosso time ajuda durante o onboarding.",
+      "Nossa equipe de onboarding importa sua base de clientes e agendamentos via planilha de forma gratuita e rápida.",
   },
   {
     pergunta: "Como funciona o cancelamento?",
     resposta:
-      "Sem burocracia. Um clique no painel cancela a assinatura. Seus dados ficam disponíveis por 30 dias para exportação.",
+      "Sem burocracia. Um clique e está cancelado, não cobramos taxa de fidelidade.",
   },
 ];
 

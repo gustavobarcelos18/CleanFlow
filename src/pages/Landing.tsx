@@ -3,11 +3,8 @@ import { Hero } from "@/components/landing/Hero";
 import { AgitacaoDor } from "@/components/landing/AgitacaoDor";
 import { Metrics } from "@/components/landing/Metrics";
 import { HowItWorks } from "@/components/landing/HowItWorks";
-import { Features } from "@/components/landing/Features";
-import { TargetAudience } from "@/components/landing/TargetAudience";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { Pricing } from "@/components/landing/Pricing";
-import { LeadMagnet } from "@/components/landing/LeadMagnet";
 import { FAQ } from "@/components/landing/FAQ";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { LandingHeader } from "@/components/landing/LandingHeader";
@@ -26,30 +23,24 @@ const Landing = () => {
   }, [setTheme]);
 
   return (
-    <div className="min-h-screen bg-[#070B12]">
+    <div className="min-h-screen bg-[#070B12] overflow-x-clip">
       <LandingHeader />
       <main>
         {/* 1. HERO — Promessa */}
         <Hero />
-        {/* 2. O PROBLEMA — Agitação */}
+        {/* 2. O PROBLEMA + SOLUÇÃO RÁPIDA */}
         <AgitacaoDor />
-        {/* 3. MÉTRICAS — O que muda */}
-        <Metrics />
-        {/* 4. COMO FUNCIONA — 3 passos */}
+        {/* 3. COMO FUNCIONA */}
         <HowItWorks />
-        {/* 5. RECURSOS — 6 cards */}
-        <Features />
-        {/* 6. PARA QUEM É — 3 perfis */}
-        <TargetAudience />
-        {/* 7. PLANOS — Oferta + Risco Reverso */}
-        <Pricing />
-        {/* 8. PROVA SOCIAL — Depoimentos + Mini case */}
+        {/* 4. MÉTRICAS — A Prova incontestável */}
+        <Metrics />
+        {/* 5. PROVA SOCIAL — Case e depoimentos */}
         <Testimonials />
-        {/* 9. LEAD MAGNET — Checklist anti-faltas */}
-        <LeadMagnet />
-        {/* 10. FAQ — 8 perguntas */}
+        {/* 6. PLANOS — Risco Reverso */}
+        <Pricing />
+        {/* 7. FAQ — Quebra Final de Objeções */}
         <FAQ />
-        {/* 11. CTA FINAL — Punch */}
+        {/* 8. CTA FINAL */}
         <FinalCTA />
       </main>
       <LandingFooter />

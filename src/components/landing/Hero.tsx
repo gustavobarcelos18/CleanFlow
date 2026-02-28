@@ -5,17 +5,20 @@ import { Link } from "react-router-dom";
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-[#070B12]">
+    <section className="relative min-h-screen flex items-center bg-transparent">
       {/* Background glow effects */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] md:w-[900px] h-[400px] md:h-[600px] bg-cyan-500/10 rounded-full blur-[100px] md:blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] md:bottom-[-20%] right-[-10%] md:right-0 w-[100%] md:w-[700px] h-[300px] md:h-[500px] bg-orange-500/10 rounded-full blur-[100px] md:blur-[120px] pointer-events-none" />
 
       {/* Grid overlay */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-x-0 top-0 h-[150%] pointer-events-none opacity-[0.03]"
         style={{
           backgroundImage: `linear-gradient(#22D3EE 1px, transparent 1px), linear-gradient(90deg, #22D3EE 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
+          maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 40%, transparent 100%)",
         }}
       />
 
@@ -35,30 +38,7 @@ export function Hero() {
             receita.{" "}
           </p>
 
-          {/* Main highlights — simplificados e horizontais para maior leveza */}
-          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-[#A9B7D0] text-sm md:text-base max-w-4xl mx-auto">
-            <div className="flex items-center gap-2">
-              <CheckCircle
-                className="h-4 w-4 text-cyan-400 shrink-0 opacity-70"
-                aria-hidden="true"
-              />
-              <span>Confirmação automática</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle
-                className="h-4 w-4 text-cyan-400 shrink-0 opacity-70"
-                aria-hidden="true"
-              />
-              <span>Setup em minutos</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle
-                className="h-4 w-4 text-cyan-400 shrink-0 opacity-70"
-                aria-hidden="true"
-              />
-              <span>Visão clara de caixa</span>
-            </div>
-          </div>
+          {/* Main highlights removed for extra cleanliness */}
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
@@ -100,10 +80,10 @@ export function Hero() {
           {/* Social proof bar */}
           <div className="mt-8 pt-8 border-t border-[#1B2A40] flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#A9B7D0]">
             <div className="flex -space-x-2" aria-label="Avatares de usuários">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-[#070B12]"
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 border border-[#1B2A40]"
                   aria-hidden="true"
                 />
               ))}

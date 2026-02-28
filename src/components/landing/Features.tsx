@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Calendar,
-  MessageSquare,
-  Brain,
-  RefreshCw,
-  DollarSign,
-  BarChart3,
-} from "lucide-react";
+import { Calendar, MessageSquare, Brain } from "lucide-react";
 
 const recursos = [
   {
@@ -29,27 +22,6 @@ const recursos = [
     recurso: "IA anti-faltas",
     descricao:
       "Score de risco por paciente 48h antes. Sua equipe age preventivamente.",
-  },
-  {
-    icon: RefreshCw,
-    beneficio: "Preencha buracos automaticamente",
-    recurso: "Encaixe inteligente",
-    descricao:
-      "Cancelou? A IA avisa a lista de espera e preenche sem você perceber.",
-  },
-  {
-    icon: DollarSign,
-    beneficio: "Saiba quanto entrou hoje",
-    recurso: "Financeiro e caixa",
-    descricao:
-      "Receita do dia, semana e mês. Sem planilha, sem surpresa no fechamento.",
-  },
-  {
-    icon: BarChart3,
-    beneficio: "Decisão em minutos",
-    recurso: "Relatórios e exportação",
-    descricao:
-      "Dashboard executivo com os KPIs que realmente importam para o seu negócio.",
   },
 ];
 
@@ -78,9 +50,9 @@ export function Features() {
                   key={r.recurso}
                   className="group bg-[#070B12] border border-[#1B2A40] rounded-2xl p-6 hover:border-cyan-400/30 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mb-4 group-hover:bg-cyan-400/15 transition-colors">
+                  <div className="mb-4">
                     <Icon
-                      className="h-6 w-6 text-cyan-400"
+                      className="h-7 w-7 text-cyan-400 opacity-80"
                       aria-hidden="true"
                     />
                   </div>

@@ -68,11 +68,12 @@ export function Metrics() {
                   key={m.label}
                   className="bg-[#070B12] border border-[#1B2A40] rounded-2xl p-6 flex flex-col items-center text-center hover:border-opacity-50 hover:-translate-y-1 transition-all duration-300"
                 >
-                  {/* Ícone */}
-                  <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${m.bg} border ${m.borda}`}
-                  >
-                    <Icon className={`h-6 w-6 ${m.cor}`} aria-hidden="true" />
+                  {/* Ícone simplificado sem badge */}
+                  <div className="mb-4">
+                    <Icon
+                      className={`h-7 w-7 ${m.cor} opacity-80`}
+                      aria-hidden="true"
+                    />
                   </div>
 
                   {/* Valor principal — nowrap garante que não quebre */}

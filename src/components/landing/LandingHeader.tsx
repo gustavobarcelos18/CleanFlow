@@ -40,9 +40,9 @@ export function LandingHeader() {
   };
 
   const navItems = [
-    { label: "Recursos", id: "funcionalidades" },
     { label: "Como funciona", id: "como-funciona" },
     { label: "Resultados", id: "resultados" },
+    { label: "Depoimentos", id: "depoimentos" },
     { label: "Planos", id: "planos" },
     { label: "FAQ", id: "faq" },
   ];
