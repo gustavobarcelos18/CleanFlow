@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -17,25 +23,25 @@ interface EditProcedimentoDialogProps {
   children?: React.ReactNode;
 }
 
-export function EditProcedimentoDialog({ 
-  procedimentoId, 
-  open, 
-  onOpenChange, 
+export function EditProcedimentoDialog({
+  procedimentoId,
+  open,
+  onOpenChange,
   onSuccess,
-  children
+  children,
 }: EditProcedimentoDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
     duracao_minutos: "",
-    preco: "",
+    valor: "",
     codigo_tuss: "",
     descricao: "",
-    tempo_preparo_minutos: "",
-    instrucoes: "",
-    requisitos: "",
-    confirmacao_24h: false,
-    ativo: true
+    instrucoes_preparo: "",
+    instrucoes_pos: "",
+    anestesia_necessaria: false,
+    tipo_anestesia: "",
+    ativo: true,
   });
 
   const { toast } = useToast();
@@ -49,9 +55,9 @@ export function EditProcedimentoDialog({
   const fetchProcedimento = async () => {
     try {
       const { data, error } = await supabase
-        .from('procedimentos')
-        .select('*')
-        .eq('id', procedimentoId)
+        .from("procedimentos")
+        .select("*")
+        .eq("id", procedimentoId)
         .single();
 
       if (error) throw error;
@@ -59,21 +65,21 @@ export function EditProcedimentoDialog({
       setFormData({
         nome: data.nome || "",
         duracao_minutos: data.duracao_minutos?.toString() || "",
-        preco: data.preco?.toString() || "",
+        valor: data.valor?.toString() || "",
         codigo_tuss: data.codigo_tuss || "",
         descricao: data.descricao || "",
-        tempo_preparo_minutos: data.tempo_preparo_minutos?.toString() || "",
-        instrucoes: data.instrucoes || "",
-        requisitos: data.requisitos || "",
-        confirmacao_24h: data.confirmacao_24h || false,
-        ativo: data.ativo !== false
+        instrucoes_preparo: data.instrucoes_preparo || "",
+        instrucoes_pos: data.instrucoes_pos || "",
+        anestesia_necessaria: data.anestesia_necessaria || false,
+        tipo_anestesia: data.tipo_anestesia || "",
+        ativo: data.ativo !== false,
       });
     } catch (error) {
-      console.error('Erro ao buscar procedimento:', error);
+      console.error("Erro ao buscar procedimento:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os dados do procedimento.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -85,7 +91,7 @@ export function EditProcedimentoDialog({
       toast({
         title: "Campos obrigatórios",
         description: "Nome e duração são obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -94,37 +100,37 @@ export function EditProcedimentoDialog({
       setIsLoading(true);
 
       const { error } = await supabase
-        .from('procedimentos')
+        .from("procedimentos")
         .update({
           nome: formData.nome.trim(),
           duracao_minutos: parseInt(formData.duracao_minutos),
-          preco: formData.preco ? parseFloat(formData.preco) : null,
+          valor: formData.valor ? parseFloat(formData.valor) : null,
           codigo_tuss: formData.codigo_tuss.trim() || null,
           descricao: formData.descricao.trim() || null,
-          tempo_preparo_minutos: formData.tempo_preparo_minutos ? parseInt(formData.tempo_preparo_minutos) : null,
-          instrucoes: formData.instrucoes.trim() || null,
-          requisitos: formData.requisitos.trim() || null,
-          confirmacao_24h: formData.confirmacao_24h,
+          instrucoes_preparo: formData.instrucoes_preparo.trim() || null,
+          instrucoes_pos: formData.instrucoes_pos.trim() || null,
+          anestesia_necessaria: formData.anestesia_necessaria,
+          tipo_anestesia: formData.tipo_anestesia.trim() || null,
           ativo: formData.ativo,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', procedimentoId);
+        .eq("id", procedimentoId);
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: "Procedimento atualizado com sucesso."
+        description: "Procedimento atualizado com sucesso.",
       });
 
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error('Erro ao atualizar procedimento:', error);
+      console.error("Erro ao atualizar procedimento:", error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o procedimento.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -137,7 +143,9 @@ export function EditProcedimentoDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Procedimento</DialogTitle>
-          <DialogDescription>Altere as informações do procedimento</DialogDescription>
+          <DialogDescription>
+            Altere as informações do procedimento
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -147,7 +155,9 @@ export function EditProcedimentoDialog({
               <Input
                 id="nome"
                 value={formData.nome}
-                onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, nome: e.target.value }))
+                }
                 required
               />
             </div>
@@ -157,7 +167,12 @@ export function EditProcedimentoDialog({
               <Input
                 id="codigo_tuss"
                 value={formData.codigo_tuss}
-                onChange={(e) => setFormData(prev => ({ ...prev, codigo_tuss: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    codigo_tuss: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -168,31 +183,27 @@ export function EditProcedimentoDialog({
                 type="number"
                 min="1"
                 value={formData.duracao_minutos}
-                onChange={(e) => setFormData(prev => ({ ...prev, duracao_minutos: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    duracao_minutos: e.target.value,
+                  }))
+                }
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preparo">Tempo de Preparo (minutos)</Label>
+              <Label htmlFor="valor">Valor (R$)</Label>
               <Input
-                id="preparo"
-                type="number"
-                min="0"
-                value={formData.tempo_preparo_minutos}
-                onChange={(e) => setFormData(prev => ({ ...prev, tempo_preparo_minutos: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="preco">Preço (R$)</Label>
-              <Input
-                id="preco"
+                id="valor"
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.preco}
-                onChange={(e) => setFormData(prev => ({ ...prev, preco: e.target.value }))}
+                value={formData.valor}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, valor: e.target.value }))
+                }
               />
             </div>
 
@@ -201,52 +212,97 @@ export function EditProcedimentoDialog({
               <Textarea
                 id="descricao"
                 value={formData.descricao}
-                onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    descricao: e.target.value,
+                  }))
+                }
                 rows={2}
               />
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="instrucoes">Instruções</Label>
+              <Label htmlFor="instrucoes_preparo">Instruções de Preparo</Label>
               <Textarea
-                id="instrucoes"
-                value={formData.instrucoes}
-                onChange={(e) => setFormData(prev => ({ ...prev, instrucoes: e.target.value }))}
+                id="instrucoes_preparo"
+                value={formData.instrucoes_preparo}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    instrucoes_preparo: e.target.value,
+                  }))
+                }
                 rows={2}
               />
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="requisitos">Requisitos</Label>
+              <Label htmlFor="instrucoes_pos">
+                Instruções Pós-Procedimento
+              </Label>
               <Textarea
-                id="requisitos"
-                value={formData.requisitos}
-                onChange={(e) => setFormData(prev => ({ ...prev, requisitos: e.target.value }))}
+                id="instrucoes_pos"
+                value={formData.instrucoes_pos}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    instrucoes_pos: e.target.value,
+                  }))
+                }
                 rows={2}
               />
             </div>
 
             <div className="flex items-center justify-between col-span-2">
-              <Label htmlFor="confirmacao">Confirmar 24h antes</Label>
+              <Label htmlFor="anestesia_necessaria">Anestesia Necessária</Label>
               <Switch
-                id="confirmacao"
-                checked={formData.confirmacao_24h}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, confirmacao_24h: checked }))}
+                id="anestesia_necessaria"
+                checked={formData.anestesia_necessaria}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    anestesia_necessaria: checked,
+                  }))
+                }
               />
             </div>
+
+            {formData.anestesia_necessaria && (
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="tipo_anestesia">Tipo de Anestesia</Label>
+                <Input
+                  id="tipo_anestesia"
+                  value={formData.tipo_anestesia}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tipo_anestesia: e.target.value,
+                    }))
+                  }
+                  placeholder="Ex: Local, Sedação..."
+                />
+              </div>
+            )}
 
             <div className="flex items-center justify-between col-span-2">
               <Label htmlFor="ativo">Ativo</Label>
               <Switch
                 id="ativo"
                 checked={formData.ativo}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, ativo: checked }))}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, ativo: checked }))
+                }
               />
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
