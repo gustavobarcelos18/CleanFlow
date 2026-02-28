@@ -101,7 +101,7 @@ const FlowChat = () => {
   const filteredContacts = contacts.filter(
     (contact) =>
       contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.phone.includes(searchQuery)
+      contact.phone.includes(searchQuery),
   );
 
   const handleTemplateSelect = (templateKey: string) => {
@@ -139,7 +139,7 @@ const FlowChat = () => {
           </p>
         </div>
 
-        <Card className="p-3 bg-warning-light border-warning/30">
+        <Card className="p-3 bg-warning/10 border-warning/30">
           <p className="text-sm text-foreground">
             <strong>Aviso:</strong> O FlowChat usa o link oficial do WhatsApp. O
             conteúdo das respostas do cliente NÃO é capturado pelo CleanFlow.
@@ -165,10 +165,11 @@ const FlowChat = () => {
                   <div
                     key={contact.id}
                     onClick={() => setSelectedContact(contact)}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedContact?.id === contact.id
+                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedContact?.id === contact.id
                         ? "bg-primary/10 border-2 border-primary"
                         : "bg-card border border-border hover:bg-accent"
-                      }`}
+                    }`}
                   >
                     <div className="font-medium text-foreground">
                       {contact.name}
@@ -178,7 +179,11 @@ const FlowChat = () => {
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {contact.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -292,7 +297,9 @@ const FlowChat = () => {
                             <Badge variant="secondary">{msg.template}</Badge>
                             <Badge
                               variant={
-                                msg.status === "sent" ? "default" : "destructive"
+                                msg.status === "sent"
+                                  ? "default"
+                                  : "destructive"
                               }
                             >
                               {msg.status === "sent" ? (

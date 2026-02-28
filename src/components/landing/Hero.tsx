@@ -78,7 +78,13 @@ export function Hero() {
           </a>
 
           {/* Social proof bar */}
-          <div className="mt-8 pt-8 border-t border-[#1B2A40] flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#A9B7D0]">
+          <div className="relative mt-8 pt-8 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#A9B7D0]">
+            {/* Elegant gradient separator */}
+            <div
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 max-w-3xl h-px bg-gradient-to-r from-transparent via-[#1B2A40] to-transparent"
+              aria-hidden="true"
+            />
+
             <div className="flex -space-x-2" aria-label="Avatares de usuários">
               {[1, 2, 3].map((i) => (
                 <div

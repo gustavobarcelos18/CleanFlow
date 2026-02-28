@@ -57,9 +57,12 @@ export function LandingHeader() {
     <header className={navClass}>
       <div className="container mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <Activity className="h-6 md:h-7 w-6 md:w-7 text-cyan-400" />
-            <span className="text-lg md:text-xl font-bold text-white tracking-tight">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <Activity
+              className="h-8 md:h-9 w-8 md:w-9 text-cyan-400"
+              strokeWidth={2.5}
+            />
+            <span className="text-xl md:text-2xl font-bold text-white tracking-tight">
               CleanFlow
             </span>
           </Link>

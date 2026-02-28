@@ -91,7 +91,7 @@ export function Header({ className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "bg-[#070B12]/80 backdrop-blur-md border-b border-[#1B2A40] px-6 h-20 flex items-center sticky top-0 z-40",
+        "bg-background/80 backdrop-blur-md border-b border-border px-6 h-20 flex items-center sticky top-0 z-40",
         className,
       )}
     >
@@ -99,10 +99,10 @@ export function Header({ className }: HeaderProps) {
         {/* Date and Quick Stats */}
         <div className="flex items-center gap-6">
           <div>
-            <h2 className="text-xl font-bold text-white capitalize tracking-tight">
+            <h2 className="text-xl font-bold text-foreground capitalize tracking-tight">
               {currentDate}
             </h2>
-            <p className="text-sm text-[#A9B7D0]">
+            <p className="text-sm text-muted-foreground">
               Painel de controle da clínica
             </p>
           </div>
@@ -111,17 +111,17 @@ export function Header({ className }: HeaderProps) {
           {(stats.today > 0 || stats.pending > 0 || stats.waiting > 0) && (
             <div className="hidden md:flex items-center gap-3">
               {stats.today > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-400/10 border border-cyan-400/20 rounded-full">
-                  <Calendar className="h-3.5 w-3.5 text-cyan-400" />
-                  <span className="text-xs font-bold text-cyan-400">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-bold text-primary">
                     {stats.today} hoje
                   </span>
                 </div>
               )}
               {stats.pending > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full">
-                  <Clock className="h-3.5 w-3.5 text-orange-500" />
-                  <span className="text-xs font-bold text-orange-500">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/20 rounded-full">
+                  <Clock className="h-3.5 w-3.5 text-warning" />
+                  <span className="text-xs font-bold text-warning">
                     {stats.pending} alertas
                   </span>
                 </div>
@@ -133,20 +133,20 @@ export function Header({ className }: HeaderProps) {
         {/* User Actions */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <div className="h-6 w-px bg-[#1B2A40] mx-1" />
+          <div className="h-6 w-px bg-border mx-1" />
           <AlertsPopover />
 
           <Button
             variant="ghost"
-            className="flex items-center gap-3 hover:bg-[#1B2A40]/50 transition-all duration-200 py-1.5 px-2 rounded-xl"
+            className="flex items-center gap-3 hover:bg-muted transition-all duration-200 py-1.5 px-2 rounded-xl"
             asChild
           >
             <Link to="/perfil">
-              <Avatar className="w-9 h-9 border-2 border-cyan-400/20 shadow-lg shadow-cyan-500/10">
+              <Avatar className="w-9 h-9 border-2 border-primary/20 shadow-lg shadow-primary/10">
                 {profile?.avatar_url ? (
                   <AvatarImage src={profile.avatar_url} alt={profile.nome} />
                 ) : (
-                  <AvatarFallback className="bg-cyan-400/20 text-cyan-400 text-xs font-black">
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-black">
                     {profile?.nome ? (
                       getInitials(profile.nome)
                     ) : (
@@ -156,10 +156,10 @@ export function Header({ className }: HeaderProps) {
                 )}
               </Avatar>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-black text-white leading-tight">
+                <p className="text-sm font-black text-foreground leading-tight">
                   {profile?.nome || user?.email}
                 </p>
-                <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-0.5">
+                <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-0.5">
                   {profile?.role === "admin"
                     ? "Administrador"
                     : profile?.role === "profissional"
@@ -173,7 +173,7 @@ export function Header({ className }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="text-[#A9B7D0] hover:text-orange-500 hover:bg-orange-500/10 transition-colors"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             onClick={() => signOut()}
           >
             <LogOut className="h-5 w-5" />

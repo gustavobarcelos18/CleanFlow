@@ -265,21 +265,21 @@ export function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-white tracking-tight">
-              Próximas <span className="text-cyan-400">Consultas</span>
+            <h3 className="text-xl font-black text-foreground tracking-tight">
+              Próximas <span className="text-primary">Consultas</span>
             </h3>
-            <span className="text-xs font-bold text-[#A9B7D0] bg-[#1B2A40]/50 px-3 py-1 rounded-full border border-[#1B2A40]">
+            <span className="text-xs font-bold text-muted-foreground bg-muted px-3 py-1 rounded-full border border-border">
               Próximas 2h
             </span>
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 bg-[#0B1220] border border-[#1B2A40] rounded-2xl">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto"></div>
+            <div className="text-center py-12 bg-card border border-border rounded-2xl">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             </div>
           ) : upcomingAppointments.length === 0 ? (
-            <div className="p-12 bg-[#0B1220] border border-[#1B2A40] rounded-2xl text-center">
-              <p className="text-[#A9B7D0] font-medium">
+            <div className="p-12 bg-card border border-border rounded-2xl text-center">
+              <p className="text-muted-foreground font-medium">
                 Nenhuma consulta nas próximas 2 horas
               </p>
             </div>
@@ -294,7 +294,7 @@ export function DashboardOverview() {
 
         {/* Widget de Créditos WhatsApp */}
         <div className="space-y-4">
-          <h3 className="text-xl font-black text-white tracking-tight">
+          <h3 className="text-xl font-black text-foreground tracking-tight">
             Mensageria
           </h3>
           <WhatsAppCreditsWidget />
@@ -303,16 +303,16 @@ export function DashboardOverview() {
 
       {/* Painel de Alertas */}
       <div className="space-y-4">
-        <h3 className="text-xl font-black text-white tracking-tight">
-          Alertas e <span className="text-orange-500">Ações</span>
+        <h3 className="text-xl font-black text-foreground tracking-tight">
+          Alertas e <span className="text-warning">Ações</span>
         </h3>
         {isLoading ? (
-          <div className="text-center py-12 bg-[#0B1220] border border-[#1B2A40] rounded-2xl">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto"></div>
+          <div className="text-center py-12 bg-card border border-border rounded-2xl">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           </div>
         ) : alerts.length === 0 ? (
-          <div className="p-12 bg-[#0B1220] border border-[#1B2A40] rounded-2xl text-center">
-            <p className="text-[#A9B7D0] font-medium">
+          <div className="p-12 bg-card border border-border rounded-2xl text-center">
+            <p className="text-muted-foreground font-medium">
               Nenhum alerta no momento
             </p>
           </div>
@@ -324,36 +324,36 @@ export function DashboardOverview() {
                 className={cn(
                   "p-5 rounded-2xl border transition-all duration-300 shadow-lg",
                   alert.type === "risk-high"
-                    ? "bg-orange-500/5 border-orange-500/20 hover:border-orange-500/40"
+                    ? "bg-warning/10 border-warning/20 hover:border-warning/40"
                     : alert.type === "pending"
-                      ? "bg-cyan-400/5 border-cyan-400/20 hover:border-cyan-400/40"
-                      : "bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40",
+                      ? "bg-primary/10 border-primary/20 hover:border-primary/40"
+                      : "bg-success/10 border-success/20 hover:border-success/40",
                 )}
               >
                 <div className="flex items-center gap-2 mb-3">
                   {alert.type === "risk-high" && (
-                    <AlertTriangle className="h-5 w-5 text-orange-500" />
+                    <AlertTriangle className="h-5 w-5 text-warning" />
                   )}
                   {alert.type === "pending" && (
-                    <Clock className="h-5 w-5 text-cyan-400" />
+                    <Clock className="h-5 w-5 text-primary" />
                   )}
                   {alert.type === "success" && (
-                    <CheckCircle className="h-5 w-5 text-emerald-400" />
+                    <CheckCircle className="h-5 w-5 text-success" />
                   )}
                   <h4
                     className={cn(
                       "font-bold tracking-tight uppercase text-xs",
                       alert.type === "risk-high"
-                        ? "text-orange-500"
+                        ? "text-warning"
                         : alert.type === "pending"
-                          ? "text-cyan-400"
-                          : "text-emerald-400",
+                          ? "text-primary"
+                          : "text-success",
                     )}
                   >
                     {alert.title}
                   </h4>
                 </div>
-                <p className="text-sm text-[#A9B7D0] leading-relaxed mb-4">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                   {alert.message}
                 </p>
                 {alert.actions.length > 0 && (
@@ -365,9 +365,9 @@ export function DashboardOverview() {
                           "px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all duration-200",
                           i === 0
                             ? alert.type === "risk-high"
-                              ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:scale-105"
-                              : "bg-cyan-400 text-[#070B12] shadow-lg shadow-cyan-500/20 hover:scale-105"
-                            : "bg-[#1B2A40]/50 text-white border border-[#1B2A40] hover:bg-[#1B2A40]",
+                              ? "bg-warning text-warning-foreground shadow-lg hover:scale-105"
+                              : "bg-primary text-primary-foreground shadow-lg hover:scale-105"
+                            : "bg-muted text-foreground border border-border hover:bg-border/50",
                         )}
                       >
                         {action}

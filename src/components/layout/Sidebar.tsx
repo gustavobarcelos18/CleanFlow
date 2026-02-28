@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Calendar,
   Users,
@@ -34,9 +33,15 @@ interface SidebarProps {
 // 1. Operação Principal
 const coreItems = [
   {
-    title: "Dashboard",
+    title: "Hub Central",
     icon: Home,
     href: "/dashboard",
+    color: "text-medical-cyan",
+  },
+  {
+    title: "Visão Geral",
+    icon: BarChart3,
+    href: "/visao-geral",
     color: "text-medical-cyan",
   },
   {
@@ -65,19 +70,19 @@ const clinicalItems = [
     title: "Pacientes",
     icon: Users,
     href: "/pacientes",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Prontuários",
     icon: ClipboardList,
     href: "/prontuarios",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Exames",
     icon: TestTube,
     href: "/exames",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
 ];
 
@@ -87,31 +92,31 @@ const financialItems = [
     title: "Financeiro",
     icon: DollarSign,
     href: "/financeiro",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Caixa Diário",
     icon: ShoppingBag,
     href: "/caixa-diario",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Pacotes",
     icon: ShoppingBag,
     href: "/pacotes",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Procedimentos",
     icon: Syringe,
     href: "/procedimentos",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Planos de Saúde",
     icon: ClipboardList,
     href: "/planos-saude",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
 ];
 
@@ -121,31 +126,31 @@ const managementItems = [
     title: "Relatórios",
     icon: BarChart3,
     href: "/relatorios",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Profissionais",
     icon: Users,
     href: "/profissionais",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Unidades",
     icon: Building2,
     href: "/unidades",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Especialidades",
     icon: Stethoscope,
     href: "/especialidades",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Tipos de Profissional",
     icon: User,
     href: "/tipos-profissional",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
 ];
 
@@ -155,25 +160,25 @@ const bottomItems = [
     title: "Alarmes",
     icon: Bell,
     href: "/alarmes-lembretes",
-    color: "text-orange-500",
+    color: "text-warning",
   },
   {
     title: "Central de Ajuda",
     icon: HelpCircle,
     href: "/support",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Configurações",
     icon: Settings,
     href: "/configuracoes",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
   {
     title: "Perfil",
     icon: User,
     href: "/perfil",
-    color: "text-muted-foreground",
+    color: "text-sidebar-foreground",
   },
 ];
 
@@ -205,33 +210,33 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
   return (
     <div
       className={cn(
-        "bg-[#070B12] border-r border-[#1B2A40] h-full flex flex-col relative",
+        "bg-sidebar-background border-r border-sidebar-border h-full flex flex-col relative",
         className,
       )}
       style={{ width: `${width}px` }}
     >
-      <div className="px-6 border-b border-[#1B2A40] flex-shrink-0 h-20 flex items-center">
+      <div className="px-4 pr-6 border-b border-sidebar-border flex-shrink-0 h-20 flex items-center">
         <div className="flex items-center gap-3 w-full">
           <div className="p-2 bg-[#22D3EE] rounded-lg shadow-lg shadow-cyan-500/20 flex-shrink-0">
-            <Stethoscope className="h-6 w-6 text-[#070B12]" />
+            <Stethoscope className="h-6 w-6 text-background" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-black text-white tracking-tight leading-none">
+            <h1 className="text-lg font-black text-sidebar-foreground tracking-tight leading-none truncate">
               CleanFlow
             </h1>
-            <p className="text-[11px] text-[#A9B7D0] font-bold leading-tight mt-0.5 truncate uppercase tracking-wider">
+            <p className="text-[11px] text-sidebar-foreground font-bold leading-tight mt-0.5 truncate uppercase tracking-wider">
               {isLoading ? "Carregando..." : displayName}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Navigation with ScrollArea */}
-      <ScrollArea className="flex-1 px-4">
-        <nav className="py-4 space-y-6">
+      {/* Navigation - scrolls vertically only */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll min-w-0">
+        <nav className="px-3 py-4 space-y-4">
           {sidebarSections.map((section) => (
-            <div key={section.label} className="space-y-2">
-              <h3 className="px-4 text-[10px] font-black uppercase tracking-widest text-[#A9B7D0]/40">
+            <div key={section.label} className="space-y-1">
+              <h3 className="px-2 text-[11px] font-bold uppercase tracking-widest text-sidebar-foreground mb-1">
                 {section.label}
               </h3>
               <div className="space-y-1">
@@ -244,21 +249,21 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
                       key={item.href}
                       variant={isActive ? "default" : "ghost"}
                       className={cn(
-                        "w-full justify-start gap-4 h-14 transition-all duration-200 rounded-xl",
+                        "w-full justify-start gap-3 h-10 transition-all duration-200 rounded-lg",
                         isActive
-                          ? "bg-[#22D3EE] text-[#070B12] font-black shadow-lg shadow-cyan-500/30"
-                          : "hover:bg-[#1B2A40]/50 text-[#A9B7D0] hover:text-white font-semibold",
+                          ? "bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/30"
+                          : "hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-foreground font-medium",
                       )}
                       asChild
                     >
                       <Link to={item.href} onClick={onLinkClick}>
                         <Icon
                           className={cn(
-                            "h-6 w-6",
-                            isActive ? "text-[#070B12]" : item.color,
+                            "h-5 w-5",
+                            isActive ? "text-primary-foreground" : item.color,
                           )}
                         />
-                        <span className="flex-1 text-left text-[14px] font-black tracking-tight">
+                        <span className="flex-1 text-left text-[14px] font-semibold tracking-tight">
                           {item.title}
                         </span>
                       </Link>
@@ -269,10 +274,10 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
             </div>
           ))}
         </nav>
-      </ScrollArea>
+      </div>
 
       {/* Bottom Section - Settings/Profile */}
-      <div className="px-4 py-4 border-t border-[#1B2A40] space-y-1 flex-shrink-0">
+      <div className="px-4 py-4 border-t border-sidebar-border space-y-1 flex-shrink-0">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -284,14 +289,14 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
               className={cn(
                 "w-full justify-start gap-4 h-12 transition-all duration-200 rounded-lg",
                 isActive
-                  ? "bg-[#22D3EE]/10 text-[#22D3EE] font-black"
-                  : "text-[#A9B7D0] hover:bg-[#1B2A40]/30 hover:text-white font-medium",
+                  ? "bg-primary/10 text-primary font-bold"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground font-medium",
               )}
               asChild
             >
               <Link to={item.href} onClick={onLinkClick}>
                 <Icon className="h-5 w-5" />
-                <span className="flex-1 text-left text-[13px] tracking-tight">
+                <span className="flex-1 text-left text-[14px] tracking-tight">
                   {item.title}
                 </span>
               </Link>
@@ -304,7 +309,7 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
       <div className="px-6 py-4 flex-shrink-0">
         <div className="flex items-center gap-3 px-1">
           <div className="w-2.5 h-2.5 bg-success rounded-full animate-pulse shadow-sm shadow-success/50"></div>
-          <span className="text-[11px] font-black uppercase tracking-widest text-success/80">
+          <span className="text-[11px] font-black uppercase tracking-widest text-success">
             Sistema Ativo
           </span>
         </div>
@@ -313,14 +318,14 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
       {/* Resize Handle */}
       <div
         className={cn(
-          "absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors group",
+          "absolute top-0 right-0 w-0.5 h-full cursor-col-resize z-50 hover:bg-primary/50 transition-colors group",
           isResizing && "bg-primary",
         )}
         onMouseDown={handleMouseDown}
       >
         <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="bg-background border border-border rounded p-1 shadow-sm">
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+            <GripVertical className="h-4 w-4 text-sidebar-foreground" />
           </div>
         </div>
       </div>

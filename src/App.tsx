@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ThemeSync } from "@/components/theme/ThemeSync";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
@@ -17,6 +18,7 @@ import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 // Lazy load pages for better performance
 const Landing = lazy(() => import("./pages/Landing"));
 const Index = lazy(() => import("./pages/Index"));
+const HubCentral = lazy(() => import("./pages/HubCentral"));
 const Agenda = lazy(() => import("./pages/Agenda"));
 const Pacientes = lazy(() => import("./pages/Pacientes"));
 const Profissionais = lazy(() => import("./pages/Profissionais"));
@@ -158,6 +160,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <ThemeSync />
             <TenantProvider>
               <OrganizationProvider>
                 <BillingProvider>
@@ -331,6 +334,14 @@ const App = () => (
                         />
                         <Route
                           path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <HubCentral />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/visao-geral"
                           element={
                             <ProtectedRoute>
                               <Index />

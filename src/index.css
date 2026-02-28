@@ -17,25 +17,25 @@ html {
 @layer base {
   :root {
     /* Core Background & Text */
-    --background: 0 0% 100%;
-    --foreground: 215 20% 15%;
+    --background: 210 20% 98%; /* Cinza muito claro, quase branco, para conforto */
+    --foreground: 0 0% 0%; /* Preto Puro para contraste total */
 
     /* Stable Colors */
     --medical-cyan: 210 100% 45%;
 
     /* Cards & Surfaces */
-    --card: 0 0% 100%;
-    --card-foreground: 215 20% 15%;
+    --card: 0 0% 100%; /* Branco puro para os cards saltarem */
+    --card-foreground: 0 0% 0%;
     --card-hover: 214 32% 96%;
 
     /* Popover & Dropdown */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 20% 15%;
+    --popover-foreground: 0 0% 0%;
 
     /* Professional Medical Blue Primary */
-    --primary: 210 100% 45%;
+    --primary: 222 84% 45%; /* Azul mais escuro e sóbrio (Safe/Professional) */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 100% 38%;
+    --primary-hover: 222 84% 35%;
     --primary-light: 210 100% 95%;
 
     /* Medical Green for Success/Confirmed */
@@ -44,22 +44,22 @@ html {
     --success-light: 152 76% 94%;
 
     /* Medical Orange for Warnings/Risk */
-    --warning: 38 92% 50%;
+    --warning: 25 95% 45%; /* Laranja mais queimado para contraste no branco */
     --warning-foreground: 0 0% 100%;
     --warning-light: 38 94% 95%;
 
     /* Secondary & Neutral */
     --secondary: 210 17% 95%;
-    --secondary-foreground: 215 20% 15%;
+    --secondary-foreground: 0 0% 0%;
     --secondary-hover: 210 17% 90%;
 
     /* Muted & Subtle */
     --muted: 210 17% 95%;
-    --muted-foreground: 215 15% 55%;
+    --muted-foreground: 0 0% 0%;
 
     /* Accent for Highlights */
     --accent: 210 40% 92%;
-    --accent-foreground: 215 20% 15%;
+    --accent-foreground: 0 0% 0%;
 
     /* Destructive/Error */
     --destructive: 0 72% 51%;
@@ -92,12 +92,12 @@ html {
     --status-risk-low: 152 69% 40%;
 
     /* Sidebar Clinical Theme */
-    --sidebar-background: 210 100% 98%;
-    --sidebar-foreground: 215 20% 25%;
-    --sidebar-primary: 210 100% 45%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 222 84% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 92%;
-    --sidebar-accent-foreground: 215 20% 25%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 0 0% 0%;
     --sidebar-border: 210 17% 90%;
     --sidebar-ring: 210 100% 45%;
 
@@ -117,14 +117,14 @@ html {
   .dark {
     /* Punch Graphite Theme */
     --background: 222 47% 5%; /* #070B12 */
-    --foreground: 216 100% 96%; /* #EAF2FF */
+    --foreground: 0 0% 100%; /* Branco puro */
 
     --card: 222 47% 8%; /* #0B1220 */
-    --card-foreground: 216 100% 96%;
+    --card-foreground: 0 0% 100%;
     --card-hover: 222 47% 10%;
 
     --popover: 222 47% 7%; /* Um pouco mais escuro para destaque */
-    --popover-foreground: 216 100% 96%;
+    --popover-foreground: 0 0% 100%;
 
     --primary: 189 84% 54%; /* #22D3EE - Cyan */
     --primary-foreground: 222 47% 5%;
@@ -140,13 +140,13 @@ html {
     --warning-foreground: 0 0% 100%;
 
     --secondary: 215 40% 12%; /* #111A2E */
-    --secondary-foreground: 218 30% 74%; /* #A9B7D0 */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 215 40% 10%;
-    --muted-foreground: 218 30% 65%;
+    --muted-foreground: 0 0% 100%;
 
     --accent: 189 84% 54%;
-    --accent-foreground: 222 47% 5%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -156,11 +156,11 @@ html {
     --ring: 189 84% 54%;
 
     --sidebar-background: 222 47% 5%;
-    --sidebar-foreground: 218 30% 74%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 189 84% 54%;
     --sidebar-primary-foreground: 222 47% 5%;
     --sidebar-accent: 222 47% 10%;
-    --sidebar-accent-foreground: 189 84% 54%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 215 40% 18%;
     --sidebar-ring: 189 84% 54%;
 
@@ -277,4 +277,31 @@ html {
 * {
   scrollbar-width: thin;
   scrollbar-color: #22d3ee #070b12;
+}
+
+/* Sidebar scrollbar — fully overrides global ::-webkit-scrollbar rules */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 3px !important;
+  height: 0px !important; /* no horizontal scrollbar */
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.35) !important;
+  border: none !important;
+  border-radius: 99px !important;
+}
+
+.dark .sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Firefox sidebar */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.35) transparent;
 }

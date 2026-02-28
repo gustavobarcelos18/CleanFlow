@@ -62,7 +62,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-[#070B12]">
+      <div className="min-h-screen bg-background text-foreground">
         {impersonationId && <ImpersonationBanner />}
         <div className="flex flex-col h-screen">
           {/* Mobile Header with Menu Button */}
@@ -94,7 +94,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   const { isResizing } = useSidebarWidth();
 
   return (
-    <div className="min-h-screen bg-[#070B12]">
+    <div className="min-h-screen bg-background text-foreground">
       {impersonationId && <ImpersonationBanner />}
       <div className="flex">
         {/* Sidebar - z-40 para ficar acima do conteúdo */}
