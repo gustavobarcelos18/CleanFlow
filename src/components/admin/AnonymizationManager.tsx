@@ -1,21 +1,58 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Trash2, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface AnonymizationRequest {
   id: string;
   tenant_id: string;
-  contact_type: 'paciente' | 'usuario' | 'tenant_contato';
+  contact_type: "paciente" | "usuario" | "tenant_contato";
   contact_id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   created_at: string;
   processed_at: string | null;
   error_message: string | null;
@@ -36,69 +73,78 @@ export const AnonymizationManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadRequests();
-    loadTenantInfo();
-  }, []);
+  const loadPatients = useCallback(
+    async (tid: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("pacientes")
+          .select("id, nome, email")
+          .eq("tenant_id", tid)
+          .order("nome");
 
-  const loadTenantInfo = async () => {
+        if (error) throw error;
+        setPatients(data || []);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erro desconhecido";
+        toast({
+          title: "Erro ao carregar pacientes",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    },
+    [toast],
+  );
+
+  const loadTenantInfo = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (profile?.tenant_id) {
         setTenantId(profile.tenant_id);
         loadPatients(profile.tenant_id);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao carregar tenant:", error);
     }
-  };
+  }, [loadPatients]);
 
-  const loadPatients = async (tid: string) => {
+  const loadRequests = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from('pacientes')
-        .select('id, nome, email')
-        .eq('tenant_id', tid)
-        .order('nome');
-
-      if (error) throw error;
-      setPatients(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar pacientes",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const loadRequests = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('anonymization_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("anonymization_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setRequests((data || []) as AnonymizationRequest[]);
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao carregar solicitações",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadRequests();
+    loadTenantInfo();
+  }, [loadRequests, loadTenantInfo]);
 
   const handleCreateRequest = async () => {
     if (!selectedPatient || !tenantId) {
@@ -111,17 +157,17 @@ export const AnonymizationManager = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      const { error } = await supabase
-        .from('anonymization_requests')
-        .insert({
-          tenant_id: tenantId,
-          contact_type: 'paciente',
-          contact_id: selectedPatient,
-          requested_by: user.id,
-        });
+      const { error } = await supabase.from("anonymization_requests").insert({
+        tenant_id: tenantId,
+        contact_type: "paciente",
+        contact_id: selectedPatient,
+        requested_by: user.id,
+      });
 
       if (error) throw error;
 
@@ -133,10 +179,12 @@ export const AnonymizationManager = () => {
       setIsDialogOpen(false);
       setSelectedPatient("");
       loadRequests();
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao criar solicitação",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     }
@@ -144,8 +192,8 @@ export const AnonymizationManager = () => {
 
   const handleProcessRequest = async (requestId: string) => {
     try {
-      const { error } = await supabase.rpc('anonymize_contact_data', {
-        p_request_id: requestId
+      const { error } = await supabase.rpc("anonymize_contact_data", {
+        p_request_id: requestId,
       });
 
       if (error) throw error;
@@ -156,10 +204,12 @@ export const AnonymizationManager = () => {
       });
 
       loadRequests();
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao anonimizar",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     }
@@ -167,14 +217,34 @@ export const AnonymizationManager = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
-      case 'processing':
-        return <Badge><Clock className="h-3 w-3 mr-1" />Processando</Badge>;
-      case 'completed':
-        return <Badge variant="default" className="bg-green-500"><CheckCircle2 className="h-3 w-3 mr-1" />Concluído</Badge>;
-      case 'failed':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Falhou</Badge>;
+      case "pending":
+        return (
+          <Badge variant="outline">
+            <Clock className="h-3 w-3 mr-1" />
+            Pendente
+          </Badge>
+        );
+      case "processing":
+        return (
+          <Badge>
+            <Clock className="h-3 w-3 mr-1" />
+            Processando
+          </Badge>
+        );
+      case "completed":
+        return (
+          <Badge variant="default" className="bg-green-500">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Concluído
+          </Badge>
+        );
+      case "failed":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="h-3 w-3 mr-1" />
+            Falhou
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -208,25 +278,33 @@ export const AnonymizationManager = () => {
               <DialogHeader>
                 <DialogTitle>Solicitar Anonimização</DialogTitle>
                 <DialogDescription>
-                  Selecione o paciente cujos dados deseja anonimizar. Esta ação não pode ser desfeita.
+                  Selecione o paciente cujos dados deseja anonimizar. Esta ação
+                  não pode ser desfeita.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                <Select
+                  value={selectedPatient}
+                  onValueChange={setSelectedPatient}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um paciente" />
                   </SelectTrigger>
                   <SelectContent>
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
-                        {patient.nome} {patient.email ? `(${patient.email})` : ''}
+                        {patient.nome}{" "}
+                        {patient.email ? `(${patient.email})` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Cancelar
                 </Button>
                 <Button onClick={handleCreateRequest} variant="destructive">
@@ -261,15 +339,15 @@ export const AnonymizationManager = () => {
                   </TableCell>
                   <TableCell>{getStatusBadge(request.status)}</TableCell>
                   <TableCell className="text-sm">
-                    {new Date(request.created_at).toLocaleString('pt-BR')}
+                    {new Date(request.created_at).toLocaleString("pt-BR")}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {request.processed_at 
-                      ? new Date(request.processed_at).toLocaleString('pt-BR')
-                      : '-'}
+                    {request.processed_at
+                      ? new Date(request.processed_at).toLocaleString("pt-BR")
+                      : "-"}
                   </TableCell>
                   <TableCell>
-                    {request.status === 'pending' && (
+                    {request.status === "pending" && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">
@@ -279,15 +357,17 @@ export const AnonymizationManager = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar anonimização</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Confirmar anonimização
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta ação é irreversível. Os dados pessoais serão permanentemente anonimizados.
-                              Deseja continuar?
+                              Esta ação é irreversível. Os dados pessoais serão
+                              permanentemente anonimizados. Deseja continuar?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction 
+                            <AlertDialogAction
                               onClick={() => handleProcessRequest(request.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
@@ -297,8 +377,10 @@ export const AnonymizationManager = () => {
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
-                    {request.status === 'failed' && request.error_message && (
-                      <span className="text-xs text-destructive">{request.error_message}</span>
+                    {request.status === "failed" && request.error_message && (
+                      <span className="text-xs text-destructive">
+                        {request.error_message}
+                      </span>
                     )}
                   </TableCell>
                 </TableRow>

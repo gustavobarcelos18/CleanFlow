@@ -1,9 +1,27 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ErrorMetric {
@@ -15,62 +33,72 @@ interface ErrorMetric {
   error_message: string | null;
 }
 
-const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16'];
+const COLORS = ["#ef4444", "#f97316", "#f59e0b", "#84cc16"];
 
 export const ErrorDashboard = () => {
   const [errors, setErrors] = useState<ErrorMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadErrors();
-    
-    // Refresh a cada 30 segundos
-    const interval = setInterval(loadErrors, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadErrors = async () => {
+  const loadErrors = useCallback(async () => {
     try {
       const oneDayAgo = new Date();
       oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
       const { data, error } = await supabase
-        .from('error_metrics')
-        .select('*')
-        .gte('timestamp', oneDayAgo.toISOString())
-        .order('timestamp', { ascending: false })
+        .from("error_metrics")
+        .select("*")
+        .gte("timestamp", oneDayAgo.toISOString())
+        .order("timestamp", { ascending: false })
         .limit(500);
 
       if (error) throw error;
       setErrors(data || []);
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao carregar métricas de erros",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const errorsByStatusCode = errors.reduce((acc, err) => {
-    const key = `${err.status_code}`;
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  useEffect(() => {
+    loadErrors();
 
-  const statusCodeData = Object.entries(errorsByStatusCode).map(([code, count]) => ({
-    name: code,
-    value: count,
-  }));
+    // Refresh a cada 30 segundos
+    const interval = setInterval(loadErrors, 30000);
+    return () => clearInterval(interval);
+  }, [loadErrors]);
 
-  const errorsByEndpoint = errors.reduce((acc, err) => {
-    const key = `${err.method} ${err.endpoint}`;
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const errorsByStatusCode = errors.reduce(
+    (acc, err) => {
+      const key = `${err.status_code}`;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  const statusCodeData = Object.entries(errorsByStatusCode).map(
+    ([code, count]) => ({
+      name: code,
+      value: count,
+    }),
+  );
+
+  const errorsByEndpoint = errors.reduce(
+    (acc, err) => {
+      const key = `${err.method} ${err.endpoint}`;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   const endpointData = Object.entries(errorsByEndpoint)
     .sort((a, b) => b[1] - a[1])
@@ -80,8 +108,10 @@ export const ErrorDashboard = () => {
       count,
     }));
 
-  const error4xxCount = errors.filter(e => e.status_code >= 400 && e.status_code < 500).length;
-  const error5xxCount = errors.filter(e => e.status_code >= 500).length;
+  const error4xxCount = errors.filter(
+    (e) => e.status_code >= 400 && e.status_code < 500,
+  ).length;
+  const error5xxCount = errors.filter((e) => e.status_code >= 500).length;
 
   if (loading) {
     return <div className="p-4">Carregando dashboard de erros...</div>;
@@ -97,7 +127,9 @@ export const ErrorDashboard = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Erros (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de Erros (24h)
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
@@ -123,7 +155,9 @@ export const ErrorDashboard = () => {
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{error5xxCount}</div>
+            <div className="text-2xl font-bold text-destructive">
+              {error5xxCount}
+            </div>
             <p className="text-xs text-muted-foreground">Erros do servidor</p>
           </CardContent>
         </Card>
@@ -150,13 +184,18 @@ export const ErrorDashboard = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
                     {statusCodeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />

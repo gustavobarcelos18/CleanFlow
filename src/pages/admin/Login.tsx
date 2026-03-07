@@ -1,10 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
@@ -19,59 +25,59 @@ export default function AdminLogin() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    checkExistingAuth();
+  const checkSupportUserAndRedirect = useCallback(
+    async (userId: string) => {
+      try {
+        const { data: supportUser, error } = await (supabase
+          .from("system_users" as any)
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle() as any);
 
-    // Listen for auth state changes (OAuth callback)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        await checkSupportUserAndRedirect(session.user.id);
+        if (error) {
+          console.error("Error fetching support user:", error);
+          return;
+        }
+
+        if (!supportUser) {
+          // If user doesn't have support permissions, sign them out
+          await supabase.auth.signOut();
+          toast.error("Acesso negado: você não tem permissões de suporte");
+          return;
+        }
+
+        if (!supportUser.active) {
+          await logAuthEvent(
+            supportUser.id,
+            "login_falha",
+            "Conta de suporte inativa",
+          );
+          await supabase.auth.signOut();
+          toast.error("Acesso negado: sua conta está inativa");
+          return;
+        }
+
+        // Log successful login
+        await logAuthEvent(
+          supportUser.id,
+          "login_sucesso",
+          "Login OAuth realizado com sucesso",
+        );
+
+        toast.success("Login realizado com sucesso!");
+        navigate("/admin");
+      } catch (error) {
+        console.error("Error in checkSupportUserAndRedirect:", error);
       }
-    });
+    },
+    [navigate],
+  );
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkSupportUserAndRedirect = async (userId: string) => {
+  const checkExistingAuth = useCallback(async () => {
     try {
-      const { data: supportUser, error } = await (supabase
-        .from("system_users" as any)
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle() as any);
-
-      if (error) {
-        console.error("Error fetching support user:", error);
-        return;
-      }
-
-      if (!supportUser) {
-        // If user doesn't have support permissions, sign them out
-        await supabase.auth.signOut();
-        toast.error("Acesso negado: você não tem permissões de suporte");
-        return;
-      }
-
-      if (!supportUser.active) {
-        await logAuthEvent(supportUser.id, "login_falha", "Conta de suporte inativa");
-        await supabase.auth.signOut();
-        toast.error("Acesso negado: sua conta está inativa");
-        return;
-      }
-
-      // Log successful login
-      await logAuthEvent(supportUser.id, "login_sucesso", "Login OAuth realizado com sucesso");
-
-      toast.success("Login realizado com sucesso!");
-      navigate("/admin");
-    } catch (error) {
-      console.error("Error in checkSupportUserAndRedirect:", error);
-    }
-  };
-
-  const checkExistingAuth = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (user) {
         await checkSupportUserAndRedirect(user.id);
@@ -82,12 +88,27 @@ export default function AdminLogin() {
     } finally {
       setCheckingAuth(false);
     }
-  };
+  }, [checkSupportUserAndRedirect]);
+
+  useEffect(() => {
+    checkExistingAuth();
+
+    // Listen for auth state changes (OAuth callback)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        await checkSupportUserAndRedirect(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [checkExistingAuth, checkSupportUserAndRedirect]);
 
   const logAuthEvent = async (
     usuarioId: string | null,
     tipoEvento: string,
-    descricao: string | null = null
+    descricao: string | null = null,
   ) => {
     try {
       await (supabase.rpc("log_admin_auth_event" as any, {
@@ -96,7 +117,7 @@ export default function AdminLogin() {
         p_descricao: descricao,
         p_ip_address: null,
         p_user_agent: navigator.userAgent,
-        p_metadata: {}
+        p_metadata: {},
       }) as any);
     } catch (error) {
       console.error("Error logging auth event:", error);
@@ -108,13 +129,18 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (authError) {
-        await logAuthEvent(null, "login_falha", `Falha de autenticação: ${authError.message}`);
+        await logAuthEvent(
+          null,
+          "login_falha",
+          `Falha de autenticação: ${authError.message}`,
+        );
         toast.error("Erro ao fazer login: " + authError.message);
         return;
       }
@@ -140,27 +166,37 @@ export default function AdminLogin() {
       }
 
       if (!supportUser) {
-        await logAuthEvent(null, "login_falha", "Usuário não é um usuário de suporte");
+        await logAuthEvent(
+          null,
+          "login_falha",
+          "Usuário não é um usuário de suporte",
+        );
         await supabase.auth.signOut();
         toast.error("Acesso negado: você não tem permissões de suporte");
         return;
       }
 
       if (!supportUser.active) {
-        await logAuthEvent(supportUser.id, "login_falha", "Conta de suporte inativa ou suspensa");
+        await logAuthEvent(
+          supportUser.id,
+          "login_falha",
+          "Conta de suporte inativa ou suspensa",
+        );
         await supabase.auth.signOut();
         toast.error("Acesso negado: sua conta está inativa");
         return;
       }
 
       // Log successful login
-      await logAuthEvent(supportUser.id, "login_sucesso", "Login realizado com sucesso");
+      await logAuthEvent(
+        supportUser.id,
+        "login_sucesso",
+        "Login realizado com sucesso",
+      );
 
       toast.success("Login realizado com sucesso!");
       navigate("/admin");
       return;
-
-
     } catch (error) {
       console.error("Error during login:", error);
       await logAuthEvent(null, "login_falha", "Erro inesperado durante login");
@@ -174,10 +210,10 @@ export default function AdminLogin() {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/admin`
-        }
+          redirectTo: `${window.location.origin}/admin`,
+        },
       });
 
       if (error) {

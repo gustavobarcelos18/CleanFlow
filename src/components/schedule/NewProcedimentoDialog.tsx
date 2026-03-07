@@ -18,11 +18,13 @@ import { Loader2, Plus } from "lucide-react";
 
 interface NewProcedimentoDialogProps {
   children?: React.ReactNode;
-  onSuccess?: () => void;
+  inline?: boolean;
+  onSuccess?: (id?: string) => void;
 }
 
 export function NewProcedimentoDialog({
   children,
+  inline = false,
   onSuccess,
 }: NewProcedimentoDialogProps) {
   const [open, setOpen] = useState(false);
@@ -44,6 +46,7 @@ export function NewProcedimentoDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!formData.nome || !formData.duracao_minutos) {
       toast({
@@ -70,21 +73,25 @@ export function NewProcedimentoDialog({
 
       if (!profile?.tenant_id) throw new Error("Tenant não encontrado");
 
-      const { error } = await supabase.from("procedimentos").insert([
-        {
-          tenant_id: profile.tenant_id,
-          nome: formData.nome.trim(),
-          duracao_minutos: parseInt(formData.duracao_minutos),
-          valor: formData.valor ? parseFloat(formData.valor) : null,
-          codigo_tuss: formData.codigo_tuss.trim() || null,
-          descricao: formData.descricao.trim() || null,
-          instrucoes_preparo: formData.instrucoes_preparo.trim() || null,
-          instrucoes_pos: formData.instrucoes_pos.trim() || null,
-          anestesia_necessaria: formData.anestesia_necessaria,
-          tipo_anestesia: formData.tipo_anestesia.trim() || null,
-          ativo: formData.ativo,
-        },
-      ]);
+      const { data, error } = await supabase
+        .from("servicos")
+        .insert([
+          {
+            tenant_id: profile.tenant_id,
+            nome: formData.nome.trim().toUpperCase(),
+            duracao_minutos: parseInt(formData.duracao_minutos),
+            preco: formData.valor ? parseFloat(formData.valor) : null,
+            codigo_tuss: formData.codigo_tuss.trim() || null,
+            descricao: formData.descricao.trim() || null,
+            instrucoes_preparo: formData.instrucoes_preparo.trim() || null,
+            instrucoes_pos: formData.instrucoes_pos.trim() || null,
+            anestesia_necessaria: formData.anestesia_necessaria,
+            tipo_anestesia: formData.tipo_anestesia.trim() || null,
+            ativo: formData.ativo,
+          },
+        ])
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -107,15 +114,20 @@ export function NewProcedimentoDialog({
       });
 
       setOpen(false);
-      if (onSuccess) onSuccess();
-    } catch (error) {
+      if (onSuccess) onSuccess(data?.id);
+    } catch (error: any) {
       console.error("Erro ao criar procedimento:", error);
+
+      let errorMessage = "Não foi possível criar o procedimento.";
+      if (error.code === "23505") {
+        errorMessage = "Já existe um procedimento cadastrado com este nome.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Erro",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível criar o procedimento.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -123,16 +135,26 @@ export function NewProcedimentoDialog({
     }
   };
 
+  const trigger = inline ? (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-auto p-0 text-xs text-primary font-medium hover:bg-transparent hover:text-primary/80 gap-1"
+    >
+      <Plus className="h-3 w-3" />
+      Novo Procedimento
+    </Button>
+  ) : (
+    <Button>
+      <Plus className="mr-2 h-4 w-4" />
+      Novo Procedimento
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Procedimento
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children || trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Procedimento</DialogTitle>
@@ -149,9 +171,12 @@ export function NewProcedimentoDialog({
                 id="nome"
                 value={formData.nome}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, nome: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    nome: e.target.value.toUpperCase(),
+                  }))
                 }
-                placeholder="Ex: Depilação a Laser"
+                placeholder="Ex: DEPILAÇÃO A LASER"
                 required
               />
             </div>

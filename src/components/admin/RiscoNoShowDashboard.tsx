@@ -1,10 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AlertTriangle, TrendingUp, CheckCircle, MapPin, Calendar } from "lucide-react";
+import {
+  AlertTriangle,
+  TrendingUp,
+  CheckCircle,
+  MapPin,
+  Calendar,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -18,11 +30,13 @@ interface AgendamentoRisco {
 }
 
 export function RiscoNoShowDashboard() {
-  const [agendamentosRisco, setAgendamentosRisco] = useState<AgendamentoRisco[]>([]);
+  const [agendamentosRisco, setAgendamentosRisco] = useState<
+    AgendamentoRisco[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [calculando, setCalculando] = useState<string | null>(null);
 
-  const loadAgendamentosRisco = async () => {
+  const loadAgendamentosRisco = useCallback(async () => {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -34,7 +48,8 @@ export function RiscoNoShowDashboard() {
       // Buscar agendamentos com alto risco
       const { data, error } = await supabase
         .from("risco_no_show_scores" as any)
-        .select(`
+        .select(
+          `
           *,
           agenda!inner(
             id,
@@ -42,7 +57,8 @@ export function RiscoNoShowDashboard() {
             pacientes(nome, telefone),
             procedimentos:servico_id(nome)
           )
-        `)
+        `,
+        )
         .eq("tenant_id", profile.tenant_id)
         .gte("score", 60)
         .order("score", { ascending: false })
@@ -50,13 +66,13 @@ export function RiscoNoShowDashboard() {
 
       if (error) throw error;
 
-      const formatted = (data as any[] || []).map((item: any) => ({
+      const formatted = ((data as any[]) || []).map((item: any) => ({
         id: item.agendamento_id,
         inicio: item.agenda.inicio,
         paciente: item.agenda.pacientes,
         servico: item.agenda.servicos,
         score: item.score,
-        acoes_tomadas: item.acoes_tomadas || []
+        acoes_tomadas: item.acoes_tomadas || [],
       }));
 
       setAgendamentosRisco(formatted);
@@ -66,21 +82,24 @@ export function RiscoNoShowDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadAgendamentosRisco();
-  }, []);
+  }, [loadAgendamentosRisco]);
 
   const calcularRisco = async (agendamentoId: string) => {
     setCalculando(agendamentoId);
     try {
-      const { error } = await supabase.functions.invoke("calcular-risco-no-show", {
-        body: { agendamento_id: agendamentoId }
-      });
+      const { error } = await supabase.functions.invoke(
+        "calcular-risco-no-show",
+        {
+          body: { agendamento_id: agendamentoId },
+        },
+      );
 
       if (error) throw error;
-      
+
       toast.success("Score recalculado e ações tomadas!");
       loadAgendamentosRisco();
     } catch (error) {
@@ -93,26 +112,32 @@ export function RiscoNoShowDashboard() {
 
   const getScoreBadge = (score: number) => {
     if (score >= 85) {
-      return <Badge variant="destructive" className="gap-1">
-        <AlertTriangle className="h-3 w-3" />
-        Crítico ({score})
-      </Badge>;
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          Crítico ({score})
+        </Badge>
+      );
     }
     if (score >= 70) {
-      return <Badge variant="default" className="gap-1 bg-orange-500">
-        <TrendingUp className="h-3 w-3" />
-        Alto ({score})
-      </Badge>;
+      return (
+        <Badge variant="default" className="gap-1 bg-orange-500">
+          <TrendingUp className="h-3 w-3" />
+          Alto ({score})
+        </Badge>
+      );
     }
-    return <Badge variant="secondary" className="gap-1">
-      Moderado ({score})
-    </Badge>;
+    return (
+      <Badge variant="secondary" className="gap-1">
+        Moderado ({score})
+      </Badge>
+    );
   };
 
   const getAcaoLabel = (acao: string) => {
     const labels: Record<string, string> = {
       lembrete_extra: "Lembrete Extra Enviado",
-      oferta_rota: "Rota Google Maps Enviada"
+      oferta_rota: "Rota Google Maps Enviada",
     };
     return labels[acao] || acao;
   };
@@ -122,7 +147,8 @@ export function RiscoNoShowDashboard() {
       <div>
         <h2 className="text-2xl font-bold">Risco de No-Show</h2>
         <p className="text-muted-foreground">
-          Monitore agendamentos com alta probabilidade de falta e tome ações preventivas
+          Monitore agendamentos com alta probabilidade de falta e tome ações
+          preventivas
         </p>
       </div>
 
@@ -135,7 +161,10 @@ export function RiscoNoShowDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-500">
-              {agendamentosRisco.filter(a => a.score >= 70 && a.score < 85).length}
+              {
+                agendamentosRisco.filter((a) => a.score >= 70 && a.score < 85)
+                  .length
+              }
             </div>
           </CardContent>
         </Card>
@@ -148,7 +177,7 @@ export function RiscoNoShowDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-destructive">
-              {agendamentosRisco.filter(a => a.score >= 85).length}
+              {agendamentosRisco.filter((a) => a.score >= 85).length}
             </div>
           </CardContent>
         </Card>
@@ -163,7 +192,10 @@ export function RiscoNoShowDashboard() {
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <span className="text-3xl font-bold">
-                {agendamentosRisco.filter(a => a.acoes_tomadas?.length > 0).length}
+                {
+                  agendamentosRisco.filter((a) => a.acoes_tomadas?.length > 0)
+                    .length
+                }
               </span>
             </div>
           </CardContent>
@@ -191,27 +223,38 @@ export function RiscoNoShowDashboard() {
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
                       {getScoreBadge(agendamento.score)}
-                      <span className="font-medium">{agendamento.paciente?.nome}</span>
+                      <span className="font-medium">
+                        {agendamento.paciente?.nome}
+                      </span>
                     </div>
-                    
+
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        {format(new Date(agendamento.inicio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        {format(
+                          new Date(agendamento.inicio),
+                          "dd/MM/yyyy 'às' HH:mm",
+                          { locale: ptBR },
+                        )}
                       </div>
                       <div>{agendamento.servico?.nome}</div>
                     </div>
 
-                    {agendamento.acoes_tomadas && agendamento.acoes_tomadas.length > 0 && (
-                      <div className="flex gap-2 flex-wrap">
-                        {agendamento.acoes_tomadas.map((acao, idx) => (
-                          <Badge key={idx} variant="outline" className="gap-1">
-                            <CheckCircle className="h-3 w-3" />
-                            {getAcaoLabel(acao)}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    {agendamento.acoes_tomadas &&
+                      agendamento.acoes_tomadas.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {agendamento.acoes_tomadas.map((acao, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="gap-1"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              {getAcaoLabel(acao)}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                   </div>
 
                   <Button
@@ -219,7 +262,9 @@ export function RiscoNoShowDashboard() {
                     onClick={() => calcularRisco(agendamento.id)}
                     disabled={calculando === agendamento.id}
                   >
-                    {calculando === agendamento.id ? "Calculando..." : "Recalcular"}
+                    {calculando === agendamento.id
+                      ? "Calculando..."
+                      : "Recalcular"}
                   </Button>
                 </div>
               </CardContent>

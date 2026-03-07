@@ -1,15 +1,41 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Phone,
@@ -23,7 +49,7 @@ import {
   Building2,
   Package,
   Brain,
-  Settings
+  Settings,
 } from "lucide-react";
 
 interface Provider {
@@ -82,109 +108,138 @@ export function AdminWhatsAppManagement() {
   // Dialog states
   const [newNumberDialog, setNewNumberDialog] = useState(false);
   const [newPackageDialog, setNewPackageDialog] = useState(false);
-  const [editingPackage, setEditingPackage] = useState<PhonePackage | null>(null);
+  const [editingPackage, setEditingPackage] = useState<PhonePackage | null>(
+    null,
+  );
 
   // Form states
   const [newNumber, setNewNumber] = useState({
-    phone_number: '',
-    display_name: '',
+    phone_number: "",
+    display_name: "",
     is_shared: false,
-    provider_id: ''
+    provider_id: "",
   });
   const [newPackage, setNewPackage] = useState({
-    nome: '',
-    descricao: '',
+    nome: "",
+    descricao: "",
     quantidade_numeros: 1,
     preco_mensal: 0,
     inclui_creditos: 0,
-    planos_permitidos: ['pro', 'enterprise'],
+    planos_permitidos: ["pro", "enterprise"],
     destaque: false,
-    stripe_price_id: ''
+    stripe_price_id: "",
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [providersRes, numbersRes, packagesRes, allocationsRes] = await Promise.all([
-        supabase.from('whatsapp_providers').select('*').order('nome'),
-        supabase.from('whatsapp_phone_numbers').select('*, provider:whatsapp_providers(*)').order('created_at', { ascending: false }),
-        supabase.from('phone_number_packages').select('*').order('preco_mensal'),
-        supabase.from('tenant_phone_allocations').select(`
+      const [providersRes, numbersRes, packagesRes, allocationsRes] =
+        await Promise.all([
+          supabase.from("whatsapp_providers").select("*").order("nome"),
+          supabase
+            .from("whatsapp_phone_numbers")
+            .select("*, provider:whatsapp_providers(*)")
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("phone_number_packages")
+            .select("*")
+            .order("preco_mensal"),
+          supabase
+            .from("tenant_phone_allocations")
+            .select(
+              `
           *,
           tenant:tenants(nome),
           phone_number:whatsapp_phone_numbers(*)
-        `).eq('status', 'active').order('alocado_em', { ascending: false }).limit(50)
-      ]);
+        `,
+            )
+            .eq("status", "active")
+            .order("alocado_em", { ascending: false })
+            .limit(50),
+        ]);
 
       if (providersRes.data) setProviders(providersRes.data);
       if (numbersRes.data) setPhoneNumbers(numbersRes.data);
       if (packagesRes.data) setPackages(packagesRes.data);
-      if (allocationsRes.data) setAllocations(allocationsRes.data as any);
+      if (allocationsRes.data)
+        setAllocations(allocationsRes.data as Allocation[]);
     } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Erro ao carregar dados');
+      console.error("Error loading data:", error);
+      toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateNumber = async () => {
     if (!newNumber.phone_number || !newNumber.display_name) {
-      toast.error('Preencha todos os campos obrigatórios');
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
 
     try {
-      const { error } = await supabase.from('whatsapp_phone_numbers').insert({
+      const { error } = await supabase.from("whatsapp_phone_numbers").insert({
         phone_number: newNumber.phone_number,
         display_name: newNumber.display_name,
         is_shared: newNumber.is_shared,
         provider_id: newNumber.provider_id || null,
-        status: 'active'
+        status: "active",
       });
 
       if (error) throw error;
 
-      toast.success('Número criado com sucesso');
+      toast.success("Número criado com sucesso");
       setNewNumberDialog(false);
-      setNewNumber({ phone_number: '', display_name: '', is_shared: false, provider_id: '' });
+      setNewNumber({
+        phone_number: "",
+        display_name: "",
+        is_shared: false,
+        provider_id: "",
+      });
       loadData();
-    } catch (error: any) {
-      console.error('Error creating number:', error);
-      toast.error(error.message || 'Erro ao criar número');
+    } catch (error) {
+      console.error("Error creating number:", error);
+      const message =
+        error instanceof Error ? error.message : "Erro ao criar número";
+      toast.error(message);
     }
   };
 
-  const handleToggleNumberStatus = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+  const handleToggleNumberStatus = async (
+    id: string,
+    currentStatus: string,
+  ) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
     try {
       const { error } = await supabase
-        .from('whatsapp_phone_numbers')
+        .from("whatsapp_phone_numbers")
         .update({ status: newStatus })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
-      toast.success('Status atualizado');
+      toast.success("Status atualizado");
       loadData();
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao atualizar status');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro ao atualizar status";
+      toast.error(message);
     }
   };
 
   const handleSavePackage = async () => {
     if (!newPackage.nome || newPackage.preco_mensal <= 0) {
-      toast.error('Preencha nome e preço');
+      toast.error("Preencha nome e preço");
       return;
     }
 
     try {
       if (editingPackage) {
         const { error } = await supabase
-          .from('phone_number_packages')
+          .from("phone_number_packages")
           .update({
             nome: newPackage.nome,
             descricao: newPackage.descricao || null,
@@ -193,14 +248,14 @@ export function AdminWhatsAppManagement() {
             inclui_creditos: newPackage.inclui_creditos,
             planos_permitidos: newPackage.planos_permitidos,
             destaque: newPackage.destaque,
-            stripe_price_id: newPackage.stripe_price_id || null
+            stripe_price_id: newPackage.stripe_price_id || null,
           })
-          .eq('id', editingPackage.id);
+          .eq("id", editingPackage.id);
 
         if (error) throw error;
-        toast.success('Pacote atualizado');
+        toast.success("Pacote atualizado");
       } else {
-        const { error } = await supabase.from('phone_number_packages').insert({
+        const { error } = await supabase.from("phone_number_packages").insert({
           nome: newPackage.nome,
           descricao: newPackage.descricao || null,
           quantidade_numeros: newPackage.quantidade_numeros,
@@ -208,43 +263,50 @@ export function AdminWhatsAppManagement() {
           inclui_creditos: newPackage.inclui_creditos,
           planos_permitidos: newPackage.planos_permitidos,
           destaque: newPackage.destaque,
-          stripe_price_id: newPackage.stripe_price_id || null
+          stripe_price_id: newPackage.stripe_price_id || null,
         });
 
         if (error) throw error;
-        toast.success('Pacote criado');
+        toast.success("Pacote criado");
       }
 
       setNewPackageDialog(false);
       setEditingPackage(null);
       setNewPackage({
-        nome: '',
-        descricao: '',
+        nome: "",
+        descricao: "",
         quantidade_numeros: 1,
         preco_mensal: 0,
         inclui_creditos: 0,
-        planos_permitidos: ['pro', 'enterprise'],
+        planos_permitidos: ["pro", "enterprise"],
         destaque: false,
-        stripe_price_id: ''
+        stripe_price_id: "",
       });
       loadData();
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao salvar pacote');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro ao salvar pacote";
+      toast.error(message);
     }
   };
 
-  const handleTogglePackageStatus = async (id: string, currentStatus: boolean) => {
+  const handleTogglePackageStatus = async (
+    id: string,
+    currentStatus: boolean,
+  ) => {
     try {
       const { error } = await supabase
-        .from('phone_number_packages')
+        .from("phone_number_packages")
         .update({ ativo: !currentStatus })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
-      toast.success('Status atualizado');
+      toast.success("Status atualizado");
       loadData();
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao atualizar status');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro ao atualizar status";
+      toast.error(message);
     }
   };
 
@@ -252,18 +314,18 @@ export function AdminWhatsAppManagement() {
     setEditingPackage(pkg);
     setNewPackage({
       nome: pkg.nome,
-      descricao: pkg.descricao || '',
+      descricao: pkg.descricao || "",
       quantidade_numeros: pkg.quantidade_numeros,
       preco_mensal: pkg.preco_mensal,
       inclui_creditos: pkg.inclui_creditos,
       planos_permitidos: pkg.planos_permitidos,
       destaque: pkg.destaque,
-      stripe_price_id: pkg.stripe_price_id || ''
+      stripe_price_id: pkg.stripe_price_id || "",
     });
     setNewPackageDialog(true);
   };
 
-  const sharedNumber = phoneNumbers.find(p => p.is_shared);
+  const sharedNumber = phoneNumbers.find((p) => p.is_shared);
 
   if (loading) {
     return (
@@ -308,8 +370,9 @@ export function AdminWhatsAppManagement() {
                 Número Compartilhado para Plano Gratuito
               </CardTitle>
               <CardDescription>
-                Este número é usado por todos os tenants do plano gratuito. A IA identifica automaticamente
-                a origem e destino das mensagens baseado no contexto da conversa.
+                Este número é usado por todos os tenants do plano gratuito. A IA
+                identifica automaticamente a origem e destino das mensagens
+                baseado no contexto da conversa.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -317,18 +380,31 @@ export function AdminWhatsAppManagement() {
                 <div className="bg-muted/50 rounded-lg p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Número Atual</p>
-                      <p className="text-2xl font-bold">{sharedNumber.phone_number}</p>
-                      <p className="text-muted-foreground">{sharedNumber.display_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Número Atual
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {sharedNumber.phone_number}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {sharedNumber.display_name}
+                      </p>
                     </div>
-                    <Badge variant={sharedNumber.status === 'active' ? 'default' : 'secondary'}>
-                      {sharedNumber.status === 'active' ? 'Ativo' : 'Inativo'}
+                    <Badge
+                      variant={
+                        sharedNumber.status === "active"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {sharedNumber.status === "active" ? "Ativo" : "Inativo"}
                     </Badge>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Brain className="h-4 w-4" />
-                    Roteamento por IA: Identificação automática via contexto de conversa
+                    Roteamento por IA: Identificação automática via contexto de
+                    conversa
                   </div>
 
                   <div className="flex gap-2">
@@ -341,7 +417,9 @@ export function AdminWhatsAppManagement() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Alterar Número Compartilhado</DialogTitle>
+                          <DialogTitle>
+                            Alterar Número Compartilhado
+                          </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
@@ -363,10 +441,12 @@ export function AdminWhatsAppManagement() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button onClick={async () => {
-                            // Would update the shared number
-                            toast.success('Número atualizado');
-                          }}>
+                          <Button
+                            onClick={async () => {
+                              // Would update the shared number
+                              toast.success("Número atualizado");
+                            }}
+                          >
                             Salvar
                           </Button>
                         </DialogFooter>
@@ -374,11 +454,22 @@ export function AdminWhatsAppManagement() {
                     </Dialog>
 
                     <Button
-                      variant={sharedNumber.status === 'active' ? 'destructive' : 'default'}
+                      variant={
+                        sharedNumber.status === "active"
+                          ? "destructive"
+                          : "default"
+                      }
                       size="sm"
-                      onClick={() => handleToggleNumberStatus(sharedNumber.id, sharedNumber.status)}
+                      onClick={() =>
+                        handleToggleNumberStatus(
+                          sharedNumber.id,
+                          sharedNumber.status,
+                        )
+                      }
                     >
-                      {sharedNumber.status === 'active' ? 'Desativar' : 'Ativar'}
+                      {sharedNumber.status === "active"
+                        ? "Desativar"
+                        : "Ativar"}
                     </Button>
                   </div>
                 </div>
@@ -389,7 +480,12 @@ export function AdminWhatsAppManagement() {
                   <Button
                     className="mt-4"
                     onClick={() => {
-                      setNewNumber({ phone_number: '', display_name: '', is_shared: true, provider_id: '' });
+                      setNewNumber({
+                        phone_number: "",
+                        display_name: "",
+                        is_shared: true,
+                        provider_id: "",
+                      });
                       setNewNumberDialog(true);
                     }}
                   >
@@ -404,10 +500,19 @@ export function AdminWhatsAppManagement() {
                   Como funciona o roteamento por IA?
                 </h4>
                 <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-                  <li>Quando uma mensagem chega, a IA analisa o contexto histórico da conversa</li>
-                  <li>Cruza com os telefones cadastrados nos pacientes de cada tenant</li>
+                  <li>
+                    Quando uma mensagem chega, a IA analisa o contexto histórico
+                    da conversa
+                  </li>
+                  <li>
+                    Cruza com os telefones cadastrados nos pacientes de cada
+                    tenant
+                  </li>
                   <li>Identifica o tenant correto e direciona a mensagem</li>
-                  <li>Se não conseguir identificar, a mensagem fica pendente para triagem manual</li>
+                  <li>
+                    Se não conseguir identificar, a mensagem fica pendente para
+                    triagem manual
+                  </li>
                 </ul>
               </div>
             </CardContent>
@@ -420,12 +525,21 @@ export function AdminWhatsAppManagement() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Números de Telefone</CardTitle>
-                <CardDescription>Gerencie todos os números WhatsApp do sistema</CardDescription>
+                <CardDescription>
+                  Gerencie todos os números WhatsApp do sistema
+                </CardDescription>
               </div>
-              <Button onClick={() => {
-                setNewNumber({ phone_number: '', display_name: '', is_shared: false, provider_id: '' });
-                setNewNumberDialog(true);
-              }}>
+              <Button
+                onClick={() => {
+                  setNewNumber({
+                    phone_number: "",
+                    display_name: "",
+                    is_shared: false,
+                    provider_id: "",
+                  });
+                  setNewNumberDialog(true);
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Número
               </Button>
@@ -445,16 +559,24 @@ export function AdminWhatsAppManagement() {
                 <TableBody>
                   {phoneNumbers.map((number) => (
                     <TableRow key={number.id}>
-                      <TableCell className="font-mono">{number.phone_number}</TableCell>
+                      <TableCell className="font-mono">
+                        {number.phone_number}
+                      </TableCell>
                       <TableCell>{number.display_name}</TableCell>
                       <TableCell>
-                        <Badge variant={number.is_shared ? 'secondary' : 'outline'}>
-                          {number.is_shared ? 'Compartilhado' : 'Exclusivo'}
+                        <Badge
+                          variant={number.is_shared ? "secondary" : "outline"}
+                        >
+                          {number.is_shared ? "Compartilhado" : "Exclusivo"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{number.provider?.nome || '-'}</TableCell>
+                      <TableCell>{number.provider?.nome || "-"}</TableCell>
                       <TableCell>
-                        <Badge variant={number.status === 'active' ? 'default' : 'secondary'}>
+                        <Badge
+                          variant={
+                            number.status === "active" ? "default" : "secondary"
+                          }
+                        >
                           {number.status}
                         </Badge>
                       </TableCell>
@@ -462,9 +584,11 @@ export function AdminWhatsAppManagement() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleToggleNumberStatus(number.id, number.status)}
+                          onClick={() =>
+                            handleToggleNumberStatus(number.id, number.status)
+                          }
                         >
-                          {number.status === 'active' ? (
+                          {number.status === "active" ? (
                             <XCircle className="h-4 w-4 text-destructive" />
                           ) : (
                             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -485,22 +609,26 @@ export function AdminWhatsAppManagement() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Pacotes de Números</CardTitle>
-                <CardDescription>Configure os pacotes disponíveis para compra pelos tenants</CardDescription>
+                <CardDescription>
+                  Configure os pacotes disponíveis para compra pelos tenants
+                </CardDescription>
               </div>
-              <Button onClick={() => {
-                setEditingPackage(null);
-                setNewPackage({
-                  nome: '',
-                  descricao: '',
-                  quantidade_numeros: 1,
-                  preco_mensal: 0,
-                  inclui_creditos: 0,
-                  planos_permitidos: ['pro', 'enterprise'],
-                  destaque: false,
-                  stripe_price_id: ''
-                });
-                setNewPackageDialog(true);
-              }}>
+              <Button
+                onClick={() => {
+                  setEditingPackage(null);
+                  setNewPackage({
+                    nome: "",
+                    descricao: "",
+                    quantidade_numeros: 1,
+                    preco_mensal: 0,
+                    inclui_creditos: 0,
+                    planos_permitidos: ["pro", "enterprise"],
+                    destaque: false,
+                    stripe_price_id: "",
+                  });
+                  setNewPackageDialog(true);
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Pacote
               </Button>
@@ -525,29 +653,41 @@ export function AdminWhatsAppManagement() {
                         <div className="flex items-center gap-2">
                           {pkg.nome}
                           {pkg.destaque && (
-                            <Badge variant="secondary" className="text-xs">Destaque</Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              Destaque
+                            </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>{pkg.quantidade_numeros}</TableCell>
                       <TableCell>
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: pkg.moeda
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: pkg.moeda,
                         }).format(pkg.preco_mensal)}
                       </TableCell>
-                      <TableCell>{pkg.inclui_creditos.toLocaleString()}</TableCell>
+                      <TableCell>
+                        {pkg.inclui_creditos.toLocaleString()}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          {pkg.planos_permitidos.map(p => (
-                            <Badge key={p} variant="outline" className="text-xs">{p}</Badge>
+                          {pkg.planos_permitidos.map((p) => (
+                            <Badge
+                              key={p}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {p}
+                            </Badge>
                           ))}
                         </div>
                       </TableCell>
                       <TableCell>
                         <Switch
                           checked={pkg.ativo}
-                          onCheckedChange={() => handleTogglePackageStatus(pkg.id, pkg.ativo)}
+                          onCheckedChange={() =>
+                            handleTogglePackageStatus(pkg.id, pkg.ativo)
+                          }
                         />
                       </TableCell>
                       <TableCell className="text-right">
@@ -572,7 +712,9 @@ export function AdminWhatsAppManagement() {
           <Card>
             <CardHeader>
               <CardTitle>Alocações Ativas</CardTitle>
-              <CardDescription>Visualize quais tenants estão usando quais números</CardDescription>
+              <CardDescription>
+                Visualize quais tenants estão usando quais números
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -588,15 +730,22 @@ export function AdminWhatsAppManagement() {
                 <TableBody>
                   {allocations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center text-muted-foreground py-8"
+                      >
                         Nenhuma alocação encontrada
                       </TableCell>
                     </TableRow>
                   ) : (
                     allocations.map((alloc) => (
                       <TableRow key={alloc.id}>
-                        <TableCell>{alloc.tenant?.nome || alloc.tenant_id}</TableCell>
-                        <TableCell className="font-mono">{alloc.phone_number?.phone_number}</TableCell>
+                        <TableCell>
+                          {alloc.tenant?.nome || alloc.tenant_id}
+                        </TableCell>
+                        <TableCell className="font-mono">
+                          {alloc.phone_number?.phone_number}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline">{alloc.departamento}</Badge>
                         </TableCell>
@@ -608,7 +757,9 @@ export function AdminWhatsAppManagement() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {new Date(alloc.alocado_em).toLocaleDateString('pt-BR')}
+                          {new Date(alloc.alocado_em).toLocaleDateString(
+                            "pt-BR",
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -624,7 +775,9 @@ export function AdminWhatsAppManagement() {
           <Card>
             <CardHeader>
               <CardTitle>Provedores de Números Virtuais</CardTitle>
-              <CardDescription>Configuração dos provedores integrados</CardDescription>
+              <CardDescription>
+                Configuração dos provedores integrados
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -640,23 +793,29 @@ export function AdminWhatsAppManagement() {
                 <TableBody>
                   {providers.map((provider) => (
                     <TableRow key={provider.id}>
-                      <TableCell className="font-medium">{provider.nome}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground truncate max-w-[200px]">{provider.api_base_url}</TableCell>
+                      <TableCell className="font-medium">
+                        {provider.nome}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        {provider.api_base_url}
+                      </TableCell>
                       <TableCell>
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: provider.moeda
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: provider.moeda,
                         }).format(provider.custo_mensal_numero)}
                       </TableCell>
                       <TableCell>
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: provider.moeda
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: provider.moeda,
                         }).format(provider.custo_por_mensagem)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={provider.ativo ? 'default' : 'secondary'}>
-                          {provider.ativo ? 'Ativo' : 'Inativo'}
+                        <Badge
+                          variant={provider.ativo ? "default" : "secondary"}
+                        >
+                          {provider.ativo ? "Ativo" : "Inativo"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -669,8 +828,9 @@ export function AdminWhatsAppManagement() {
                   Sobre os Provedores
                 </h4>
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  Os provedores são pré-configurados no sistema. Para adicionar novos provedores
-                  ou alterar credenciais de API, entre em contato com a equipe de desenvolvimento.
+                  Os provedores são pré-configurados no sistema. Para adicionar
+                  novos provedores ou alterar credenciais de API, entre em
+                  contato com a equipe de desenvolvimento.
                 </p>
               </div>
             </CardContent>
@@ -683,7 +843,9 @@ export function AdminWhatsAppManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {newNumber.is_shared ? 'Configurar Número Compartilhado' : 'Adicionar Novo Número'}
+              {newNumber.is_shared
+                ? "Configurar Número Compartilhado"
+                : "Adicionar Novo Número"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -692,7 +854,9 @@ export function AdminWhatsAppManagement() {
               <Input
                 placeholder="+5511999999999"
                 value={newNumber.phone_number}
-                onChange={(e) => setNewNumber({ ...newNumber, phone_number: e.target.value })}
+                onChange={(e) =>
+                  setNewNumber({ ...newNumber, phone_number: e.target.value })
+                }
               />
             </div>
             <div>
@@ -700,49 +864,64 @@ export function AdminWhatsAppManagement() {
               <Input
                 placeholder="Ex: CleanFlow Atendimento"
                 value={newNumber.display_name}
-                onChange={(e) => setNewNumber({ ...newNumber, display_name: e.target.value })}
+                onChange={(e) =>
+                  setNewNumber({ ...newNumber, display_name: e.target.value })
+                }
               />
             </div>
             <div>
               <Label>Provedor</Label>
               <Select
                 value={newNumber.provider_id}
-                onValueChange={(v) => setNewNumber({ ...newNumber, provider_id: v })}
+                onValueChange={(v) =>
+                  setNewNumber({ ...newNumber, provider_id: v })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um provedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {providers.filter(p => p.ativo).map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                  ))}
+                  {providers
+                    .filter((p) => p.ativo)
+                    .map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.nome}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={newNumber.is_shared}
-                onCheckedChange={(v) => setNewNumber({ ...newNumber, is_shared: v })}
+                onCheckedChange={(v) =>
+                  setNewNumber({ ...newNumber, is_shared: v })
+                }
               />
               <Label>Número compartilhado (para plano gratuito)</Label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNewNumberDialog(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setNewNumberDialog(false)}>
+              Cancelar
+            </Button>
             <Button onClick={handleCreateNumber}>Criar Número</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog Pacote */}
-      <Dialog open={newPackageDialog} onOpenChange={(open) => {
-        setNewPackageDialog(open);
-        if (!open) setEditingPackage(null);
-      }}>
+      <Dialog
+        open={newPackageDialog}
+        onOpenChange={(open) => {
+          setNewPackageDialog(open);
+          if (!open) setEditingPackage(null);
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingPackage ? 'Editar Pacote' : 'Novo Pacote'}
+              {editingPackage ? "Editar Pacote" : "Novo Pacote"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -751,7 +930,9 @@ export function AdminWhatsAppManagement() {
               <Input
                 placeholder="Ex: Pacote Profissional"
                 value={newPackage.nome}
-                onChange={(e) => setNewPackage({ ...newPackage, nome: e.target.value })}
+                onChange={(e) =>
+                  setNewPackage({ ...newPackage, nome: e.target.value })
+                }
               />
             </div>
             <div>
@@ -759,7 +940,9 @@ export function AdminWhatsAppManagement() {
               <Input
                 placeholder="Descrição do pacote"
                 value={newPackage.descricao}
-                onChange={(e) => setNewPackage({ ...newPackage, descricao: e.target.value })}
+                onChange={(e) =>
+                  setNewPackage({ ...newPackage, descricao: e.target.value })
+                }
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -769,7 +952,12 @@ export function AdminWhatsAppManagement() {
                   type="number"
                   min={1}
                   value={newPackage.quantidade_numeros}
-                  onChange={(e) => setNewPackage({ ...newPackage, quantidade_numeros: parseInt(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setNewPackage({
+                      ...newPackage,
+                      quantidade_numeros: parseInt(e.target.value) || 1,
+                    })
+                  }
                 />
               </div>
               <div>
@@ -779,7 +967,12 @@ export function AdminWhatsAppManagement() {
                   min={0}
                   step={0.01}
                   value={newPackage.preco_mensal}
-                  onChange={(e) => setNewPackage({ ...newPackage, preco_mensal: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setNewPackage({
+                      ...newPackage,
+                      preco_mensal: parseFloat(e.target.value) || 0,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -789,7 +982,12 @@ export function AdminWhatsAppManagement() {
                 type="number"
                 min={0}
                 value={newPackage.inclui_creditos}
-                onChange={(e) => setNewPackage({ ...newPackage, inclui_creditos: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setNewPackage({
+                    ...newPackage,
+                    inclui_creditos: parseInt(e.target.value) || 0,
+                  })
+                }
               />
             </div>
             <div>
@@ -797,21 +995,33 @@ export function AdminWhatsAppManagement() {
               <Input
                 placeholder="price_xxxxx"
                 value={newPackage.stripe_price_id}
-                onChange={(e) => setNewPackage({ ...newPackage, stripe_price_id: e.target.value })}
+                onChange={(e) =>
+                  setNewPackage({
+                    ...newPackage,
+                    stripe_price_id: e.target.value,
+                  })
+                }
               />
             </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={newPackage.destaque}
-                onCheckedChange={(v) => setNewPackage({ ...newPackage, destaque: v })}
+                onCheckedChange={(v) =>
+                  setNewPackage({ ...newPackage, destaque: v })
+                }
               />
               <Label>Destacar este pacote</Label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNewPackageDialog(false)}>Cancelar</Button>
+            <Button
+              variant="outline"
+              onClick={() => setNewPackageDialog(false)}
+            >
+              Cancelar
+            </Button>
             <Button onClick={handleSavePackage}>
-              {editingPackage ? 'Atualizar' : 'Criar'} Pacote
+              {editingPackage ? "Atualizar" : "Criar"} Pacote
             </Button>
           </DialogFooter>
         </DialogContent>

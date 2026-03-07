@@ -1,10 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Calendar, Clock, TrendingUp, Users, CheckCircle, XCircle, Sparkles } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  XCircle,
+  Sparkles,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -27,7 +41,7 @@ export function RemarcacaoGuiada() {
   const [metricas, setMetricas] = useState<Metricas[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadMetricas = async () => {
+  const loadMetricas = useCallback(async () => {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -51,20 +65,23 @@ export function RemarcacaoGuiada() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadMetricas();
-  }, []);
+  }, [loadMetricas]);
 
   const gerarSugestoes = async (agendamentoId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke("gerar-sugestoes-remarcacao", {
-        body: { agendamento_id: agendamentoId, limite: 5 }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "gerar-sugestoes-remarcacao",
+        {
+          body: { agendamento_id: agendamentoId, limite: 5 },
+        },
+      );
 
       if (error) throw error;
-      
+
       toast.success("Sugestões geradas com sucesso!");
       return data;
     } catch (error) {
@@ -79,12 +96,13 @@ export function RemarcacaoGuiada() {
         solicitadas: acc.solicitadas + m.remarcacoes_solicitadas,
         automaticas: acc.automaticas + m.remarcacoes_automaticas,
       }),
-      { solicitadas: 0, automaticas: 0 }
+      { solicitadas: 0, automaticas: 0 },
     );
 
-    const taxaGeral = totais.solicitadas > 0 
-      ? (totais.automaticas / totais.solicitadas) * 100 
-      : 0;
+    const taxaGeral =
+      totais.solicitadas > 0
+        ? (totais.automaticas / totais.solicitadas) * 100
+        : 0;
 
     return { ...totais, taxaGeral };
   };
@@ -125,7 +143,9 @@ export function RemarcacaoGuiada() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <span className="text-2xl font-bold text-primary">{totais.automaticas}</span>
+              <span className="text-2xl font-bold text-primary">
+                {totais.automaticas}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -139,7 +159,9 @@ export function RemarcacaoGuiada() {
           <CardContent>
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-500" />
-              <span className="text-2xl font-bold">{totais.taxaGeral.toFixed(1)}%</span>
+              <span className="text-2xl font-bold">
+                {totais.taxaGeral.toFixed(1)}%
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -156,7 +178,10 @@ export function RemarcacaoGuiada() {
               <span className="text-2xl font-bold">
                 {metricas.length > 0
                   ? Math.round(
-                      metricas.reduce((acc, m) => acc + m.tempo_medio_resposta_minutos, 0) / metricas.length
+                      metricas.reduce(
+                        (acc, m) => acc + m.tempo_medio_resposta_minutos,
+                        0,
+                      ) / metricas.length,
                     )
                   : 0}
                 min
@@ -183,7 +208,8 @@ export function RemarcacaoGuiada() {
               <div>
                 <h4 className="font-medium">Análise Inteligente</h4>
                 <p className="text-sm text-muted-foreground">
-                  Sistema analisa janelas livres, duração do procedimento, preferências do paciente e histórico
+                  Sistema analisa janelas livres, duração do procedimento,
+                  preferências do paciente e histórico
                 </p>
               </div>
             </div>
@@ -195,7 +221,8 @@ export function RemarcacaoGuiada() {
               <div>
                 <h4 className="font-medium">Sugestões Personalizadas</h4>
                 <p className="text-sm text-muted-foreground">
-                  Gera 3-5 horários ótimos com score de compatibilidade para cada paciente
+                  Gera 3-5 horários ótimos com score de compatibilidade para
+                  cada paciente
                 </p>
               </div>
             </div>
@@ -207,7 +234,8 @@ export function RemarcacaoGuiada() {
               <div>
                 <h4 className="font-medium">Confirmação WhatsApp</h4>
                 <p className="text-sm text-muted-foreground">
-                  Paciente recebe mensagem com botões (chips) e confirma com 1 toque
+                  Paciente recebe mensagem com botões (chips) e confirma com 1
+                  toque
                 </p>
               </div>
             </div>
@@ -219,7 +247,8 @@ export function RemarcacaoGuiada() {
               <div>
                 <h4 className="font-medium">Atualização Automática</h4>
                 <p className="text-sm text-muted-foreground">
-                  Sistema atualiza agenda, envia ICS/e-mail e registra a remarcação
+                  Sistema atualiza agenda, envia ICS/e-mail e registra a
+                  remarcação
                 </p>
               </div>
             </div>
@@ -274,22 +303,30 @@ export function RemarcacaoGuiada() {
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">
-                      {format(new Date(metrica.data), "dd 'de' MMMM", { locale: ptBR })}
+                      {format(new Date(metrica.data), "dd 'de' MMMM", {
+                        locale: ptBR,
+                      })}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-sm">
                     <div className="text-right">
                       <div className="text-muted-foreground">Solicitadas</div>
-                      <div className="font-medium">{metrica.remarcacoes_solicitadas}</div>
+                      <div className="font-medium">
+                        {metrica.remarcacoes_solicitadas}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-muted-foreground">Automáticas</div>
-                      <div className="font-medium text-primary">{metrica.remarcacoes_automaticas}</div>
+                      <div className="font-medium text-primary">
+                        {metrica.remarcacoes_automaticas}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-muted-foreground">Taxa</div>
-                      <div className="font-bold">{metrica.taxa_automacao.toFixed(1)}%</div>
+                      <div className="font-bold">
+                        {metrica.taxa_automacao.toFixed(1)}%
+                      </div>
                     </div>
                   </div>
                 </div>

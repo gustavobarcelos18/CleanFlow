@@ -1,22 +1,57 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Plus, Pencil, Trash2, Stethoscope, Syringe, Heart, Activity,
-  Pill, TestTube, Microscope, Eye, Ear, Brain, Bone, HeartPulse,
-  Users, User, UserCog, Clipboard, FileText, ClipboardList,
-  Phone, Calendar, Settings, Shield, Sparkles
+  Plus,
+  Pencil,
+  Trash2,
+  Stethoscope,
+  Syringe,
+  Heart,
+  Activity,
+  Pill,
+  TestTube,
+  Microscope,
+  Eye,
+  Ear,
+  Brain,
+  Bone,
+  HeartPulse,
+  Users,
+  User,
+  UserCog,
+  Clipboard,
+  FileText,
+  ClipboardList,
+  Phone,
+  Calendar,
+  Settings,
+  Shield,
+  Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 interface TipoProfissional {
   id: string;
@@ -66,22 +101,17 @@ export default function TiposProfissional() {
     acesso_prontuarios: false,
     cor: "#6366f1",
     icone: "User",
-    ativo: true
+    ativo: true,
   });
   const [formData, setFormData] = useState(initialFormData);
   const [hasChanges, setHasChanges] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [tipoToDelete, setTipoToDelete] = useState<TipoProfissional | null>(
+    null,
+  );
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchTipos();
-  }, []);
-
-  useEffect(() => {
-    const changed = JSON.stringify(formData) !== JSON.stringify(initialFormData);
-    setHasChanges(changed);
-  }, [formData, initialFormData]);
-
-  const fetchTipos = async () => {
+  const fetchTipos = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("tipos_profissional")
@@ -95,12 +125,16 @@ export default function TiposProfissional() {
       toast({
         title: "Erro",
         description: "Não foi possível carregar os tipos de profissional.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchTipos();
+  }, [fetchTipos]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,13 +143,15 @@ export default function TiposProfissional() {
       toast({
         title: "Erro",
         description: "O nome é obrigatório.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
@@ -135,7 +171,7 @@ export default function TiposProfissional() {
             acesso_prontuarios: formData.acesso_prontuarios,
             cor: formData.cor,
             icone: formData.icone,
-            ativo: formData.ativo
+            ativo: formData.ativo,
           })
           .eq("id", editingTipo.id);
 
@@ -143,7 +179,7 @@ export default function TiposProfissional() {
 
         toast({
           title: "Sucesso!",
-          description: "Tipo de profissional atualizado."
+          description: "Tipo de profissional atualizado.",
         });
       } else {
         const { error } = await (supabase as any)
@@ -155,14 +191,14 @@ export default function TiposProfissional() {
             acesso_prontuarios: formData.acesso_prontuarios,
             cor: formData.cor,
             icone: formData.icone,
-            ativo: formData.ativo
+            ativo: formData.ativo,
           });
 
         if (error) throw error;
 
         toast({
           title: "Sucesso!",
-          description: "Tipo de profissional criado."
+          description: "Tipo de profissional criado.",
         });
       }
 
@@ -173,8 +209,9 @@ export default function TiposProfissional() {
       console.error("Erro ao salvar:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível salvar o tipo de profissional.",
-        variant: "destructive"
+        description:
+          error.message || "Não foi possível salvar o tipo de profissional.",
+        variant: "destructive",
       });
     }
   };
@@ -186,7 +223,7 @@ export default function TiposProfissional() {
       acesso_prontuarios: tipo.acesso_prontuarios,
       cor: tipo.cor,
       icone: tipo.icone,
-      ativo: tipo.ativo
+      ativo: tipo.ativo,
     };
     setFormData(data);
     setInitialFormData(data);
@@ -195,19 +232,24 @@ export default function TiposProfissional() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este tipo de profissional?")) return;
+    setTipoToDelete(tipos.find((t) => t.id === id) || null);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!tipoToDelete) return;
 
     try {
       const { error } = await (supabase as any)
         .from("tipos_profissional")
         .delete()
-        .eq("id", id);
+        .eq("id", tipoToDelete.id);
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: "Tipo de profissional excluído."
+        description: "Tipo de profissional excluído.",
       });
 
       fetchTipos();
@@ -215,9 +257,12 @@ export default function TiposProfissional() {
       console.error("Erro ao excluir:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível excluir o tipo de profissional.",
-        variant: "destructive"
+        description:
+          error.message || "Não foi possível excluir the profissional type.",
+        variant: "destructive",
       });
+    } finally {
+      setTipoToDelete(null);
     }
   };
 
@@ -228,7 +273,7 @@ export default function TiposProfissional() {
       acesso_prontuarios: false,
       cor: "#6366f1",
       icone: "User",
-      ativo: true
+      ativo: true,
     };
     setFormData(defaultData);
     setInitialFormData(defaultData);
@@ -246,10 +291,13 @@ export default function TiposProfissional() {
             </p>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) resetForm();
-          }}>
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) resetForm();
+            }}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -269,7 +317,9 @@ export default function TiposProfissional() {
                   <Input
                     id="nome"
                     value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nome: e.target.value })
+                    }
                     placeholder="Ex: Médico, Fisioterapeuta, Recepcionista"
                     required
                   />
@@ -280,7 +330,9 @@ export default function TiposProfissional() {
                   <Textarea
                     id="descricao"
                     value={formData.descricao}
-                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, descricao: e.target.value })
+                    }
                     placeholder="Descrição do tipo de profissional"
                     rows={2}
                     className="resize-none"
@@ -293,7 +345,9 @@ export default function TiposProfissional() {
                     id="cor"
                     type="color"
                     value={formData.cor}
-                    onChange={(e) => setFormData({ ...formData, cor: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cor: e.target.value })
+                    }
                     className="h-10"
                   />
                 </div>
@@ -301,23 +355,29 @@ export default function TiposProfissional() {
                 <div className="space-y-1.5">
                   <Label>Selecione um Ícone *</Label>
                   <div className="grid grid-cols-8 gap-2 p-2 border rounded-lg max-h-[120px] overflow-y-auto">
-                    {HEALTH_ICONS.map(({ name, icon: IconComponent, label }) => (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, icone: name })}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-1.5 rounded-lg border-2 transition-all hover:bg-accent",
-                          formData.icone === name
-                            ? "border-primary bg-primary/10"
-                            : "border-border"
-                        )}
-                        title={label}
-                      >
-                        <IconComponent className="h-4 w-4" />
-                        <span className="text-[8px] mt-0.5 text-center line-clamp-1">{label}</span>
-                      </button>
-                    ))}
+                    {HEALTH_ICONS.map(
+                      ({ name, icon: IconComponent, label }) => (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, icone: name })
+                          }
+                          className={cn(
+                            "flex flex-col items-center justify-center p-1.5 rounded-lg border-2 transition-all hover:bg-accent",
+                            formData.icone === name
+                              ? "border-primary bg-primary/10"
+                              : "border-border",
+                          )}
+                          title={label}
+                        >
+                          <IconComponent className="h-4 w-4" />
+                          <span className="text-[8px] mt-0.5 text-center line-clamp-1">
+                            {label}
+                          </span>
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
 
@@ -325,7 +385,8 @@ export default function TiposProfissional() {
                   <div className="space-y-0.5">
                     <Label className="text-sm">Acesso a Prontuários</Label>
                     <p className="text-xs text-muted-foreground">
-                      Permite que este tipo de profissional acesse prontuários de pacientes
+                      Permite que este tipo de profissional acesse prontuários
+                      de pacientes
                     </p>
                   </div>
                   <Switch
@@ -364,7 +425,10 @@ export default function TiposProfissional() {
                       Cancelar
                     </Button>
                   )}
-                  <Button type="submit" disabled={!hasChanges || !formData.nome.trim()}>
+                  <Button
+                    type="submit"
+                    disabled={!hasChanges || !formData.nome.trim()}
+                  >
                     {editingTipo ? "Atualizar" : "Criar"}
                   </Button>
                 </div>
@@ -386,7 +450,7 @@ export default function TiposProfissional() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {tipos.map((tipo) => {
-              const IconData = HEALTH_ICONS.find(i => i.name === tipo.icone);
+              const IconData = HEALTH_ICONS.find((i) => i.name === tipo.icone);
               const IconComponent = IconData?.icon || User;
 
               return (
@@ -398,7 +462,10 @@ export default function TiposProfissional() {
                           className="w-10 h-10 rounded-lg flex items-center justify-center"
                           style={{ backgroundColor: tipo.cor + "20" }}
                         >
-                          <IconComponent className="h-5 w-5" style={{ color: tipo.cor }} />
+                          <IconComponent
+                            className="h-5 w-5"
+                            style={{ color: tipo.cor }}
+                          />
                         </div>
                         <div>
                           <CardTitle className="text-lg">{tipo.nome}</CardTitle>
@@ -437,7 +504,9 @@ export default function TiposProfissional() {
                       {tipo.acesso_prontuarios ? (
                         <Badge variant="default">Acessa Prontuários</Badge>
                       ) : (
-                        <Badge variant="outline">Sem Acesso a Prontuários</Badge>
+                        <Badge variant="outline">
+                          Sem Acesso a Prontuários
+                        </Badge>
                       )}
                     </div>
                   </CardContent>
@@ -447,6 +516,14 @@ export default function TiposProfissional() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Tipo de Profissional"
+        description={`Tem certeza que deseja excluir o tipo de profissional "${tipoToDelete?.nome}"? Esta ação não pode ser desfeita.`}
+      />
     </MainLayout>
   );
 }

@@ -144,7 +144,7 @@ export function AppointmentCard({
       {/* Cabeçalho com Nome do Paciente e Status */}
       <div className="flex items-start justify-between mb-4 gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="p-2.5 bg-background/50 rounded-full flex-shrink-0">
+          <div className="p-2.5 bg-foreground/10 rounded-full flex-shrink-0">
             <StatusIcon className={cn("h-5 w-5", config.iconColor)} />
           </div>
           <div className="min-w-0 flex-1">
@@ -192,14 +192,14 @@ export function AppointmentCard({
       </div>
 
       {/* Informações de Horário e Contato */}
-      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-[#1B2A40]">
-        <div className="flex items-center gap-2 text-sm text-[#A9B7D0]">
-          <Clock className="h-4 w-4 text-cyan-400" />
+      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border/50">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 text-primary" />
           <span className="font-bold">{time}</span>
         </div>
         {phone && (
-          <div className="flex items-center gap-2 text-sm text-[#A9B7D0]">
-            <Phone className="h-4 w-4 text-cyan-400" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Phone className="h-4 w-4 text-primary" />
             <span className="font-bold">{phone}</span>
           </div>
         )}
@@ -208,13 +208,13 @@ export function AppointmentCard({
             <AlertTriangle
               className={cn(
                 "h-4 w-4",
-                riskLevel === "high" ? "text-orange-500" : "text-cyan-400",
+                riskLevel === "high" ? "text-orange-500" : "text-primary",
               )}
             />
             <span
               className={cn(
                 "font-black uppercase tracking-tighter text-[10px]",
-                riskLevel === "high" ? "text-orange-500" : "text-cyan-400",
+                riskLevel === "high" ? "text-orange-500" : "text-primary",
               )}
             >
               {riskLevel === "high" ? "Risco Crítico" : "Risco Médio"}

@@ -1,9 +1,20 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -14,33 +25,31 @@ interface EditTenantDialogProps {
   onSuccess: () => void;
 }
 
-export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: EditTenantDialogProps) => {
+export const EditTenantDialog = ({
+  open,
+  onOpenChange,
+  tenantId,
+  onSuccess,
+}: EditTenantDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [plans, setPlans] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     plan_id: "",
     status: "active",
-    billing_cycle: "monthly"
+    billing_cycle: "monthly",
   });
 
-  useEffect(() => {
-    if (open) {
-      loadPlans();
-      loadCurrentSubscription();
-    }
-  }, [open, tenantId]);
-
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     const { data } = await supabase
       .from("plans")
       .select("*")
       .eq("active", true)
       .order("display_order");
-    
-    setPlans(data || []);
-  };
 
-  const loadCurrentSubscription = async () => {
+    setPlans(data || []);
+  }, []);
+
+  const loadCurrentSubscription = useCallback(async () => {
     const { data } = await supabase
       .from("subscriptions")
       .select("*")
@@ -51,10 +60,17 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
       setFormData({
         plan_id: data.plan_id,
         status: data.status,
-        billing_cycle: data.billing_cycle
+        billing_cycle: data.billing_cycle,
       });
     }
-  };
+  }, [tenantId]);
+
+  useEffect(() => {
+    if (open) {
+      loadPlans();
+      loadCurrentSubscription();
+    }
+  }, [open, loadPlans, loadCurrentSubscription]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +90,9 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
         status: formData.status,
         billing_cycle: formData.billing_cycle,
         current_period_start: new Date().toISOString(),
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        current_period_end: new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
       };
 
       if (existing) {
@@ -92,7 +110,9 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
         if (error) throw error;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("support_actions_log").insert({
           support_user_id: user.id,
@@ -125,7 +145,9 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
             <Label htmlFor="plan_id">Plano</Label>
             <Select
               value={formData.plan_id}
-              onValueChange={(value) => setFormData({ ...formData, plan_id: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, plan_id: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um plano" />
@@ -144,7 +166,9 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
             <Label htmlFor="status">Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(value) => setFormData({ ...formData, status: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, status: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -162,7 +186,9 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
             <Label htmlFor="billing_cycle">Ciclo de Cobrança</Label>
             <Select
               value={formData.billing_cycle}
-              onValueChange={(value) => setFormData({ ...formData, billing_cycle: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, billing_cycle: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -175,7 +201,11 @@ export const EditTenantDialog = ({ open, onOpenChange, tenantId, onSuccess }: Ed
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>

@@ -1,5 +1,10 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,13 +35,7 @@ export function EditPlanoSaudeDialog({
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (open && planoId) {
-      fetchPlano();
-    }
-  }, [open, planoId]);
-
-  const fetchPlano = async () => {
+  const fetchPlano = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("planos_saude")
@@ -58,7 +57,13 @@ export function EditPlanoSaudeDialog({
         variant: "destructive",
       });
     }
-  };
+  }, [planoId, toast]);
+
+  useEffect(() => {
+    if (open && planoId) {
+      fetchPlano();
+    }
+  }, [open, planoId, fetchPlano]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +111,9 @@ export function EditPlanoSaudeDialog({
             <Input
               id="nome"
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value })
+              }
               required
             />
           </div>
@@ -116,7 +123,9 @@ export function EditPlanoSaudeDialog({
             <Textarea
               id="descricao"
               value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, descricao: e.target.value })
+              }
               rows={3}
             />
           </div>
@@ -125,7 +134,9 @@ export function EditPlanoSaudeDialog({
             <Switch
               id="ativo"
               checked={formData.ativo}
-              onCheckedChange={(checked) => setFormData({ ...formData, ativo: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, ativo: checked })
+              }
             />
             <Label htmlFor="ativo">Plano ativo</Label>
           </div>

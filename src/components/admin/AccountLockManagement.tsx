@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -46,11 +46,7 @@ export const AccountLockManagement = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadLocks();
-  }, []);
-
-  const loadLocks = async () => {
+  const loadLocks = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("account_locks")
@@ -59,40 +55,51 @@ export const AccountLockManagement = () => {
 
       if (error) throw error;
       setLocks(data || []);
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao carregar bloqueios",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const handleUnlock = async (email: string) => {
-    try {
-      const { error } = await supabase
-        .from("account_locks")
-        .delete()
-        .eq("email", email);
+  useEffect(() => {
+    loadLocks();
+  }, [loadLocks]);
 
-      if (error) throw error;
+  const handleUnlock = useCallback(
+    async (email: string) => {
+      try {
+        const { error } = await supabase
+          .from("account_locks")
+          .delete()
+          .eq("email", email);
 
-      toast({
-        title: "Conta desbloqueada",
-        description: `A conta ${email} foi desbloqueada com sucesso`,
-      });
+        if (error) throw error;
 
-      loadLocks();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao desbloquear conta",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+        toast({
+          title: "Conta desbloqueada",
+          description: `A conta ${email} foi desbloqueada com sucesso`,
+        });
+
+        loadLocks();
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erro desconhecido";
+        toast({
+          title: "Erro ao desbloquear conta",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    },
+    [toast, loadLocks],
+  );
 
   const isLocked = (lockedUntil: string) => {
     return new Date(lockedUntil) > new Date();

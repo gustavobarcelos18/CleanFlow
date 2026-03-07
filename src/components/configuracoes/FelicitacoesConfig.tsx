@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,20 +22,19 @@ export function FelicitacoesConfig() {
   const [config, setConfig] = useState({
     felicitar_pacientes: true,
     felicitar_profissionais: true,
-    mensagem_paciente: "Feliz aniversário! 🎉 Desejamos um dia especial e muita saúde!",
+    mensagem_paciente:
+      "Feliz aniversário! 🎉 Desejamos um dia especial e muita saúde!",
     mensagem_profissional: "Feliz aniversário! 🎂 Desejamos um ótimo dia!",
     horario_envio: "09:00",
-    canal_envio: ["whatsapp", "email"]
+    canal_envio: ["whatsapp", "email"],
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchConfig();
-  }, []);
-
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
@@ -55,7 +60,7 @@ export function FelicitacoesConfig() {
           mensagem_paciente: data.mensagem_paciente,
           mensagem_profissional: data.mensagem_profissional,
           horario_envio: data.horario_envio?.substring(0, 5) || "09:00",
-          canal_envio: data.canal_envio || ["whatsapp", "email"]
+          canal_envio: data.canal_envio || ["whatsapp", "email"],
         });
       }
     } catch (error: any) {
@@ -63,13 +68,19 @@ export function FelicitacoesConfig() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
@@ -82,25 +93,29 @@ export function FelicitacoesConfig() {
 
       const { error } = await (supabase as any)
         .from("configuracoes_felicitacoes")
-        .upsert({
-          tenant_id: profile.tenant_id,
-          ...config
-        }, {
-          onConflict: "tenant_id"
-        });
+        .upsert(
+          {
+            tenant_id: profile.tenant_id,
+            ...config,
+          },
+          {
+            onConflict: "tenant_id",
+          },
+        );
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: "Configurações salvas com sucesso."
+        description: "Configurações salvas com sucesso.",
       });
     } catch (error: any) {
       console.error("Erro ao salvar:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível salvar as configurações.",
-        variant: "destructive"
+        description:
+          error.message || "Não foi possível salvar as configurações.",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -109,9 +124,9 @@ export function FelicitacoesConfig() {
 
   const toggleCanal = (canal: string) => {
     const novosCanais = config.canal_envio.includes(canal)
-      ? config.canal_envio.filter(c => c !== canal)
+      ? config.canal_envio.filter((c) => c !== canal)
       : [...config.canal_envio, canal];
-    
+
     setConfig({ ...config, canal_envio: novosCanais });
   };
 
@@ -145,7 +160,7 @@ export function FelicitacoesConfig() {
             <Switch
               id="felicitar_pacientes"
               checked={config.felicitar_pacientes}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setConfig({ ...config, felicitar_pacientes: checked })
               }
             />
@@ -156,7 +171,9 @@ export function FelicitacoesConfig() {
               <Label>Mensagem para Pacientes</Label>
               <Textarea
                 value={config.mensagem_paciente}
-                onChange={(e) => setConfig({ ...config, mensagem_paciente: e.target.value })}
+                onChange={(e) =>
+                  setConfig({ ...config, mensagem_paciente: e.target.value })
+                }
                 rows={3}
                 placeholder="Mensagem de aniversário para pacientes"
               />
@@ -178,7 +195,7 @@ export function FelicitacoesConfig() {
             <Switch
               id="felicitar_profissionais"
               checked={config.felicitar_profissionais}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setConfig({ ...config, felicitar_profissionais: checked })
               }
             />
@@ -189,7 +206,12 @@ export function FelicitacoesConfig() {
               <Label>Mensagem para Profissionais</Label>
               <Textarea
                 value={config.mensagem_profissional}
-                onChange={(e) => setConfig({ ...config, mensagem_profissional: e.target.value })}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    mensagem_profissional: e.target.value,
+                  })
+                }
                 rows={3}
                 placeholder="Mensagem de aniversário para profissionais"
               />
@@ -205,7 +227,9 @@ export function FelicitacoesConfig() {
               id="horario_envio"
               type="time"
               value={config.horario_envio}
-              onChange={(e) => setConfig({ ...config, horario_envio: e.target.value })}
+              onChange={(e) =>
+                setConfig({ ...config, horario_envio: e.target.value })
+              }
             />
           </div>
 
@@ -213,21 +237,29 @@ export function FelicitacoesConfig() {
             <Label>Canais de Envio</Label>
             <div className="flex gap-2 flex-wrap">
               <Badge
-                variant={config.canal_envio.includes("whatsapp") ? "default" : "outline"}
+                variant={
+                  config.canal_envio.includes("whatsapp")
+                    ? "default"
+                    : "outline"
+                }
                 className="cursor-pointer"
                 onClick={() => toggleCanal("whatsapp")}
               >
                 WhatsApp
               </Badge>
               <Badge
-                variant={config.canal_envio.includes("email") ? "default" : "outline"}
+                variant={
+                  config.canal_envio.includes("email") ? "default" : "outline"
+                }
                 className="cursor-pointer"
                 onClick={() => toggleCanal("email")}
               >
                 E-mail
               </Badge>
               <Badge
-                variant={config.canal_envio.includes("sms") ? "default" : "outline"}
+                variant={
+                  config.canal_envio.includes("sms") ? "default" : "outline"
+                }
                 className="cursor-pointer"
                 onClick={() => toggleCanal("sms")}
               >

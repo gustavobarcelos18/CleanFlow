@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { StatsCard } from "./StatsCard";
 import { AppointmentCard } from "./AppointmentCard";
@@ -27,31 +27,7 @@ export function DashboardOverview() {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-
-    // Realtime subscription
-    const channel = supabase
-      .channel("dashboard-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "agenda",
-        },
-        () => {
-          fetchDashboardData();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
       const now = new Date();
@@ -181,7 +157,7 @@ export function DashboardOverview() {
         generatedAlerts.push({
           type: "risk-high",
           title: "Alto Risco de Falta",
-          message: `${highRiskApt.pacientes?.nome} (${format(new Date(highRiskApt.inicio), "HH:mm")}) tem histórico de ${highRiskApt.pacientes?.historico_faltas || 0} faltas recentes.`,
+          message: `${highRiskApt.pacientes?.nome} (${format(new Date(highRiskApt.inicio), "HH:mm")}) tem históico de ${highRiskApt.pacientes?.historico_faltas || 0} faltas recentes.`,
           actions: ["Ligar Agora", "Enviar WhatsApp"],
         });
       }
@@ -212,7 +188,31 @@ export function DashboardOverview() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+
+    // Realtime subscription
+    const channel = supabase
+      .channel("dashboard-updates")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "agenda",
+        },
+        () => {
+          fetchDashboardData();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchDashboardData]);
 
   return (
     <div className="space-y-8">

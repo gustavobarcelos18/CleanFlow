@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import {
   AlertTriangle,
   User,
   Loader2,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NewPatientDialog } from "@/components/schedule/NewPatientDialog";
@@ -22,6 +21,7 @@ import { EditPatientDialog } from "@/components/schedule/EditPatientDialog";
 import { VincularPacoteDialog } from "@/components/pacotes/VincularPacoteDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTerminology } from "@/stores/useSegmentStore";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 interface Patient {
   id: string;
@@ -40,24 +40,26 @@ const Pacientes = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
   const { toast } = useToast();
 
   const fetchPatients = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('pacientes')
-        .select('*')
-        .order('nome');
+        .from("pacientes")
+        .select("*")
+        .order("nome");
 
       if (error) throw error;
       setPatients(data || []);
     } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
+      console.error("Erro ao buscar pacientes:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os pacientes.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -76,17 +78,30 @@ const Pacientes = () => {
 
   const getRiskBadge = (level: "low" | "medium" | "high") => {
     const config = {
-      low: { label: "Baixo", variant: "default" as const, color: "text-success" },
-      medium: { label: "Médio", variant: "secondary" as const, color: "text-warning" },
-      high: { label: "Alto", variant: "destructive" as const, color: "text-destructive" }
+      low: {
+        label: "Baixo",
+        variant: "default" as const,
+        color: "text-success",
+      },
+      medium: {
+        label: "Médio",
+        variant: "secondary" as const,
+        color: "text-warning",
+      },
+      high: {
+        label: "Alto",
+        variant: "destructive" as const,
+        color: "text-destructive",
+      },
     };
     return config[level as keyof typeof config];
   };
 
-  const filteredPatients = patients.filter(p =>
-    p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.telefone.includes(searchTerm) ||
-    (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredPatients = patients.filter(
+    (p) =>
+      p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.telefone.includes(searchTerm) ||
+      (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   return (
@@ -94,9 +109,12 @@ const Pacientes = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{t.client_label}s</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              {t.client_label}s
+            </h1>
             <p className="text-muted-foreground">
-              Gerenciar cadastro e histórico de {t.client_label.toLowerCase()}s ({patients.length})
+              Gerenciar cadastro e histórico de {t.client_label.toLowerCase()}s
+              ({patients.length})
             </p>
           </div>
           <NewPatientDialog onSuccess={() => fetchPatients()} />
@@ -122,10 +140,14 @@ const Pacientes = () => {
           <div className="text-center py-12">
             <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              {searchTerm ? `Nenhum ${t.client_label.toLowerCase()} encontrado` : `Nenhum ${t.client_label.toLowerCase()} cadastrado`}
+              {searchTerm
+                ? `Nenhum ${t.client_label.toLowerCase()} encontrado`
+                : `Nenhum ${t.client_label.toLowerCase()} cadastrado`}
             </h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm ? "Tente uma busca diferente" : `Comece adicionando seu primeiro ${t.client_label.toLowerCase()}`}
+              {searchTerm
+                ? "Tente uma busca diferente"
+                : `Comece adicionando seu primeiro ${t.client_label.toLowerCase()}`}
             </p>
           </div>
         ) : (
@@ -135,16 +157,24 @@ const Pacientes = () => {
               const riskConfig = getRiskBadge(riskLevel);
 
               return (
-                <div key={patient.id} className="p-6 bg-card border border-border rounded-lg hover:bg-card-hover transition-colors">
+                <div
+                  key={patient.id}
+                  className="p-6 bg-card border border-border rounded-lg hover:bg-card-hover transition-colors"
+                >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-primary-light rounded-full">
                         <User className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-foreground">{patient.nome}</h3>
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {patient.nome}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Cadastrado em {new Date(patient.created_at).toLocaleDateString('pt-BR')}
+                          Cadastrado em{" "}
+                          {new Date(patient.created_at).toLocaleDateString(
+                            "pt-BR",
+                          )}
                         </p>
                       </div>
                     </div>
@@ -168,11 +198,15 @@ const Pacientes = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{patient.email || "Não informado"}</span>
+                      <span className="text-sm">
+                        {patient.email || "Não informado"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm capitalize">Prefere {patient.preferencia_contato}</span>
+                      <span className="text-sm capitalize">
+                        Prefere {patient.preferencia_contato}
+                      </span>
                     </div>
                   </div>
 
@@ -193,43 +227,24 @@ const Pacientes = () => {
                       size="sm"
                       variant="outline"
                       onClick={async () => {
-                        const { validatePacienteDelete } = await import('@/lib/deleteValidation');
-                        const validation = await validatePacienteDelete(patient.id);
+                        const { validatePacienteDelete } =
+                          await import("@/lib/deleteValidation");
+                        const validation = await validatePacienteDelete(
+                          patient.id,
+                        );
 
                         if (!validation.canDelete) {
                           toast({
                             title: "Não é possível excluir",
                             description: validation.message,
                             variant: "destructive",
-                            duration: 10000
+                            duration: 10000,
                           });
                           return;
                         }
 
-                        if (!confirm(`Tem certeza que deseja excluir o ${t.client_label.toLowerCase()} ${patient.nome}?`)) return;
-
-                        try {
-                          const { error } = await supabase
-                            .from('pacientes')
-                            .delete()
-                            .eq('id', patient.id);
-
-                          if (error) throw error;
-
-                          setPatients(prev => prev.filter(p => p.id !== patient.id));
-
-                          toast({
-                            title: `${t.client_label} excluído`,
-                            description: `O ${t.client_label.toLowerCase()} foi removido com sucesso.`
-                          });
-                        } catch (error) {
-                          console.error('Erro ao excluir:', error);
-                          toast({
-                            title: "Erro",
-                            description: `Não foi possível excluir o ${t.client_label.toLowerCase()}.`,
-                            variant: "destructive"
-                          });
-                        }
+                        setPatientToDelete(patient);
+                        setDeleteDialogOpen(true);
                       }}
                       className="text-destructive hover:text-destructive"
                     >
@@ -252,6 +267,43 @@ const Pacientes = () => {
           onSuccess={() => fetchPatients()}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={async () => {
+          if (!patientToDelete) return;
+
+          try {
+            const { error } = await supabase
+              .from("pacientes")
+              .delete()
+              .eq("id", patientToDelete.id);
+
+            if (error) throw error;
+
+            setPatients((prev) =>
+              prev.filter((p) => p.id !== patientToDelete.id),
+            );
+
+            toast({
+              title: `${t.client_label} excluído`,
+              description: `O ${t.client_label.toLowerCase()} foi removido com sucesso.`,
+            });
+          } catch (error) {
+            console.error("Erro ao excluir:", error);
+            toast({
+              title: "Erro",
+              description: `Não foi possível excluir o ${t.client_label.toLowerCase()}.`,
+              variant: "destructive",
+            });
+          } finally {
+            setPatientToDelete(null);
+          }
+        }}
+        title={`Excluir ${t.client_label}`}
+        description={`Tem certeza que deseja excluir o ${t.client_label.toLowerCase()} ${patientToDelete?.nome}? Esta ação não pode ser desfeita.`}
+      />
     </MainLayout>
   );
 };

@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "react-router-dom";
 
 interface TenantData {
   nome: string;
@@ -16,8 +17,6 @@ interface TenantData {
   razao_social: string | null;
   nome_fantasia: string | null;
   font_size: number;
-  cor_primaria: string | null;
-  cor_acao: string | null;
 }
 
 interface TenantContextType {
@@ -34,6 +33,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
   const [tenantData, setTenantData] = useState<TenantData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
 
   const fetchTenantData = useCallback(async () => {
     const impersonationId = localStorage.getItem(
@@ -50,9 +50,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       const { data, error } = await supabase
         .from("tenants")
-        .select(
-          "nome, tipo, cnpj, razao_social, nome_fantasia, font_size, cor_primaria, cor_acao",
-        )
+        .select("nome, tipo, cnpj, razao_social, nome_fantasia, font_size")
         .eq("id", targetTenantId)
         .maybeSingle();
 
@@ -65,8 +63,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           razao_social: data.razao_social,
           nome_fantasia: data.nome_fantasia,
           font_size: data.font_size || 16,
-          cor_primaria: data.cor_primaria,
-          cor_acao: data.cor_acao,
         });
       }
     } catch (error) {
@@ -78,8 +74,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         razao_social: null,
         nome_fantasia: null,
         font_size: 16,
-        cor_primaria: null,
-        cor_acao: null,
       });
     } finally {
       setIsLoading(false);
@@ -92,7 +86,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   // Apply font size to document root, but NOT on the landing page
   useEffect(() => {
-    const isLandingPage = window.location.pathname === "/";
+    const isLandingPage = location.pathname === "/";
 
     if (tenantData?.font_size && !isLandingPage) {
       document.documentElement.style.fontSize = `${tenantData.font_size}px`;
@@ -100,7 +94,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       // Reset to browser default on landing page
       document.documentElement.style.fontSize = "";
     }
-  }, [tenantData?.font_size, window.location.pathname]);
+  }, [tenantData?.font_size, location.pathname]);
 
   const updateTenantData = useCallback((data: Partial<TenantData>) => {
     setTenantData((prev) => (prev ? { ...prev, ...data } : null));

@@ -19,18 +19,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { NewProcedimentoDialog } from "@/components/schedule/NewProcedimentoDialog";
 import { EditProcedimentoDialog } from "@/components/schedule/EditProcedimentoDialog";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 interface Procedimento {
   id: string;
   nome: string;
   duracao_minutos: number;
-  valor: number | null;
-  codigo_tuss: string | null;
+  preco: number | null;
+  codigo_tuss?: string | null;
   descricao: string | null;
-  instrucoes_preparo: string | null;
-  instrucoes_pos: string | null;
-  anestesia_necessaria: boolean;
-  tipo_anestesia: string | null;
+  instrucoes_preparo?: string | null;
+  instrucoes_pos?: string | null;
+  anestesia_necessaria?: boolean;
+  tipo_anestesia?: string | null;
   ativo: boolean;
   created_at: string;
 }
@@ -40,13 +41,16 @@ const Procedimentos = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [procedimentoToDelete, setProcedimentoToDelete] =
+    useState<Procedimento | null>(null);
   const { toast } = useToast();
 
   const fetchProcedimentos = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from("procedimentos")
+        .from("servicos")
         .select("*")
         .order("nome");
 
@@ -71,7 +75,7 @@ const Procedimentos = () => {
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from("procedimentos")
+        .from("servicos")
         .update({ ativo: !currentStatus })
         .eq("id", id);
 
@@ -98,22 +102,27 @@ const Procedimentos = () => {
   };
 
   const deleteProcedimento = async (id: string) => {
-    if (
-      !confirm(
-        "Tem certeza que deseja excluir este procedimento? Esta ação não pode ser desfeita.",
-      )
-    )
-      return;
+    const procedimento = procedimentos.find((p) => p.id === id);
+    if (procedimento) {
+      setProcedimentoToDelete(procedimento);
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!procedimentoToDelete) return;
 
     try {
       const { error } = await supabase
-        .from("procedimentos")
+        .from("servicos")
         .delete()
-        .eq("id", id);
+        .eq("id", procedimentoToDelete.id);
 
       if (error) throw error;
 
-      setProcedimentos((prev) => prev.filter((proc) => proc.id !== id));
+      setProcedimentos((prev) =>
+        prev.filter((proc) => proc.id !== procedimentoToDelete.id),
+      );
 
       toast({
         title: "Procedimento excluído",
@@ -126,13 +135,13 @@ const Procedimentos = () => {
         description: "Não foi possível excluir o procedimento.",
         variant: "destructive",
       });
+    } finally {
+      setProcedimentoToDelete(null);
     }
   };
 
-  const filteredProcedimentos = procedimentos.filter(
-    (proc) =>
-      proc.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proc.codigo_tuss?.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredProcedimentos = procedimentos.filter((proc) =>
+    proc.nome.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const activeProcedimentos = filteredProcedimentos.filter(
@@ -261,11 +270,11 @@ const Procedimentos = () => {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span>{procedimento.duracao_minutos} minutos</span>
                       </div>
-                      {procedimento.valor && (
+                      {procedimento.preco && (
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
                           <span>
-                            R$ {Number(procedimento.valor).toFixed(2)}
+                            R$ {Number(procedimento.preco).toFixed(2)}
                           </span>
                         </div>
                       )}
@@ -320,6 +329,14 @@ const Procedimentos = () => {
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Procedimento"
+        description={`Tem certeza que deseja excluir o procedimento "${procedimentoToDelete?.nome}"? Esta ação não pode ser desfeita.`}
+      />
     </MainLayout>
   );
 };

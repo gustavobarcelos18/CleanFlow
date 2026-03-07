@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Building2, 
-  Users, 
-  Calendar, 
-  DollarSign, 
-  TrendingUp, 
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Building2,
+  Users,
+  Calendar,
+  DollarSign,
+  TrendingUp,
   TrendingDown,
   BarChart3,
   PieChart,
   Activity,
   ArrowUpRight,
-  ArrowDownRight
-} from 'lucide-react';
-import { useOrganizationContext } from '@/hooks/useOrganizationContext';
-import { supabase } from '@/integrations/supabase/client';
+  ArrowDownRight,
+} from "lucide-react";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UnitMetrics {
   unit_id: string;
@@ -33,44 +45,41 @@ interface UnitMetrics {
 
 export function OrganizationDashboard() {
   const { organization, units, isOrgAdmin } = useOrganizationContext();
-  const [viewMode, setViewMode] = useState<'consolidated' | 'per_unit'>('consolidated');
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [viewMode, setViewMode] = useState<"consolidated" | "per_unit">(
+    "consolidated",
+  );
+  const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [metrics, setMetrics] = useState<UnitMetrics[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (organization?.id) {
-      fetchMetrics();
-    }
-  }, [organization?.id, selectedPeriod]);
-
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     setLoading(true);
     try {
       // Buscar métricas por unidade
       const unitMetrics: UnitMetrics[] = [];
-      
+
       for (const unit of units) {
         // Contagem de agendamentos
         const { count: appointmentsCount } = await supabase
-          .from('agenda')
-          .select('*', { count: 'exact', head: true })
-          .eq('unit_id', unit.id);
+          .from("agenda")
+          .select("*", { count: "exact", head: true })
+          .eq("unit_id", unit.id);
 
         // Contagem de pacientes
         const { count: patientsCount } = await supabase
-          .from('pacientes')
-          .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization?.id);
+          .from("pacientes")
+          .select("*", { count: "exact", head: true })
+          .eq("organization_id", organization?.id);
 
         // Receita (soma do caixa diário)
         const { data: revenueData } = await supabase
-          .from('caixa_diario')
-          .select('valor')
-          .eq('unit_id', unit.id)
-          .eq('tipo_lancamento', 'entrada');
+          .from("caixa_diario")
+          .select("valor")
+          .eq("unit_id", unit.id)
+          .eq("tipo_lancamento", "entrada");
 
-        const revenue = revenueData?.reduce((sum, r) => sum + (r.valor || 0), 0) || 0;
+        const revenue =
+          revenueData?.reduce((sum, r) => sum + (r.valor || 0), 0) || 0;
 
         unitMetrics.push({
           unit_id: unit.id,
@@ -86,18 +95,28 @@ export function OrganizationDashboard() {
 
       setMetrics(unitMetrics);
     } catch (error) {
-      console.error('Error fetching metrics:', error);
+      console.error("Error fetching metrics:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [organization?.id, units]);
+
+  useEffect(() => {
+    if (organization?.id) {
+      fetchMetrics();
+    }
+  }, [organization?.id, fetchMetrics, selectedPeriod]);
 
   const totalRevenue = metrics.reduce((sum, m) => sum + m.revenue, 0);
-  const totalAppointments = metrics.reduce((sum, m) => sum + m.appointments_count, 0);
+  const totalAppointments = metrics.reduce(
+    (sum, m) => sum + m.appointments_count,
+    0,
+  );
   const totalPatients = metrics.reduce((sum, m) => sum + m.patients_count, 0);
-  const avgOccupancy = metrics.length > 0 
-    ? metrics.reduce((sum, m) => sum + m.occupancy_rate, 0) / metrics.length 
-    : 0;
+  const avgOccupancy =
+    metrics.length > 0
+      ? metrics.reduce((sum, m) => sum + m.occupancy_rate, 0) / metrics.length
+      : 0;
 
   if (!isOrgAdmin) {
     return null;
@@ -132,18 +151,23 @@ export function OrganizationDashboard() {
         </div>
       </div>
 
-      {viewMode === 'consolidated' ? (
+      {viewMode === "consolidated" ? (
         <>
           {/* Cards de resumo consolidado */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Receita Total
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  {totalRevenue.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <ArrowUpRight className="h-3 w-3 text-green-500" />
@@ -153,7 +177,9 @@ export function OrganizationDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Agendamentos</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Agendamentos
+                </CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -165,7 +191,9 @@ export function OrganizationDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pacientes Ativos</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Pacientes Ativos
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -178,11 +206,15 @@ export function OrganizationDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ocupação Média</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Ocupação Média
+                </CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{avgOccupancy.toFixed(1)}%</div>
+                <div className="text-2xl font-bold">
+                  {avgOccupancy.toFixed(1)}%
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Taxa de ocupação das agendas
                 </p>
@@ -194,7 +226,9 @@ export function OrganizationDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Ranking de Unidades</CardTitle>
-              <CardDescription>Desempenho comparativo entre unidades</CardDescription>
+              <CardDescription>
+                Desempenho comparativo entre unidades
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -208,19 +242,27 @@ export function OrganizationDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{unit.unit_name}</span>
-                          {unit.is_matriz && <Badge variant="secondary">Matriz</Badge>}
+                          {unit.is_matriz && (
+                            <Badge variant="secondary">Matriz</Badge>
+                          )}
                         </div>
                         <div className="flex gap-4 text-sm text-muted-foreground">
                           <span>{unit.appointments_count} agendamentos</span>
-                          <span>{unit.occupancy_rate.toFixed(0)}% ocupação</span>
+                          <span>
+                            {unit.occupancy_rate.toFixed(0)}% ocupação
+                          </span>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">
-                          {unit.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          {unit.revenue.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {((unit.revenue / totalRevenue) * 100).toFixed(1)}% do total
+                          {((unit.revenue / totalRevenue) * 100).toFixed(1)}% do
+                          total
                         </p>
                       </div>
                     </div>
@@ -232,7 +274,7 @@ export function OrganizationDashboard() {
       ) : (
         /* Visão por unidade */
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {metrics.map(unit => (
+          {metrics.map((unit) => (
             <Card key={unit.unit_id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -248,12 +290,19 @@ export function OrganizationDashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">Receita</p>
                     <p className="text-xl font-bold">
-                      {unit.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {unit.revenue.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Agendamentos</p>
-                    <p className="text-xl font-bold">{unit.appointments_count}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Agendamentos
+                    </p>
+                    <p className="text-xl font-bold">
+                      {unit.appointments_count}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Ocupação</p>

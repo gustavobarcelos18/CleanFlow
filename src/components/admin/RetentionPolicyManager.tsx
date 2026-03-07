@@ -1,11 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { Clock, Play, Plus, Edit2, Trash2 } from "lucide-react";
 import {
@@ -33,7 +46,9 @@ export function RetentionPolicyManager() {
   const [policies, setPolicies] = useState<RetentionPolicy[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingPolicy, setEditingPolicy] = useState<RetentionPolicy | null>(null);
+  const [editingPolicy, setEditingPolicy] = useState<RetentionPolicy | null>(
+    null,
+  );
   const [formData, setFormData] = useState({
     policy_name: "",
     target_table: "",
@@ -42,45 +57,45 @@ export function RetentionPolicyManager() {
     active: true,
   });
 
-  useEffect(() => {
-    loadPolicies();
-  }, []);
-
-  const loadPolicies = async () => {
+  const loadPolicies = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('retention_policies_detailed' as any)
-        .select('*')
-        .order('policy_name');
+        .from("retention_policies_detailed" as any)
+        .select("*")
+        .order("policy_name");
 
       if (error) throw error;
       setPolicies((data as any) || []);
     } catch (error) {
-      console.error('Erro ao carregar políticas:', error);
-      toast.error('Erro ao carregar políticas de retenção');
+      console.error("Erro ao carregar políticas:", error);
+      toast.error("Erro ao carregar políticas de retenção");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleSave = async () => {
+  useEffect(() => {
+    loadPolicies();
+  }, [loadPolicies]);
+
+  const handleSave = useCallback(async () => {
     try {
       if (editingPolicy) {
         const { error } = await supabase
-          .from('retention_policies_detailed' as any)
+          .from("retention_policies_detailed" as any)
           .update(formData)
-          .eq('id', editingPolicy.id);
+          .eq("id", editingPolicy.id);
 
         if (error) throw error;
-        toast.success('Política atualizada com sucesso');
+        toast.success("Política atualizada com sucesso");
       } else {
         const { error } = await supabase
-          .from('retention_policies_detailed' as any)
+          .from("retention_policies_detailed" as any)
           .insert(formData);
 
         if (error) throw error;
-        toast.success('Política criada com sucesso');
+        toast.success("Política criada com sucesso");
       }
 
       setDialogOpen(false);
@@ -93,62 +108,72 @@ export function RetentionPolicyManager() {
         active: true,
       });
       loadPolicies();
-    } catch (error: any) {
-      console.error('Erro ao salvar política:', error);
-      toast.error(error.message || 'Erro ao salvar política');
+    } catch (error) {
+      console.error("Erro ao salvar política:", error);
+      const message =
+        error instanceof Error ? error.message : "Erro ao salvar política";
+      toast.error(message);
     }
-  };
+  }, [editingPolicy, formData, loadPolicies]);
 
-  const handleApplyPolicies = async () => {
+  const handleApplyPolicies = useCallback(async () => {
     try {
-      toast.info('Aplicando políticas de retenção...');
-      
-      const { data, error } = await supabase.functions.invoke('apply-retention-policies');
+      toast.info("Aplicando políticas de retenção...");
+
+      const { data, error } = await supabase.functions.invoke(
+        "apply-retention-policies",
+      );
 
       if (error) throw error;
 
-      toast.success('Políticas de retenção aplicadas com sucesso');
-      console.log('Resultado:', data);
+      toast.success("Políticas de retenção aplicadas com sucesso");
+      console.log("Resultado:", data);
       loadPolicies();
-    } catch (error: any) {
-      console.error('Erro ao aplicar políticas:', error);
-      toast.error('Erro ao aplicar políticas de retenção');
+    } catch (error) {
+      console.error("Erro ao aplicar políticas:", error);
+      toast.error("Erro ao aplicar políticas de retenção");
     }
-  };
+  }, [loadPolicies]);
 
-  const handleToggleActive = async (policy: RetentionPolicy) => {
-    try {
-      const { error } = await supabase
-        .from('retention_policies_detailed' as any)
-        .update({ active: !policy.active })
-        .eq('id', policy.id);
+  const handleToggleActive = useCallback(
+    async (policy: RetentionPolicy) => {
+      try {
+        const { error } = await supabase
+          .from("retention_policies_detailed" as any)
+          .update({ active: !policy.active })
+          .eq("id", policy.id);
 
-      if (error) throw error;
-      toast.success('Status atualizado');
-      loadPolicies();
-    } catch (error: any) {
-      console.error('Erro ao atualizar status:', error);
-      toast.error('Erro ao atualizar status');
-    }
-  };
+        if (error) throw error;
+        toast.success("Status atualizado");
+        loadPolicies();
+      } catch (error) {
+        console.error("Erro ao atualizar status:", error);
+        toast.error("Erro ao atualizar status");
+      }
+    },
+    [loadPolicies],
+  );
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta política?')) return;
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (!confirm("Tem certeza que deseja excluir esta política?")) return;
 
-    try {
-      const { error } = await supabase
-        .from('retention_policies_detailed' as any)
-        .delete()
-        .eq('id', id);
+      try {
+        const { error } = await supabase
+          .from("retention_policies_detailed" as any)
+          .delete()
+          .eq("id", id);
 
-      if (error) throw error;
-      toast.success('Política excluída');
-      loadPolicies();
-    } catch (error: any) {
-      console.error('Erro ao excluir política:', error);
-      toast.error('Erro ao excluir política');
-    }
-  };
+        if (error) throw error;
+        toast.success("Política excluída");
+        loadPolicies();
+      } catch (error) {
+        console.error("Erro ao excluir política:", error);
+        toast.error("Erro ao excluir política");
+      }
+    },
+    [loadPolicies],
+  );
 
   if (loading) {
     return <div>Carregando políticas de retenção...</div>;
@@ -164,23 +189,26 @@ export function RetentionPolicyManager() {
               <div>
                 <CardTitle>Políticas de Retenção de Dados</CardTitle>
                 <CardDescription>
-                  Configuração de períodos de retenção: 24 meses mensagens, 36 meses auditoria
+                  Configuração de períodos de retenção: 24 meses mensagens, 36
+                  meses auditoria
                 </CardDescription>
               </div>
             </div>
             <div className="flex gap-2">
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={() => {
-                    setEditingPolicy(null);
-                    setFormData({
-                      policy_name: "",
-                      target_table: "",
-                      retention_months: 24,
-                      description: "",
-                      active: true,
-                    });
-                  }}>
+                  <Button
+                    onClick={() => {
+                      setEditingPolicy(null);
+                      setFormData({
+                        policy_name: "",
+                        target_table: "",
+                        retention_months: 24,
+                        description: "",
+                        active: true,
+                      });
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Nova Política
                   </Button>
@@ -188,10 +216,13 @@ export function RetentionPolicyManager() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      {editingPolicy ? 'Editar Política' : 'Nova Política de Retenção'}
+                      {editingPolicy
+                        ? "Editar Política"
+                        : "Nova Política de Retenção"}
                     </DialogTitle>
                     <DialogDescription>
-                      Configure o período de retenção de dados para uma tabela específica
+                      Configure o período de retenção de dados para uma tabela
+                      específica
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -199,7 +230,12 @@ export function RetentionPolicyManager() {
                       <Label>Nome da Política</Label>
                       <Input
                         value={formData.policy_name}
-                        onChange={(e) => setFormData({ ...formData, policy_name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            policy_name: e.target.value,
+                          })
+                        }
                         placeholder="Ex: Retenção de Mensagens"
                       />
                     </div>
@@ -207,7 +243,12 @@ export function RetentionPolicyManager() {
                       <Label>Tabela Alvo</Label>
                       <Input
                         value={formData.target_table}
-                        onChange={(e) => setFormData({ ...formData, target_table: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            target_table: e.target.value,
+                          })
+                        }
                         placeholder="Ex: log_mensagens"
                       />
                     </div>
@@ -216,7 +257,12 @@ export function RetentionPolicyManager() {
                       <Input
                         type="number"
                         value={formData.retention_months}
-                        onChange={(e) => setFormData({ ...formData, retention_months: parseInt(e.target.value) })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            retention_months: parseInt(e.target.value),
+                          })
+                        }
                         min={1}
                       />
                     </div>
@@ -224,14 +270,21 @@ export function RetentionPolicyManager() {
                       <Label>Descrição</Label>
                       <Textarea
                         value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
                         placeholder="Descreva o propósito desta política..."
                       />
                     </div>
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={formData.active}
-                        onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, active: checked })
+                        }
                       />
                       <Label>Ativa</Label>
                     </div>
@@ -266,21 +319,25 @@ export function RetentionPolicyManager() {
                   <TableCell>
                     <div>
                       <p className="font-medium">{policy.policy_name}</p>
-                      <p className="text-xs text-muted-foreground">{policy.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {policy.description}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">{policy.target_table}</code>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      {policy.target_table}
+                    </code>
                   </TableCell>
                   <TableCell>{policy.retention_months} meses</TableCell>
                   <TableCell className="text-xs">
-                    {policy.last_applied_at 
-                      ? new Date(policy.last_applied_at).toLocaleString('pt-BR')
-                      : 'Nunca aplicada'}
+                    {policy.last_applied_at
+                      ? new Date(policy.last_applied_at).toLocaleString("pt-BR")
+                      : "Nunca aplicada"}
                   </TableCell>
                   <TableCell>
                     <Badge variant={policy.active ? "default" : "secondary"}>
-                      {policy.active ? 'Ativa' : 'Inativa'}
+                      {policy.active ? "Ativa" : "Inativa"}
                     </Badge>
                   </TableCell>
                   <TableCell>

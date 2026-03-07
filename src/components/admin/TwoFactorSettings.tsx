@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,7 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface TwoFactorSettings {
   id: string;
   enabled: boolean;
-  method: 'totp' | 'sms' | 'email' | null;
+  method: "totp" | "sms" | "email" | null;
   verified_at: string | null;
 }
 
@@ -21,19 +27,17 @@ export const TwoFactorSettings = () => {
   const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('user_2fa_settings')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("user_2fa_settings")
+        .select("*")
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -43,12 +47,15 @@ export const TwoFactorSettings = () => {
       } else {
         // Criar configuração padrão (usando upsert para evitar duplicidade)
         const { data: newSettings, error: insertError } = await supabase
-          .from('user_2fa_settings')
-          .upsert({
-            user_id: user.id,
-            enabled: false,
-            method: null,
-          }, { onConflict: 'user_id' })
+          .from("user_2fa_settings")
+          .upsert(
+            {
+              user_id: user.id,
+              enabled: false,
+              method: null,
+            },
+            { onConflict: "user_id" },
+          )
           .select()
           .single();
 
@@ -64,62 +71,75 @@ export const TwoFactorSettings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const handleToggle2FA = async (enabled: boolean) => {
-    if (!settings) return;
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
-    try {
-      setUpdating(true);
+  const handleToggle2FA = useCallback(
+    async (enabled: boolean) => {
+      if (!settings) return;
 
-      // Verificar se usuário é master ou admin
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      try {
+        setUpdating(true);
 
-      const { data: systemUser } = await supabase
-        .from('system_users')
-        .select('system_role')
-        .eq('id', user.id)
-        .maybeSingle();
+        // Verificar se usuário é master ou admin
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado");
 
-      if (!systemUser || !['master', 'support'].includes(systemUser.system_role)) {
+        const { data: systemUser } = await supabase
+          .from("system_users")
+          .select("system_role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (
+          !systemUser ||
+          !["master", "support"].includes(systemUser.system_role)
+        ) {
+          toast({
+            title: "Acesso negado",
+            description:
+              "2FA está disponível apenas para usuários Master e Admin",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error } = await supabase
+          .from("user_2fa_settings")
+          .update({
+            enabled,
+            method: enabled ? "totp" : null,
+            verified_at: enabled ? new Date().toISOString() : null,
+          })
+          .eq("id", settings.id);
+
+        if (error) throw error;
+
         toast({
-          title: "Acesso negado",
-          description: "2FA está disponível apenas para usuários Master e Admin",
+          title: enabled ? "2FA Ativado" : "2FA Desativado",
+          description: enabled
+            ? "Autenticação de dois fatores foi ativada com sucesso"
+            : "Autenticação de dois fatores foi desativada",
+        });
+
+        loadSettings();
+      } catch (error: any) {
+        toast({
+          title: "Erro ao atualizar 2FA",
+          description: error.message,
           variant: "destructive",
         });
-        return;
+      } finally {
+        setUpdating(false);
       }
-
-      const { error } = await supabase
-        .from('user_2fa_settings')
-        .update({
-          enabled,
-          method: enabled ? 'totp' : null,
-          verified_at: enabled ? new Date().toISOString() : null,
-        })
-        .eq('id', settings.id);
-
-      if (error) throw error;
-
-      toast({
-        title: enabled ? "2FA Ativado" : "2FA Desativado",
-        description: enabled
-          ? "Autenticação de dois fatores foi ativada com sucesso"
-          : "Autenticação de dois fatores foi desativada",
-      });
-
-      loadSettings();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar 2FA",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUpdating(false);
-    }
-  };
+    },
+    [settings, toast, loadSettings],
+  );
 
   if (loading) {
     return <div className="p-4">Carregando configurações...</div>;
@@ -141,8 +161,9 @@ export const TwoFactorSettings = () => {
           <Shield className="h-4 w-4" />
           <AlertTitle>Segurança Avançada</AlertTitle>
           <AlertDescription>
-            A autenticação de dois fatores está disponível para usuários Master e Admin.
-            Quando ativada, será necessário um código adicional para fazer login.
+            A autenticação de dois fatores está disponível para usuários Master
+            e Admin. Quando ativada, será necessário um código adicional para
+            fazer login.
           </AlertDescription>
         </Alert>
 
@@ -170,14 +191,18 @@ export const TwoFactorSettings = () => {
             <div className="flex items-center gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
               <span className="text-green-600 dark:text-green-400">
-                Verificado em: {new Date(settings.verified_at!).toLocaleString('pt-BR')}
+                Verificado em:{" "}
+                {new Date(settings.verified_at!).toLocaleString("pt-BR")}
               </span>
             </div>
 
             <div className="rounded-lg border p-4 space-y-2">
-              <h4 className="font-semibold">Método: TOTP (Time-based One-Time Password)</h4>
+              <h4 className="font-semibold">
+                Método: TOTP (Time-based One-Time Password)
+              </h4>
               <p className="text-sm text-muted-foreground">
-                Use um aplicativo autenticador como Google Authenticator ou Authy para gerar códigos.
+                Use um aplicativo autenticador como Google Authenticator ou
+                Authy para gerar códigos.
               </p>
             </div>
           </div>
@@ -188,7 +213,8 @@ export const TwoFactorSettings = () => {
             <XCircle className="h-4 w-4" />
             <AlertTitle>2FA Desativado</AlertTitle>
             <AlertDescription>
-              Recomendamos fortemente ativar a autenticação de dois fatores para proteger sua conta.
+              Recomendamos fortemente ativar a autenticação de dois fatores para
+              proteger sua conta.
             </AlertDescription>
           </Alert>
         )}

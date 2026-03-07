@@ -1,8 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,38 +27,42 @@ interface VincularPacoteDialogProps {
   onSuccess?: () => void;
 }
 
-export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: VincularPacoteDialogProps) {
+export function VincularPacoteDialog({
+  pacienteId,
+  pacienteNome,
+  onSuccess,
+}: VincularPacoteDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [pacotes, setPacotes] = useState<any[]>([]);
   const [pacoteSelecionado, setPacoteSelecionado] = useState<any>(null);
   const [renovacaoAutomatica, setRenovacaoAutomatica] = useState(false);
-  
+
   const { toast } = useToast();
+
+  const fetchPacotes = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("pacotes")
+        .select("*")
+        .eq("ativo", true)
+        .order("nome");
+
+      if (error) throw error;
+      setPacotes(data || []);
+    } catch (error) {
+      console.error("Erro ao buscar pacotes:", error);
+    }
+  }, []);
 
   useEffect(() => {
     if (open) {
       fetchPacotes();
     }
-  }, [open]);
-
-  const fetchPacotes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('pacotes')
-        .select('*')
-        .eq('ativo', true)
-        .order('nome');
-
-      if (error) throw error;
-      setPacotes(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar pacotes:', error);
-    }
-  };
+  }, [open, fetchPacotes]);
 
   const handlePacoteChange = (pacoteId: string) => {
-    const pacote = pacotes.find(p => p.id === pacoteId);
+    const pacote = pacotes.find((p) => p.id === pacoteId);
     setPacoteSelecionado(pacote);
     if (pacote) {
       setRenovacaoAutomatica(pacote.renovacao_automatica);
@@ -57,7 +74,7 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
       toast({
         title: "Selecione um pacote",
         description: "Por favor, selecione um pacote para vincular.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -65,24 +82,27 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
     try {
       setIsLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (!profile?.tenant_id) throw new Error("Tenant não encontrado");
 
       // Calcular data de validade
       const dataValidade = new Date();
-      dataValidade.setDate(dataValidade.getDate() + pacoteSelecionado.validade_dias);
+      dataValidade.setDate(
+        dataValidade.getDate() + pacoteSelecionado.validade_dias,
+      );
 
-      const { error } = await supabase
-        .from('pacientes_pacotes')
-        .insert([{
+      const { error } = await supabase.from("pacientes_pacotes").insert([
+        {
           tenant_id: profile.tenant_id,
           paciente_id: pacienteId,
           pacote_id: pacoteSelecionado.id,
@@ -92,14 +112,15 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
           data_validade: dataValidade.toISOString(),
           renovacao_automatica: renovacaoAutomatica,
           valor_pago: pacoteSelecionado.preco,
-          status: 'ativo'
-        }]);
+          status: "ativo",
+        },
+      ]);
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: `Pacote "${pacoteSelecionado.nome}" vinculado a ${pacienteNome}.`
+        description: `Pacote "${pacoteSelecionado.nome}" vinculado a ${pacienteNome}.`,
       });
 
       setOpen(false);
@@ -107,11 +128,11 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
 
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error('Erro ao vincular pacote:', error);
+      console.error("Erro ao vincular pacote:", error);
       toast({
         title: "Erro",
         description: "Não foi possível vincular o pacote ao paciente.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -152,7 +173,8 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
                 ) : (
                   pacotes.map((pacote) => (
                     <SelectItem key={pacote.id} value={pacote.id}>
-                      {pacote.nome} - {pacote.numero_sessoes} sessões - R$ {pacote.preco.toFixed(2)}
+                      {pacote.nome} - {pacote.numero_sessoes} sessões - R${" "}
+                      {pacote.preco.toFixed(2)}
                     </SelectItem>
                   ))
                 )}
@@ -167,19 +189,31 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-muted-foreground">Sessões:</p>
-                    <p className="font-medium">{pacoteSelecionado.numero_sessoes}</p>
+                    <p className="font-medium">
+                      {pacoteSelecionado.numero_sessoes}
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Valor:</p>
-                    <p className="font-medium">R$ {pacoteSelecionado.preco.toFixed(2)}</p>
+                    <p className="font-medium">
+                      R$ {pacoteSelecionado.preco.toFixed(2)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Validade:</p>
-                    <p className="font-medium">{pacoteSelecionado.validade_dias} dias</p>
+                    <p className="font-medium">
+                      {pacoteSelecionado.validade_dias} dias
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Valor/Sessão:</p>
-                    <p className="font-medium">R$ {(pacoteSelecionado.preco / pacoteSelecionado.numero_sessoes).toFixed(2)}</p>
+                    <p className="font-medium">
+                      R${" "}
+                      {(
+                        pacoteSelecionado.preco /
+                        pacoteSelecionado.numero_sessoes
+                      ).toFixed(2)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -209,7 +243,10 @@ export function VincularPacoteDialog({ pacienteId, pacienteNome, onSuccess }: Vi
             >
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={isLoading || !pacoteSelecionado}>
+            <Button
+              onClick={handleSubmit}
+              disabled={isLoading || !pacoteSelecionado}
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Vincular Pacote
             </Button>

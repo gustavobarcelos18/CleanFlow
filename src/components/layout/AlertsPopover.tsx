@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Bell, CheckCheck, AlertCircle, Clock, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,75 +32,75 @@ export function AlertsPopover() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
+  const fetchAlerts = useCallback(async () => {
+    if (!profile?.tenant_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("alertas_risco")
+        .select("*")
+        .eq("tenant_id", profile.tenant_id)
+        .eq("resolvido", false)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      setAlerts(data || []);
+      setUnreadCount(data?.filter((a) => !a.lido).length || 0);
+    } catch (error) {
+      console.error("Erro ao buscar alertas:", error);
+    }
+  }, [profile?.tenant_id]);
+
   useEffect(() => {
     fetchAlerts();
-    
+
     // Subscribe to realtime updates
     const channel = supabase
-      .channel('alertas-changes')
+      .channel("alertas-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'alertas_risco',
-          filter: `tenant_id=eq.${profile?.tenant_id}`
+          event: "*",
+          schema: "public",
+          table: "alertas_risco",
+          filter: `tenant_id=eq.${profile?.tenant_id}`,
         },
         () => {
           fetchAlerts();
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile?.tenant_id]);
-
-  const fetchAlerts = async () => {
-    if (!profile?.tenant_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('alertas_risco')
-        .select('*')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('resolvido', false)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      setAlerts(data || []);
-      setUnreadCount(data?.filter(a => !a.lido).length || 0);
-    } catch (error) {
-      console.error('Erro ao buscar alertas:', error);
-    }
-  };
+  }, [profile?.tenant_id, fetchAlerts]);
 
   const markAsRead = async (alertId: string) => {
     try {
       const { error } = await supabase
-        .from('alertas_risco')
+        .from("alertas_risco")
         .update({
           lido: true,
           lido_em: new Date().toISOString(),
-          lido_por: profile?.id
+          lido_por: profile?.id,
         })
-        .eq('id', alertId);
+        .eq("id", alertId);
 
       if (error) throw error;
 
-      setAlerts(prev => 
-        prev.map(a => a.id === alertId ? { ...a, lido: true } : a)
+      setAlerts((prev) =>
+        prev.map((a) => (a.id === alertId ? { ...a, lido: true } : a)),
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Erro ao marcar alerta como lido:', error);
+      console.error("Erro ao marcar alerta como lido:", error);
       toast({
         title: "Erro",
         description: "Não foi possível marcar o alerta como lido",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -110,42 +110,42 @@ export function AlertsPopover() {
 
     try {
       const { error } = await supabase
-        .from('alertas_risco')
+        .from("alertas_risco")
         .update({
           lido: true,
           lido_em: new Date().toISOString(),
-          lido_por: profile?.id
+          lido_por: profile?.id,
         })
-        .eq('tenant_id', profile.tenant_id)
-        .eq('lido', false)
-        .eq('resolvido', false);
+        .eq("tenant_id", profile.tenant_id)
+        .eq("lido", false)
+        .eq("resolvido", false);
 
       if (error) throw error;
 
-      setAlerts(prev => prev.map(a => ({ ...a, lido: true })));
+      setAlerts((prev) => prev.map((a) => ({ ...a, lido: true })));
       setUnreadCount(0);
-      
+
       toast({
         title: "Sucesso",
-        description: "Todos os alertas foram marcados como lidos"
+        description: "Todos os alertas foram marcados como lidos",
       });
     } catch (error) {
-      console.error('Erro ao marcar todos como lidos:', error);
+      console.error("Erro ao marcar todos como lidos:", error);
       toast({
         title: "Erro",
         description: "Não foi possível marcar todos os alertas como lidos",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const getAlertIcon = (tipo: string) => {
     switch (tipo) {
-      case 'risco_no_show':
+      case "risco_no_show":
         return <XCircle className="h-4 w-4 text-destructive" />;
-      case 'confirmacao_pendente':
+      case "confirmacao_pendente":
         return <Clock className="h-4 w-4 text-warning" />;
-      case 'atraso':
+      case "atraso":
         return <AlertCircle className="h-4 w-4 text-warning" />;
       default:
         return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
@@ -154,14 +154,14 @@ export function AlertsPopover() {
 
   const getPriorityColor = (prioridade: string) => {
     switch (prioridade) {
-      case 'alta':
-        return 'border-l-destructive bg-destructive-light';
-      case 'media':
-        return 'border-l-warning bg-warning-light';
-      case 'baixa':
-        return 'border-l-success bg-success-light';
+      case "alta":
+        return "border-l-destructive bg-destructive-light";
+      case "media":
+        return "border-l-warning bg-warning-light";
+      case "baixa":
+        return "border-l-success bg-success-light";
       default:
-        return 'border-l-muted';
+        return "border-l-muted";
     }
   };
 
@@ -171,11 +171,11 @@ export function AlertsPopover() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
             >
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
         </Button>
@@ -184,9 +184,9 @@ export function AlertsPopover() {
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold text-foreground">Alertas</h3>
           {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={markAllAsRead}
               className="h-8 text-xs"
             >
@@ -210,7 +210,7 @@ export function AlertsPopover() {
                 <div
                   key={alert.id}
                   className={`p-4 border-l-4 transition-colors hover:bg-accent/50 ${
-                    !alert.lido ? 'bg-accent/20' : ''
+                    !alert.lido ? "bg-accent/20" : ""
                   } ${getPriorityColor(alert.prioridade)}`}
                 >
                   <div className="flex items-start gap-3">
@@ -221,7 +221,10 @@ export function AlertsPopover() {
                           {alert.titulo}
                         </h4>
                         {!alert.lido && (
-                          <Badge variant="secondary" className="shrink-0 text-xs">
+                          <Badge
+                            variant="secondary"
+                            className="shrink-0 text-xs"
+                          >
                             Novo
                           </Badge>
                         )}
@@ -231,7 +234,11 @@ export function AlertsPopover() {
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(alert.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                          {format(
+                            new Date(alert.created_at),
+                            "dd/MM 'às' HH:mm",
+                            { locale: ptBR },
+                          )}
                         </span>
                         {!alert.lido && (
                           <Button

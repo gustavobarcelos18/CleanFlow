@@ -8,8 +8,10 @@ const DEFAULT_WIDTH = 256;
 interface SidebarState {
   width: number;
   isResizing: boolean;
+  sidebarScroll: number;
   setWidth: (width: number) => void;
   setIsResizing: (isResizing: boolean) => void;
+  setSidebarScroll: (sidebarScroll: number) => void;
   loadWidth: () => Promise<void>;
   saveWidth: (width: number) => Promise<void>;
 }
@@ -17,10 +19,13 @@ interface SidebarState {
 export const useSidebarStore = create<SidebarState>((set, get) => ({
   width: DEFAULT_WIDTH,
   isResizing: false,
+  sidebarScroll: 0,
 
   setWidth: (width: number) => set({ width }),
 
   setIsResizing: (isResizing: boolean) => set({ isResizing }),
+
+  setSidebarScroll: (sidebarScroll: number) => set({ sidebarScroll }),
 
   loadWidth: async () => {
     try {

@@ -1,10 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Phone, CheckCheck, Check, Clock, X, Image as ImageIcon } from "lucide-react";
+import {
+  Send,
+  Phone,
+  CheckCheck,
+  Check,
+  Clock,
+  X,
+  Image as ImageIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,15 +59,10 @@ export function WhatsAppMessageView({
   const { processIntent } = useWhatsAppIntentProcessor();
 
   useEffect(() => {
-    loadMessages();
-    subscribeToMessages();
-  }, [conversation.id]);
-
-  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("whatsapp_messages")
@@ -75,9 +78,9 @@ export function WhatsAppMessageView({
     } finally {
       setLoading(false);
     }
-  };
+  }, [conversation.id]);
 
-  const subscribeToMessages = () => {
+  const subscribeToMessages = useCallback(() => {
     const channel = supabase
       .channel(`messages:${conversation.id}`)
       .on(
@@ -91,19 +94,31 @@ export function WhatsAppMessageView({
         async (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => [...prev, newMsg]);
-          
+
           // Processar intenção se for mensagem do cliente
           if (newMsg.sender_type === "cliente") {
-            await processIntent(conversation.id, newMsg.conteudo, conversation.tenant_id);
+            await processIntent(
+              conversation.id,
+              newMsg.conteudo,
+              conversation.tenant_id,
+            );
           }
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [conversation.id, conversation.tenant_id, processIntent]);
+
+  useEffect(() => {
+    loadMessages();
+    const unsubscribe = subscribeToMessages();
+    return () => {
+      unsubscribe();
+    };
+  }, [loadMessages, subscribeToMessages]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -116,7 +131,9 @@ export function WhatsAppMessageView({
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       // Inserir mensagem no banco
@@ -136,14 +153,17 @@ export function WhatsAppMessageView({
       if (insertError) throw insertError;
 
       // Chamar edge function para enviar via WhatsApp
-      const { error: sendError } = await supabase.functions.invoke("enviar-whatsapp", {
-        body: {
-          telefone: conversation.telefone,
-          mensagem: content,
-          tenant_id: conversation.tenant_id,
-          conversation_id: conversation.id,
+      const { error: sendError } = await supabase.functions.invoke(
+        "enviar-whatsapp",
+        {
+          body: {
+            telefone: conversation.telefone,
+            mensagem: content,
+            tenant_id: conversation.tenant_id,
+            conversation_id: conversation.id,
+          },
         },
-      });
+      );
 
       if (sendError) throw sendError;
 
@@ -207,7 +227,9 @@ export function WhatsAppMessageView({
               {conversation.paciente_nome || conversation.telefone}
             </h3>
             {conversation.paciente_nome && (
-              <p className="text-sm text-muted-foreground">{conversation.telefone}</p>
+              <p className="text-sm text-muted-foreground">
+                {conversation.telefone}
+              </p>
             )}
           </div>
         </div>
@@ -230,7 +252,9 @@ export function WhatsAppMessageView({
             <div
               key={message.id}
               className={`flex ${
-                message.sender_type === "cliente" ? "justify-start" : "justify-end"
+                message.sender_type === "cliente"
+                  ? "justify-start"
+                  : "justify-end"
               }`}
             >
               <Card
@@ -240,12 +264,17 @@ export function WhatsAppMessageView({
                     : "bg-primary text-primary-foreground"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.conteudo}</p>
+                <p className="text-sm whitespace-pre-wrap">
+                  {message.conteudo}
+                </p>
                 <div className="flex items-center justify-end gap-1 mt-1">
                   <span className="text-xs opacity-70">
-                    {format(new Date(message.timestamp), "HH:mm", { locale: ptBR })}
+                    {format(new Date(message.timestamp), "HH:mm", {
+                      locale: ptBR,
+                    })}
                   </span>
-                  {message.sender_type === "agente" && getStatusIcon(message.status)}
+                  {message.sender_type === "agente" &&
+                    getStatusIcon(message.status)}
                 </div>
               </Card>
             </div>
@@ -260,7 +289,9 @@ export function WhatsAppMessageView({
             <WhatsAppMediaUpload
               conversationId={conversation.id}
               onMediaUploaded={(url, type) => {
-                handleSendMediaMessage(`[${type.startsWith('image/') ? 'Imagem' : 'Arquivo'}] ${url}`);
+                handleSendMediaMessage(
+                  `[${type.startsWith("image/") ? "Imagem" : "Arquivo"}] ${url}`,
+                );
               }}
             />
             <Textarea

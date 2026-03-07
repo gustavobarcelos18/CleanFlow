@@ -1,46 +1,45 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { supabase } from "@/integrations/supabase/client";
+
+type Theme = "light" | "dark";
 
 export function ThemeSync() {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const { theme, setTheme } = useTheme();
+  const hasSynced = useRef(false);
 
-  // Use a ref to track if we've done the initial sync to prevent feedback loops
-  const initialSyncDone = useRef<boolean>(false);
-
-  // Sync DB -> Local Theme on login
   useEffect(() => {
-    // Only proceed if we have a profile and we haven't synced yet
-    if (profile?.id && !initialSyncDone.current) {
-      if (profile.theme === "light" || profile.theme === "dark") {
-        if (theme !== profile.theme) {
-          setTheme(profile.theme);
-        }
+    // Só executa uma vez por carregamento, após o perfil estar disponível
+    if (!profile?.id || hasSynced.current) return;
+
+    const dbTheme = profile.theme as string | null | undefined;
+
+    // Converte 'system' (valor padrão antigo do banco) para 'dark'
+    const resolvedDbTheme: Theme | null =
+      dbTheme === "light" ? "light" : dbTheme === "dark" ? "dark" : null; // 'system', null, undefined → não temos preferência no banco ainda
+
+    if (resolvedDbTheme && resolvedDbTheme !== theme) {
+      // Verifica se uma mudança local foi feita muito recentemente (ex: usuário mudou e deu F5)
+      const lastUpdatedAt = Number(
+        localStorage.getItem("cleanflow-ui-theme-updated-at") || "0",
+      );
+      const isRecentlyUpdatedLocally = Date.now() - lastUpdatedAt < 5000;
+
+      if (!isRecentlyUpdatedLocally) {
+        console.log(
+          `[ThemeSync] Restaurando tema do banco: ${resolvedDbTheme}`,
+        );
+        setTheme(resolvedDbTheme);
       } else {
-        // First login or theme not set, save the current local theme to DB
-        supabase.from("profiles").update({ theme }).eq("id", profile.id).then();
+        console.log(
+          `[ThemeSync] Mudança local recente detectada, mantendo: ${theme}`,
+        );
       }
-      initialSyncDone.current = true;
     }
-  }, [profile?.id, profile?.theme]); // depend on profile to apply when it loads
 
-  // Sync Local Theme -> DB on user toggle
-  useEffect(() => {
-    if (!profile?.id || !initialSyncDone.current) return;
-
-    if (profile.theme !== theme) {
-      supabase.from("profiles").update({ theme }).eq("id", profile.id).then();
-    }
-  }, [theme, profile?.id]);
-
-  // Reset sync state on logout
-  useEffect(() => {
-    if (!user) {
-      initialSyncDone.current = false;
-    }
-  }, [user]);
+    hasSynced.current = true;
+  }, [profile?.id, profile?.theme, theme, setTheme]);
 
   return null;
 }

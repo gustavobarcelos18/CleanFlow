@@ -1,10 +1,29 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, Search } from "lucide-react";
@@ -17,7 +36,7 @@ interface AuditLog {
   usuario_id: string | null;
   ip_address: string | null;
   user_agent: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
 }
 
 export const ActionLogs = () => {
@@ -27,89 +46,95 @@ export const ActionLogs = () => {
   const [eventType, setEventType] = useState<string>("all");
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadLogs();
-  }, [eventType]);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       let query = supabase
-        .from('auditoria_admin')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("auditoria_admin")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(100);
 
-      if (eventType !== 'all') {
-        query = query.eq('tipo_evento', eventType);
+      if (eventType !== "all") {
+        query = query.eq("tipo_evento", eventType);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
       setLogs(data || []);
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao carregar logs",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventType, toast]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const exportLogs = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const csvContent = generateCSV();
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      
-      await supabase.rpc('registrar_exportacao', {
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+      await supabase.rpc("registrar_exportacao", {
         p_user_id: user.id,
-        p_export_type: 'audit_logs',
-        p_table_name: 'auditoria_admin',
+        p_export_type: "audit_logs",
+        p_table_name: "auditoria_admin",
         p_filters: { event_type: eventType },
         p_record_count: logs.length,
-        p_file_format: 'csv'
+        p_file_format: "csv",
       });
 
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `logs-auditoria-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `logs-auditoria-${new Date().toISOString().split("T")[0]}.csv`;
       link.click();
-      
+
       toast({
         title: "Logs exportados",
         description: "Arquivo CSV baixado com sucesso",
       });
-    } catch (error: any) {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro ao exportar",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     }
   };
 
   const generateCSV = () => {
-    let csv = 'Data/Hora,Tipo de Evento,Descrição,IP\n';
-    
-    logs.forEach(log => {
-      const date = new Date(log.created_at).toLocaleString('pt-BR');
-      const descricao = (log.descricao || '').replace(/,/g, ';');
-      const ip = log.ip_address || '-';
-      
+    let csv = "Data/Hora,Tipo de Evento,Descrição,IP\n";
+
+    logs.forEach((log) => {
+      const date = new Date(log.created_at).toLocaleString("pt-BR");
+      const descricao = (log.descricao || "").replace(/,/g, ";");
+      const ip = log.ip_address || "-";
+
       csv += `${date},${log.tipo_evento},"${descricao}",${ip}\n`;
     });
 
     return csv;
   };
 
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -118,24 +143,31 @@ export const ActionLogs = () => {
     );
   });
 
-  const getEventBadgeVariant = (tipo: string): "default" | "destructive" | "secondary" | "outline" => {
-    if (tipo.includes('delete') || tipo.includes('error') || tipo.includes('lock')) return 'destructive';
-    if (tipo.includes('create') || tipo.includes('success')) return 'default';
-    if (tipo.includes('update') || tipo.includes('change')) return 'secondary';
-    return 'outline';
+  const getEventBadgeVariant = (
+    tipo: string,
+  ): "default" | "destructive" | "secondary" | "outline" => {
+    if (
+      tipo.includes("delete") ||
+      tipo.includes("error") ||
+      tipo.includes("lock")
+    )
+      return "destructive";
+    if (tipo.includes("create") || tipo.includes("success")) return "default";
+    if (tipo.includes("update") || tipo.includes("change")) return "secondary";
+    return "outline";
   };
 
   const eventTypes = [
-    { value: 'all', label: 'Todos os Eventos' },
-    { value: 'login', label: 'Login' },
-    { value: 'logout', label: 'Logout' },
-    { value: 'data_export', label: 'Exportação de Dados' },
-    { value: 'user_create', label: 'Criação de Usuário' },
-    { value: 'user_update', label: 'Atualização de Usuário' },
-    { value: 'user_delete', label: 'Exclusão de Usuário' },
-    { value: 'password_reset', label: 'Reset de Senha' },
-    { value: 'permission_change', label: 'Mudança de Permissão' },
-    { value: 'config_change', label: 'Mudança de Configuração' },
+    { value: "all", label: "Todos os Eventos" },
+    { value: "login", label: "Login" },
+    { value: "logout", label: "Logout" },
+    { value: "data_export", label: "Exportação de Dados" },
+    { value: "user_create", label: "Criação de Usuário" },
+    { value: "user_update", label: "Atualização de Usuário" },
+    { value: "user_delete", label: "Exclusão de Usuário" },
+    { value: "password_reset", label: "Reset de Senha" },
+    { value: "permission_change", label: "Mudança de Permissão" },
+    { value: "config_change", label: "Mudança de Configuração" },
   ];
 
   return (
@@ -167,7 +199,7 @@ export const ActionLogs = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {eventTypes.map(type => (
+                {eventTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
@@ -201,7 +233,10 @@ export const ActionLogs = () => {
                   </TableRow>
                 ) : filteredLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground"
+                    >
                       Nenhum log encontrado
                     </TableCell>
                   </TableRow>
@@ -209,7 +244,7 @@ export const ActionLogs = () => {
                   filteredLogs.map((log) => (
                     <TableRow key={log.id}>
                       <TableCell className="font-mono text-xs">
-                        {new Date(log.created_at).toLocaleString('pt-BR')}
+                        {new Date(log.created_at).toLocaleString("pt-BR")}
                       </TableCell>
                       <TableCell>
                         <Badge variant={getEventBadgeVariant(log.tipo_evento)}>
@@ -220,7 +255,7 @@ export const ActionLogs = () => {
                         {log.descricao}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {log.ip_address || '-'}
+                        {log.ip_address || "-"}
                       </TableCell>
                     </TableRow>
                   ))

@@ -1,12 +1,21 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useSupportChat, ChatSession, ChatMessage } from "@/hooks/useSupportChat";
+import {
+  useSupportChat,
+  ChatSession,
+  ChatMessage,
+} from "@/hooks/useSupportChat";
 import { ArrowLeft, Send, CheckCircle2, Ticket, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -27,68 +36,71 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { sendMessage, resolveChat, elevateToTicket } = useSupportChat();
 
-  useEffect(() => {
-    loadSession();
-    loadMessages();
-    subscribeToMessages();
+  const loadSession = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("support_chat_sessions")
+        .select("*")
+        .eq("id", sessionId)
+        .single();
+
+      if (error) throw error;
+      setSession(data as ChatSession);
+    } catch (error) {
+      console.error("Error loading session:", error);
+      toast.error("Erro ao carregar sessão");
+    }
   }, [sessionId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const loadSession = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from('support_chat_sessions')
-        .select('*')
-        .eq('id', sessionId)
-        .single();
-
-      if (error) throw error;
-      setSession(data as ChatSession);
-    } catch (error) {
-      console.error('Error loading session:', error);
-      toast.error('Erro ao carregar sessão');
-    }
-  };
-
-  const loadMessages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('support_chat_messages')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
+        .from("support_chat_messages")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       setMessages((data || []) as ChatMessage[]);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error("Error loading messages:", error);
     }
-  };
+  }, [sessionId]);
 
-  const subscribeToMessages = () => {
+  const subscribeToMessages = useCallback(() => {
     const channel = supabase
       .channel(`chat-${sessionId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'support_chat_messages',
-          filter: `session_id=eq.${sessionId}`
+          event: "INSERT",
+          schema: "public",
+          table: "support_chat_messages",
+          filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
           setMessages((prev) => [...prev, payload.new as ChatMessage]);
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    loadSession();
+    loadMessages();
+    const unsubscribe = subscribeToMessages();
+    return () => {
+      unsubscribe();
+    };
+  }, [loadSession, loadMessages, subscribeToMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -116,12 +128,12 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
     const ticket = await elevateToTicket(sessionId);
     if (ticket) {
       onClose();
-      navigate('/admin', { state: { openTicket: ticket.id } });
+      navigate("/admin", { state: { openTicket: ticket.id } });
     }
   };
 
   const getWaitTime = () => {
-    if (!session?.started_at) return '';
+    if (!session?.started_at) return "";
     return formatDistanceToNow(new Date(session.started_at), {
       addSuffix: false,
       locale: ptBR,
@@ -134,7 +146,10 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
 
   return (
     <Sheet open={true} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[600px] flex flex-col p-0">
+      <SheetContent
+        side="right"
+        className="w-full sm:w-[600px] sm:max-w-[600px] flex flex-col p-0"
+      >
         <SheetHeader className="p-6 pb-4 border-b">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -145,7 +160,9 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
                 {session.client_name || "Cliente Anônimo"}
               </SheetTitle>
               {session.client_email && (
-                <p className="text-sm text-muted-foreground">{session.client_email}</p>
+                <p className="text-sm text-muted-foreground">
+                  {session.client_email}
+                </p>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -153,9 +170,7 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
                 <Clock className="h-3 w-3" />
                 {getWaitTime()}
               </Badge>
-              {session.status === 'active' && (
-                <Badge>Em andamento</Badge>
-              )}
+              {session.status === "active" && <Badge>Em andamento</Badge>}
             </div>
           </div>
         </SheetHeader>
@@ -172,7 +187,7 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
               <div>
                 <span className="text-muted-foreground">Iniciado:</span>
                 <p className="font-medium">
-                  {new Date(session.started_at).toLocaleString('pt-BR')}
+                  {new Date(session.started_at).toLocaleString("pt-BR")}
                 </p>
               </div>
             )}
@@ -185,23 +200,27 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
               <div
                 key={message.id}
                 className={`flex ${
-                  message.sender_type === 'agent' ? 'justify-end' : 'justify-start'
+                  message.sender_type === "agent"
+                    ? "justify-end"
+                    : "justify-start"
                 }`}
               >
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    message.sender_type === 'agent'
-                      ? 'bg-primary text-primary-foreground'
-                      : message.sender_type === 'system'
-                      ? 'bg-muted text-muted-foreground text-center'
-                      : 'bg-muted'
+                    message.sender_type === "agent"
+                      ? "bg-primary text-primary-foreground"
+                      : message.sender_type === "system"
+                        ? "bg-muted text-muted-foreground text-center"
+                        : "bg-muted"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words">{message.message}</p>
+                  <p className="whitespace-pre-wrap break-words">
+                    {message.message}
+                  </p>
                   <p className="text-xs opacity-70 mt-1">
-                    {new Date(message.created_at).toLocaleTimeString('pt-BR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
+                    {new Date(message.created_at).toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </p>
                 </div>
@@ -217,7 +236,7 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
               variant="outline"
               size="sm"
               onClick={handleResolveChat}
-              disabled={session.status !== 'active'}
+              disabled={session.status !== "active"}
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
               Resolver
@@ -226,7 +245,7 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
               variant="outline"
               size="sm"
               onClick={handleElevateToTicket}
-              disabled={session.status !== 'active'}
+              disabled={session.status !== "active"}
             >
               <Ticket className="h-4 w-4 mr-2" />
               Elevar a Ticket
@@ -240,16 +259,18 @@ export const ChatWindow = ({ sessionId, onClose }: ChatWindowProps) => {
               placeholder="Digite sua mensagem..."
               className="min-h-[60px] resize-none"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }
               }}
-              disabled={session.status !== 'active'}
+              disabled={session.status !== "active"}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() || sending || session.status !== 'active'}
+              disabled={
+                !newMessage.trim() || sending || session.status !== "active"
+              }
               size="icon"
               className="h-[60px] w-[60px]"
             >

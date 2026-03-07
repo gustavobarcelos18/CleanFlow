@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import {
   Mail,
   Phone as IconeTelefone,
   FileText,
-  Upload
+  Upload,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,66 +43,61 @@ const Profissionais = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingProfessional, setDeletingProfessional] = useState<{ id: string; nome: string } | null>(null);
+  const [deletingProfessional, setDeletingProfessional] = useState<{
+    id: string;
+    nome: string;
+  } | null>(null);
   const { toast } = useToast();
 
-  const fetchProfessionals = async () => {
+  const fetchProfessionals = useCallback(async () => {
     try {
       setIsLoading(true);
       const { data: profData, error: profError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'profissional')
-        .order('nome');
+        .from("profiles")
+        .select(
+          `
+          *,
+          profissional_especialidades (
+            especialidade_id,
+            especialidades (
+              nome
+            )
+          )
+        `,
+        )
+        .eq("role", "profissional")
+        .order("nome");
 
       if (profError) throw profError;
 
-      // Extract unique IDs safely
-      const especialidadeIds = [...new Set(profData.map(p => p.especialidade_id).filter(Boolean))];
-
-      let especialidadesMap: Record<string, string> = {};
-      if (especialidadeIds.length > 0) {
-        const { data: espData, error: espError } = await supabase
-          .from('especialidades')
-          .select('id, nome')
-          .in('id', especialidadeIds);
-
-        if (!espError && espData) {
-          especialidadesMap = espData.reduce((acc, curr) => {
-            acc[curr.id] = curr.nome;
-            return acc;
-          }, {} as Record<string, string>);
-        }
-      }
-
-      const professionalsWithEspecialidades = profData.map(p => ({
+      const professionalsWithEspecialidades = (profData || []).map((p) => ({
         ...p,
-        especialidades: p.especialidade_id && especialidadesMap[p.especialidade_id]
-          ? { nome: especialidadesMap[p.especialidade_id] }
-          : null
+        especialidades:
+          p.profissional_especialidades?.[0]?.especialidades || null,
       }));
 
-      setProfessionals((professionalsWithEspecialidades as any) || []);
+      setProfessionals(professionalsWithEspecialidades as any);
     } catch (error) {
-      console.error('Erro ao buscar profissionais:', error);
+      console.error("Erro ao buscar profissionais:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os profissionais.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchProfessionals();
-  }, []);
+  }, [fetchProfessionals]);
 
-  const filteredProfessionals = professionals.filter(p =>
-    p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (p.numero_registro && p.numero_registro.includes(searchTerm))
+  const filteredProfessionals = professionals.filter(
+    (p) =>
+      p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (p.numero_registro && p.numero_registro.includes(searchTerm)),
   );
 
   return (
@@ -110,14 +105,22 @@ const Profissionais = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Profissionais</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Profissionais
+            </h1>
             <p className="text-muted-foreground">
-              Gerenciar cadastro de profissionais de saúde ({professionals.length})
+              Gerenciar cadastro de profissionais de saúde (
+              {professionals.length})
             </p>
           </div>
           {!isLoading && professionals.length > 0 && (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => window.location.href = '/profissionais/recontratar'}>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  (window.location.href = "/profissionais/recontratar")
+                }
+              >
                 <Upload className="mr-2 h-4 w-4" />
                 Recontratar (CSV)
               </Button>
@@ -144,12 +147,18 @@ const Profissionais = () => {
           <div className="text-center py-12">
             <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              {searchTerm ? "Nenhum profissional encontrado" : "Nenhum profissional cadastrado"}
+              {searchTerm
+                ? "Nenhum profissional encontrado"
+                : "Nenhum profissional cadastrado"}
             </h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm ? "Tente uma busca diferente" : "Comece adicionando seu primeiro profissional"}
+              {searchTerm
+                ? "Tente uma busca diferente"
+                : "Comece adicionando seu primeiro profissional"}
             </p>
-            {!searchTerm && <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />}
+            {!searchTerm && (
+              <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />
+            )}
           </div>
         ) : (
           <div className="grid gap-4">
@@ -161,7 +170,9 @@ const Profissionais = () => {
                       <User className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">{professional.nome}</h3>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {professional.nome}
+                      </h3>
                       {professional.especialidades && (
                         <Badge variant="secondary" className="mt-1">
                           {professional.especialidades.nome}
@@ -184,15 +195,18 @@ const Profissionais = () => {
                       <span className="text-sm">{professional.telefone}</span>
                     </div>
                   )}
-                  {professional.conselho_profissional && professional.numero_registro && (
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {professional.conselho_profissional} {professional.numero_registro}
-                        {professional.uf_registro && ` - ${professional.uf_registro}`}
-                      </span>
-                    </div>
-                  )}
+                  {professional.conselho_profissional &&
+                    professional.numero_registro && (
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {professional.conselho_profissional}{" "}
+                          {professional.numero_registro}
+                          {professional.uf_registro &&
+                            ` - ${professional.uf_registro}`}
+                        </span>
+                      </div>
+                    )}
                 </div>
 
                 <div className="flex gap-2">
@@ -207,7 +221,12 @@ const Profissionais = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setDeletingProfessional({ id: professional.id, nome: professional.nome })}
+                    onClick={() =>
+                      setDeletingProfessional({
+                        id: professional.id,
+                        nome: professional.nome,
+                      })
+                    }
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />

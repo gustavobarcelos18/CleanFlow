@@ -1,10 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Edit, Plus, XCircle, CheckCircle, RefreshCw, ExternalLink } from "lucide-react";
+import {
+  Search,
+  Eye,
+  Edit,
+  Plus,
+  XCircle,
+  CheckCircle,
+  RefreshCw,
+  ExternalLink,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -44,15 +53,7 @@ export const TenantManagement = () => {
   const [suspendReason, setSuspendReason] = useState("");
   const [changeSegmentOpen, setChangeSegmentOpen] = useState(false);
 
-  useEffect(() => {
-    loadTenants();
-  }, []);
-
-  useEffect(() => {
-    filterTenants();
-  }, [tenants, searchTerm, statusFilter]);
-
-  const loadTenants = async () => {
+  const loadTenants = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("tenants")
@@ -67,14 +68,18 @@ export const TenantManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterTenants = () => {
+  useEffect(() => {
+    loadTenants();
+  }, [loadTenants]);
+
+  const filterTenants = useCallback(() => {
     let filtered = tenants;
 
     // Filter by status
     if (statusFilter !== "all") {
-      filtered = filtered.filter(tenant => tenant.status === statusFilter);
+      filtered = filtered.filter((tenant) => tenant.status === statusFilter);
     }
 
     // Filter by search term
@@ -82,12 +87,16 @@ export const TenantManagement = () => {
       filtered = filtered.filter(
         (tenant) =>
           tenant.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          tenant.email?.toLowerCase().includes(searchTerm.toLowerCase())
+          tenant.email?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     setFilteredTenants(filtered);
-  };
+  }, [searchTerm, statusFilter, tenants]);
+
+  useEffect(() => {
+    filterTenants();
+  }, [filterTenants]);
 
   const handleSuspendTenant = async () => {
     if (!suspendTenant || !suspendReason.trim()) {
@@ -96,7 +105,7 @@ export const TenantManagement = () => {
     }
 
     try {
-      const newStatus = suspendTenant.status === 'ativo' ? 'suspenso' : 'ativo';
+      const newStatus = suspendTenant.status === "ativo" ? "suspenso" : "ativo";
 
       const { error } = await supabase
         .from("tenants")
@@ -108,10 +117,12 @@ export const TenantManagement = () => {
       await logAction(
         "tenant_status_alterado",
         suspendTenant.id,
-        `Tenant ${newStatus}: ${suspendReason}`
+        `Tenant ${newStatus}: ${suspendReason}`,
       );
 
-      toast.success(`Tenant ${newStatus === 'ativo' ? 'reativado' : 'suspenso'} com sucesso`);
+      toast.success(
+        `Tenant ${newStatus === "ativo" ? "reativado" : "suspenso"} com sucesso`,
+      );
       setSuspendDialogOpen(false);
       setSuspendTenant(null);
       setSuspendReason("");
@@ -122,8 +133,14 @@ export const TenantManagement = () => {
     }
   };
 
-  const logAction = async (action: string, tenantId: string, description: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
+  const logAction = async (
+    action: string,
+    tenantId: string,
+    description: string,
+  ) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       await supabase.from("support_actions_log").insert({
         support_user_id: user.id,
@@ -169,13 +186,16 @@ export const TenantManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {suspendTenant?.status === 'ativo' ? 'Suspender' : 'Reativar'} Tenant
+              {suspendTenant?.status === "ativo" ? "Suspender" : "Reativar"}{" "}
+              Tenant
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Tenant</Label>
-              <p className="text-sm text-muted-foreground">{suspendTenant?.nome}</p>
+              <p className="text-sm text-muted-foreground">
+                {suspendTenant?.nome}
+              </p>
             </div>
             <div>
               <Label htmlFor="reason">Motivo *</Label>
@@ -183,19 +203,24 @@ export const TenantManagement = () => {
                 id="reason"
                 value={suspendReason}
                 onChange={(e) => setSuspendReason(e.target.value)}
-                placeholder={`Informe o motivo da ${suspendTenant?.status === 'ativo' ? 'suspensão' : 'reativação'}...`}
+                placeholder={`Informe o motivo da ${suspendTenant?.status === "ativo" ? "suspensão" : "reativação"}...`}
                 rows={4}
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setSuspendDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setSuspendDialogOpen(false)}
+              >
                 Cancelar
               </Button>
               <Button
-                variant={suspendTenant?.status === 'ativo' ? 'destructive' : 'default'}
+                variant={
+                  suspendTenant?.status === "ativo" ? "destructive" : "default"
+                }
                 onClick={handleSuspendTenant}
               >
-                {suspendTenant?.status === 'ativo' ? 'Suspender' : 'Reativar'}
+                {suspendTenant?.status === "ativo" ? "Suspender" : "Reativar"}
               </Button>
             </div>
           </div>
@@ -212,7 +237,11 @@ export const TenantManagement = () => {
             </Button>
           </div>
 
-          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
+          <Tabs
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            className="w-full"
+          >
             <TabsList>
               <TabsTrigger value="all">Todos</TabsTrigger>
               <TabsTrigger value="ativo">Ativos</TabsTrigger>
@@ -232,9 +261,13 @@ export const TenantManagement = () => {
           </div>
 
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Carregando...</p>
+            <p className="text-center py-8 text-muted-foreground">
+              Carregando...
+            </p>
           ) : filteredTenants.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">Nenhum tenant encontrado</p>
+            <p className="text-center py-8 text-muted-foreground">
+              Nenhum tenant encontrado
+            </p>
           ) : (
             <div className="space-y-2">
               {filteredTenants.map((tenant) => (
@@ -244,20 +277,34 @@ export const TenantManagement = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{tenant.nome}</h3>
                         <Badge variant="outline">{tenant.tipo}</Badge>
-                        <Badge variant={
-                          tenant.status === 'ativo' ? 'default' :
-                            tenant.status === 'suspenso' ? 'destructive' : 'secondary'
-                        }>
-                          {tenant.status || 'ativo'}
+                        <Badge
+                          variant={
+                            tenant.status === "ativo"
+                              ? "default"
+                              : tenant.status === "suspenso"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {tenant.status || "ativo"}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {tenant.email}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Criado em: {new Date(tenant.created_at).toLocaleDateString("pt-BR")}
+                        Criado em:{" "}
+                        {new Date(tenant.created_at).toLocaleDateString(
+                          "pt-BR",
+                        )}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTenant(tenant)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedTenant(tenant)}
+                      >
                         <Eye className="h-4 w-4 mr-2" />
                         Detalhes
                       </Button>
@@ -273,17 +320,25 @@ export const TenantManagement = () => {
                         Editar
                       </Button>
                       <Button
-                        variant={tenant.status === 'ativo' ? 'destructive' : 'default'}
+                        variant={
+                          tenant.status === "ativo" ? "destructive" : "default"
+                        }
                         size="sm"
                         onClick={() => {
                           setSuspendTenant(tenant);
                           setSuspendDialogOpen(true);
                         }}
                       >
-                        {tenant.status === 'ativo' ? (
-                          <><XCircle className="h-4 w-4 mr-2" />Suspender</>
+                        {tenant.status === "ativo" ? (
+                          <>
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Suspender
+                          </>
                         ) : (
-                          <><CheckCircle className="h-4 w-4 mr-2" />Reativar</>
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Reativar
+                          </>
                         )}
                       </Button>
                     </div>
@@ -295,7 +350,10 @@ export const TenantManagement = () => {
         </div>
       </Card>
 
-      <Dialog open={!!selectedTenant} onOpenChange={() => setSelectedTenant(null)}>
+      <Dialog
+        open={!!selectedTenant}
+        onOpenChange={() => setSelectedTenant(null)}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalhes do Tenant</DialogTitle>
@@ -305,19 +363,27 @@ export const TenantManagement = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Nome</label>
-                  <p className="text-sm text-muted-foreground">{selectedTenant.nome}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedTenant.nome}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Tipo</label>
-                  <p className="text-sm text-muted-foreground">{selectedTenant.tipo}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedTenant.tipo}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Email</label>
-                  <p className="text-sm text-muted-foreground">{selectedTenant.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedTenant.email}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Telefone</label>
-                  <p className="text-sm text-muted-foreground">{selectedTenant.telefone}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedTenant.telefone}
+                  </p>
                 </div>
               </div>
 
@@ -325,8 +391,11 @@ export const TenantManagement = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    localStorage.setItem('support_impersonation_tenant_id', selectedTenant.id);
-                    window.location.href = '/dashboard';
+                    localStorage.setItem(
+                      "support_impersonation_tenant_id",
+                      selectedTenant.id,
+                    );
+                    window.location.href = "/dashboard";
                   }}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />

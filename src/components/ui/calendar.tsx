@@ -4,13 +4,24 @@ import { DayPicker, CaptionProps } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  ...props
+}: CalendarProps) {
   const [month, setMonth] = React.useState<Date>(
-    props.month || props.selected as Date || new Date()
+    props.month || (props.selected as Date) || new Date(),
   );
 
   React.useEffect(() => {
@@ -24,10 +35,23 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
     const currentMonthIndex = displayMonth.getMonth();
 
     // Gera lista de anos (de 1900 até ano atual + 10)
-    const years = Array.from({ length: new Date().getFullYear() - 1900 + 11 }, (_, i) => 1900 + i);
+    const years = Array.from(
+      { length: new Date().getFullYear() - 1900 + 11 },
+      (_, i) => 1900 + i,
+    );
     const months = [
-      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro",
     ];
 
     const handleMonthChange = (monthStr: string) => {
@@ -42,7 +66,10 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
 
     return (
       <div className="flex justify-center gap-2 items-center py-2">
-        <Select value={currentMonthIndex.toString()} onValueChange={handleMonthChange}>
+        <Select
+          value={currentMonthIndex.toString()}
+          onValueChange={handleMonthChange}
+        >
           <SelectTrigger className="w-[130px] h-8">
             <SelectValue>{months[currentMonthIndex]}</SelectValue>
           </SelectTrigger>
@@ -84,18 +111,23 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         nav: "hidden",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
-        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        head_cell:
+          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
+        cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+        day: cn(
+          buttonVariants({ variant: "ghost" }),
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-md",
+        ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-accent text-accent-foreground",
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
+        day_today: "bg-accent text-accent-foreground rounded-md",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
-        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        day_range_middle:
+          "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         ...classNames,
       }}

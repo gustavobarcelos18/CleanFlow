@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -15,11 +21,11 @@ interface EditServiceDialogProps {
   onSuccess?: () => void;
 }
 
-export function EditServiceDialog({ 
-  serviceId, 
-  open, 
-  onOpenChange, 
-  onSuccess 
+export function EditServiceDialog({
+  serviceId,
+  open,
+  onOpenChange,
+  onSuccess,
 }: EditServiceDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,7 +33,7 @@ export function EditServiceDialog({
     duracao_minutos: "",
     preco: "",
     confirmacao_24h: false,
-    ativo: true
+    ativo: true,
   });
 
   const { toast } = useToast();
@@ -41,9 +47,9 @@ export function EditServiceDialog({
   const fetchService = async () => {
     try {
       const { data, error } = await supabase
-        .from('servicos')
-        .select('*')
-        .eq('id', serviceId)
+        .from("servicos")
+        .select("*")
+        .eq("id", serviceId)
         .single();
 
       if (error) throw error;
@@ -53,14 +59,14 @@ export function EditServiceDialog({
         duracao_minutos: data.duracao_minutos?.toString() || "",
         preco: data.preco?.toString() || "",
         confirmacao_24h: data.confirmacao_24h || false,
-        ativo: data.ativo !== false
+        ativo: data.ativo !== false,
       });
     } catch (error) {
-      console.error('Erro ao buscar serviço:', error);
+      console.error("Erro ao buscar serviço:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os dados do serviço.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -72,7 +78,7 @@ export function EditServiceDialog({
       toast({
         title: "Campos obrigatórios",
         description: "Nome e duração são obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -81,22 +87,22 @@ export function EditServiceDialog({
       setIsLoading(true);
 
       const { error } = await supabase
-        .from('servicos')
+        .from("servicos")
         .update({
-          nome: formData.nome.trim(),
+          nome: formData.nome.trim().toUpperCase(),
           duracao_minutos: parseInt(formData.duracao_minutos),
           preco: formData.preco ? parseFloat(formData.preco) : null,
           confirmacao_24h: formData.confirmacao_24h,
           ativo: formData.ativo,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', serviceId);
+        .eq("id", serviceId);
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: "Serviço atualizado com sucesso."
+        description: "Serviço atualizado com sucesso.",
       });
 
       onOpenChange(false);
@@ -105,11 +111,11 @@ export function EditServiceDialog({
         onSuccess();
       }
     } catch (error) {
-      console.error('Erro ao atualizar:', error);
+      console.error("Erro ao atualizar:", error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o serviço.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -132,8 +138,10 @@ export function EditServiceDialog({
             <Input
               id="nome"
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              placeholder="Ex: Consulta, Procedimento, Exame"
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value.toUpperCase() })
+              }
+              placeholder="EX: CONSULTA, PROCEDIMENTO, EXAME"
               required
             />
           </div>
@@ -146,7 +154,9 @@ export function EditServiceDialog({
                 type="number"
                 min="1"
                 value={formData.duracao_minutos}
-                onChange={(e) => setFormData({ ...formData, duracao_minutos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, duracao_minutos: e.target.value })
+                }
                 placeholder="30"
                 required
               />
@@ -160,7 +170,9 @@ export function EditServiceDialog({
                 step="0.01"
                 min="0"
                 value={formData.preco}
-                onChange={(e) => setFormData({ ...formData, preco: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, preco: e.target.value })
+                }
                 placeholder="150.00"
               />
             </div>
@@ -171,7 +183,9 @@ export function EditServiceDialog({
             <Switch
               id="confirmacao"
               checked={formData.confirmacao_24h}
-              onCheckedChange={(checked) => setFormData({ ...formData, confirmacao_24h: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, confirmacao_24h: checked })
+              }
             />
           </div>
 
@@ -180,7 +194,9 @@ export function EditServiceDialog({
             <Switch
               id="ativo"
               checked={formData.ativo}
-              onCheckedChange={(checked) => setFormData({ ...formData, ativo: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, ativo: checked })
+              }
             />
           </div>
 

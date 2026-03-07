@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,16 +46,10 @@ export function EditProcedimentoDialog({
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (open && procedimentoId) {
-      fetchProcedimento();
-    }
-  }, [open, procedimentoId]);
-
-  const fetchProcedimento = async () => {
+  const fetchProcedimento = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from("procedimentos")
+        .from("servicos")
         .select("*")
         .eq("id", procedimentoId)
         .single();
@@ -65,7 +59,7 @@ export function EditProcedimentoDialog({
       setFormData({
         nome: data.nome || "",
         duracao_minutos: data.duracao_minutos?.toString() || "",
-        valor: data.valor?.toString() || "",
+        valor: data.preco?.toString() || "",
         codigo_tuss: data.codigo_tuss || "",
         descricao: data.descricao || "",
         instrucoes_preparo: data.instrucoes_preparo || "",
@@ -82,7 +76,13 @@ export function EditProcedimentoDialog({
         variant: "destructive",
       });
     }
-  };
+  }, [procedimentoId, toast]);
+
+  useEffect(() => {
+    if (open && procedimentoId) {
+      fetchProcedimento();
+    }
+  }, [open, procedimentoId, fetchProcedimento]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,11 +100,11 @@ export function EditProcedimentoDialog({
       setIsLoading(true);
 
       const { error } = await supabase
-        .from("procedimentos")
+        .from("servicos")
         .update({
-          nome: formData.nome.trim(),
+          nome: formData.nome.trim().toUpperCase(),
           duracao_minutos: parseInt(formData.duracao_minutos),
-          valor: formData.valor ? parseFloat(formData.valor) : null,
+          preco: formData.valor ? parseFloat(formData.valor) : null,
           codigo_tuss: formData.codigo_tuss.trim() || null,
           descricao: formData.descricao.trim() || null,
           instrucoes_preparo: formData.instrucoes_preparo.trim() || null,
@@ -125,11 +125,19 @@ export function EditProcedimentoDialog({
 
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao atualizar procedimento:", error);
+
+      let errorMessage = "Não foi possível atualizar o procedimento.";
+      if (error.code === "23505") {
+        errorMessage = "Já existe um procedimento cadastrado com este nome.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o procedimento.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -156,7 +164,10 @@ export function EditProcedimentoDialog({
                 id="nome"
                 value={formData.nome}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, nome: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    nome: e.target.value.toUpperCase(),
+                  }))
                 }
                 required
               />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useSidebarWidth } from "@/hooks/useSidebarWidth";
 import { useTenantData } from "@/hooks/useTenantData";
+import { useSidebarStore } from "@/stores/useSidebarStore";
 
 interface SidebarProps {
   className?: string;
@@ -193,6 +194,19 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
   const location = useLocation();
   const { displayName, isLoading } = useTenantData();
   const { width, isResizing, handleMouseDown } = useSidebarWidth();
+  const { sidebarScroll, setSidebarScroll } = useSidebarStore();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Restore scroll position on mount
+  useLayoutEffect(() => {
+    if (scrollRef.current && sidebarScroll > 0) {
+      scrollRef.current.scrollTop = sidebarScroll;
+    }
+  }, [sidebarScroll]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setSidebarScroll(e.currentTarget.scrollTop);
+  };
 
   const getTipoLabel = (tipo: string) => {
     switch (tipo) {
@@ -232,7 +246,11 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
       </div>
 
       {/* Navigation - scrolls vertically only */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll min-w-0">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll min-w-0"
+      >
         <nav className="px-3 py-4 space-y-4">
           {sidebarSections.map((section) => (
             <div key={section.label} className="space-y-1">

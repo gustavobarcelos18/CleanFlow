@@ -1,11 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
@@ -32,32 +45,33 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
     renovacao_automatica: false,
     desconto_renovacao: "0",
     limiar_renovacao: "2",
-    oferta_renovacao_ativa: true
+    oferta_renovacao_ativa: true,
   });
 
   const { toast } = useToast();
+
+  const fetchServicos = useCallback(async () => {
+    if (!profile?.tenant_id) return;
+    try {
+      const { data, error } = await supabase
+        .from("servicos")
+        .select("id, nome")
+        .eq("tenant_id", profile.tenant_id)
+        .eq("ativo", true)
+        .order("nome");
+
+      if (error) throw error;
+      setServicos(data || []);
+    } catch (error) {
+      console.error("Erro ao buscar procedimentos:", error);
+    }
+  }, [profile?.tenant_id]);
 
   useEffect(() => {
     if (open && profile?.tenant_id) {
       fetchServicos();
     }
-  }, [open, profile?.tenant_id]);
-
-  const fetchServicos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('servicos')
-        .select('id, nome')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('ativo', true)
-        .order('nome');
-
-      if (error) throw error;
-      setServicos(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar procedimentos:', error);
-    }
-  };
+  }, [open, profile?.tenant_id, fetchServicos]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +80,7 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -81,7 +95,7 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
       toast({
         title: "Número de sessões inválido",
         description: "O número de sessões deve ser maior que zero.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -90,7 +104,7 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
       toast({
         title: "Preço inválido",
         description: "O preço deve ser maior que zero.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -99,7 +113,7 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
       toast({
         title: "Validade inválida",
         description: "A validade deve ser maior que zero dias.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -108,7 +122,7 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
       toast({
         title: "Desconto inválido",
         description: "O desconto deve estar entre 0% e 100%.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -118,9 +132,8 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
 
       if (!profile?.tenant_id) throw new Error("Tenant não encontrado");
 
-      const { error } = await supabase
-        .from('pacotes')
-        .insert([{
+      const { error } = await supabase.from("pacotes").insert([
+        {
           tenant_id: profile.tenant_id,
           nome: formData.nome.trim(),
           descricao: formData.descricao?.trim() || null,
@@ -132,11 +145,12 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
           desconto_renovacao: descontoRenovacao,
           limiar_renovacao: parseInt(formData.limiar_renovacao),
           oferta_renovacao_ativa: formData.oferta_renovacao_ativa,
-          ativo: true
-        }]);
+          ativo: true,
+        },
+      ]);
 
       if (error) {
-        if (error.code === '23505') {
+        if (error.code === "23505") {
           throw new Error("Já existe um pacote com este nome");
         }
         throw error;
@@ -144,7 +158,7 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
 
       toast({
         title: "Sucesso!",
-        description: "Pacote criado com sucesso."
+        description: "Pacote criado com sucesso.",
       });
 
       setOpen(false);
@@ -158,16 +172,16 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
         renovacao_automatica: false,
         desconto_renovacao: "0",
         limiar_renovacao: "2",
-        oferta_renovacao_ativa: true
+        oferta_renovacao_ativa: true,
       });
 
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error('Erro ao criar pacote:', error);
+      console.error("Erro ao criar pacote:", error);
       toast({
         title: "Erro",
         description: "Não foi possível criar o pacote.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -186,7 +200,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Novo Pacote de Tratamento</DialogTitle>
+          <DialogTitle className="text-2xl">
+            Novo Pacote de Tratamento
+          </DialogTitle>
           <DialogDescription>
             Crie um pacote de sessões para oferecer aos seus clientes
           </DialogDescription>
@@ -198,7 +214,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
             <Input
               id="nome"
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value })
+              }
               placeholder="Ex: Pacote 10 Sessões Depilação a Laser"
             />
           </div>
@@ -208,7 +226,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
             <Textarea
               id="descricao"
               value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, descricao: e.target.value })
+              }
               placeholder="Descreva os benefícios e detalhes do pacote..."
               rows={3}
             />
@@ -218,13 +238,20 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
             <Label htmlFor="servico">Procedimento Relacionado (Opcional)</Label>
             <Select
               value={formData.servico_id}
-              onValueChange={(value) => setFormData({ ...formData, servico_id: value === "none" ? "" : value })}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  servico_id: value === "none" ? "" : value,
+                })
+              }
             >
               <SelectTrigger id="servico">
                 <SelectValue placeholder="Selecione um procedimento" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
-                <SelectItem value="none">Nenhum procedimento específico</SelectItem>
+                <SelectItem value="none">
+                  Nenhum procedimento específico
+                </SelectItem>
                 {servicos.map((servico) => (
                   <SelectItem key={servico.id} value={servico.id}>
                     {servico.nome}
@@ -242,7 +269,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
                 type="number"
                 min="1"
                 value={formData.numero_sessoes}
-                onChange={(e) => setFormData({ ...formData, numero_sessoes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, numero_sessoes: e.target.value })
+                }
                 placeholder="Ex: 10"
               />
             </div>
@@ -255,7 +284,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
                 step="0.01"
                 min="0"
                 value={formData.preco}
-                onChange={(e) => setFormData({ ...formData, preco: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, preco: e.target.value })
+                }
                 placeholder="Ex: 1500.00"
               />
             </div>
@@ -268,7 +299,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
               type="number"
               min="1"
               value={formData.validade_dias}
-              onChange={(e) => setFormData({ ...formData, validade_dias: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, validade_dias: e.target.value })
+              }
               placeholder="Ex: 90"
             />
             <p className="text-xs text-muted-foreground">
@@ -279,7 +312,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="renovacao_automatica">Renovação Automática</Label>
+                <Label htmlFor="renovacao_automatica">
+                  Renovação Automática
+                </Label>
                 <p className="text-xs text-muted-foreground">
                   Renovar automaticamente quando expirar
                 </p>
@@ -287,13 +322,17 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
               <Switch
                 id="renovacao_automatica"
                 checked={formData.renovacao_automatica}
-                onCheckedChange={(checked) => setFormData({ ...formData, renovacao_automatica: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, renovacao_automatica: checked })
+                }
               />
             </div>
 
             {formData.renovacao_automatica && (
               <div className="space-y-2">
-                <Label htmlFor="desconto_renovacao">Desconto na Renovação (%)</Label>
+                <Label htmlFor="desconto_renovacao">
+                  Desconto na Renovação (%)
+                </Label>
                 <Input
                   id="desconto_renovacao"
                   type="number"
@@ -301,7 +340,12 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
                   min="0"
                   max="100"
                   value={formData.desconto_renovacao}
-                  onChange={(e) => setFormData({ ...formData, desconto_renovacao: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      desconto_renovacao: e.target.value,
+                    })
+                  }
                   placeholder="Ex: 10"
                 />
               </div>
@@ -309,7 +353,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="oferta_renovacao_ativa">Oferecer Renovação Automática</Label>
+                <Label htmlFor="oferta_renovacao_ativa">
+                  Oferecer Renovação Automática
+                </Label>
                 <p className="text-xs text-muted-foreground">
                   Notificar paciente quando próximo ao término
                 </p>
@@ -317,7 +363,9 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
               <Switch
                 id="oferta_renovacao_ativa"
                 checked={formData.oferta_renovacao_ativa}
-                onCheckedChange={(checked) => setFormData({ ...formData, oferta_renovacao_ativa: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, oferta_renovacao_ativa: checked })
+                }
               />
             </div>
 
@@ -332,11 +380,17 @@ export function NewPacoteDialog({ children, onSuccess }: NewPacoteDialogProps) {
                   min="1"
                   max="10"
                   value={formData.limiar_renovacao}
-                  onChange={(e) => setFormData({ ...formData, limiar_renovacao: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      limiar_renovacao: e.target.value,
+                    })
+                  }
                   placeholder="2"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Quando restarem este número de sessões, o sistema oferecerá renovação
+                  Quando restarem este número de sessões, o sistema oferecerá
+                  renovação
                 </p>
               </div>
             )}

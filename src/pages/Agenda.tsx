@@ -79,6 +79,7 @@ const Agenda = () => {
   const [newAppointmentDialogOpen, setNewAppointmentDialogOpen] =
     useState(false);
   const [newAppointmentTime, setNewAppointmentTime] = useState("");
+  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
   const { toast } = useToast();
 
   const {
@@ -650,7 +651,10 @@ const Agenda = () => {
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <Popover>
+            <Popover
+              open={calendarPopoverOpen}
+              onOpenChange={setCalendarPopoverOpen}
+            >
               <PopoverTrigger asChild>
                 <Button variant="outline" className="min-w-[200px]">
                   <Calendar className="h-4 w-4 mr-2" />
@@ -661,7 +665,12 @@ const Agenda = () => {
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                      setCalendarPopoverOpen(false);
+                    }
+                  }}
                   initialFocus
                   locale={ptBR}
                   className={cn("p-3 pointer-events-auto")}
@@ -813,8 +822,7 @@ const Agenda = () => {
         <EditAppointmentDialog
           appointmentId={editingAppointmentId}
           onSuccess={() => {
-            fetchAppointments();
-            fetchNextDayAppointments();
+            refetchAppointments();
             setEditingAppointmentId(null);
           }}
         >

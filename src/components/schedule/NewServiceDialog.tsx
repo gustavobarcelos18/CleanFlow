@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,7 +27,7 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
     duracao_minutos: "",
     preco: "",
     confirmacao_24h: false,
-    ativo: true
+    ativo: true,
   });
   const [hasChanges, setHasChanges] = useState(false);
   const nomeRef = useRef<HTMLInputElement>(null);
@@ -29,21 +36,47 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    setHasChanges(!!(formData.nome || formData.duracao_minutos || formData.preco));
+    setHasChanges(
+      !!(formData.nome || formData.duracao_minutos || formData.preco),
+    );
   }, [formData]);
 
   // Lista de palavras-chave para validar se é atividade médica/exame
   const medicalKeywords = [
-    'consulta', 'exame', 'cirurgia', 'procedimento', 'avaliação', 'tratamento',
-    'raio-x', 'ultrassom', 'tomografia', 'ressonância', 'endoscopia', 'colonoscopia',
-    'eletrocardiograma', 'hemograma', 'check-up', 'retorno', 'acompanhamento',
-    'fisioterapia', 'terapia', 'sessão', 'aplicação', 'vacina', 'curativo',
-    'biópsia', 'ecografia', 'audiometria', 'espirometria', 'holter', 'mapa'
+    "consulta",
+    "exame",
+    "cirurgia",
+    "procedimento",
+    "avaliação",
+    "tratamento",
+    "raio-x",
+    "ultrassom",
+    "tomografia",
+    "ressonância",
+    "endoscopia",
+    "colonoscopia",
+    "eletrocardiograma",
+    "hemograma",
+    "check-up",
+    "retorno",
+    "acompanhamento",
+    "fisioterapia",
+    "terapia",
+    "sessão",
+    "aplicação",
+    "vacina",
+    "curativo",
+    "biópsia",
+    "ecografia",
+    "audiometria",
+    "espirometria",
+    "holter",
+    "mapa",
   ];
 
   const validateMedicalService = (serviceName: string): boolean => {
     const nameLower = serviceName.toLowerCase().trim();
-    return medicalKeywords.some(keyword => nameLower.includes(keyword));
+    return medicalKeywords.some((keyword) => nameLower.includes(keyword));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,12 +90,12 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
       toast({
         title: "Campos obrigatórios não preenchidos",
         description: `Por favor, preencha: ${missingFields.join(", ")}`,
-        variant: "destructive"
+        variant: "destructive",
       });
-      
+
       if (!formData.nome.trim()) nomeRef.current?.focus();
       else if (!formData.duracao_minutos) duracaoRef.current?.focus();
-      
+
       return;
     }
 
@@ -70,8 +103,9 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
     if (!validateMedicalService(formData.nome)) {
       toast({
         title: "Serviço inválido",
-        description: "Por favor, cadastre apenas atividades médicas, procedimentos ou exames. Ex: Consulta, Depilação a Laser, Exame de Sangue, Ultrassom, etc.",
-        variant: "destructive"
+        description:
+          "Por favor, cadastre apenas atividades médicas, procedimentos ou exames. Ex: Consulta, Depilação a Laser, Exame de Sangue, Ultrassom, etc.",
+        variant: "destructive",
       });
       nomeRef.current?.focus();
       return;
@@ -82,7 +116,7 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
       toast({
         title: "Duração inválida",
         description: "A duração deve ser entre 1 e 480 minutos (8 horas).",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -92,7 +126,7 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
       toast({
         title: "Preço inválido",
         description: "O preço deve ser um valor positivo.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -101,33 +135,43 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
       setIsLoading(true);
 
       // Buscar tenant_id do usuário logado
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
         .maybeSingle();
 
-      if (!profile) throw new Error("Perfil do usuário não encontrado. Conclua seu cadastro em Configurações.");
-      if (!profile.tenant_id) throw new Error("Tenant não encontrado. Associe seu perfil a uma clínica em Configurações.");
+      if (!profile)
+        throw new Error(
+          "Perfil do usuário não encontrado. Conclua seu cadastro em Configurações.",
+        );
+      if (!profile.tenant_id)
+        throw new Error(
+          "Tenant não encontrado. Associe seu perfil a uma clínica em Configurações.",
+        );
 
       const { data, error } = await supabase
-        .from('servicos')
-        .insert([{
-          nome: formData.nome.trim(),
-          duracao_minutos: duracao,
-          preco: preco,
-          confirmacao_24h: formData.confirmacao_24h,
-          ativo: formData.ativo,
-          tenant_id: profile.tenant_id
-        }])
+        .from("servicos")
+        .insert([
+          {
+            nome: formData.nome.trim().toUpperCase(),
+            duracao_minutos: duracao,
+            preco: preco,
+            confirmacao_24h: formData.confirmacao_24h,
+            ativo: formData.ativo,
+            tenant_id: profile.tenant_id,
+          },
+        ])
         .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
+        if (error.code === "23505") {
           throw new Error("Já existe um serviço com este nome");
         }
         throw error;
@@ -135,7 +179,7 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
 
       toast({
         title: "Sucesso!",
-        description: "Serviço cadastrado com sucesso."
+        description: "Serviço cadastrado com sucesso.",
       });
 
       setOpen(false);
@@ -144,19 +188,20 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
         duracao_minutos: "",
         preco: "",
         confirmacao_24h: false,
-        ativo: true
+        ativo: true,
       });
 
       if (onSuccess && data) {
         onSuccess(data.id);
       }
     } catch (error) {
-      console.error('Erro ao cadastrar serviço:', error);
-      const description = (error as any)?.message || "Não foi possível cadastrar o serviço.";
+      console.error("Erro ao cadastrar serviço:", error);
+      const description =
+        (error as any)?.message || "Não foi possível cadastrar o serviço.";
       toast({
         title: "Erro",
         description,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -175,7 +220,8 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-xl">Cadastrar Novo Serviço</DialogTitle>
           <DialogDescription>
-            Cadastre atividades médicas, procediementos e exames (ex: Consulta, Ultrassom, Exame de sangue)
+            Cadastre atividades médicas, procediementos e exames (ex: Consulta,
+            Ultrassom, Exame de sangue)
           </DialogDescription>
         </DialogHeader>
 
@@ -186,8 +232,10 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
               id="nome"
               ref={nomeRef}
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              placeholder="Ex: Consulta médica, Ultrassom, Exame de sangue"
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value.toUpperCase() })
+              }
+              placeholder="EX: CONSULTA, PROCEDIMENTO, EXAME"
               required
             />
             <p className="text-xs text-muted-foreground">
@@ -205,7 +253,9 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
                 min="1"
                 max="480"
                 value={formData.duracao_minutos}
-                onChange={(e) => setFormData({ ...formData, duracao_minutos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, duracao_minutos: e.target.value })
+                }
                 placeholder="30"
                 required
               />
@@ -219,7 +269,9 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
                 step="0.01"
                 min="0"
                 value={formData.preco}
-                onChange={(e) => setFormData({ ...formData, preco: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, preco: e.target.value })
+                }
                 placeholder="150.00"
               />
             </div>
@@ -236,7 +288,9 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
               <Switch
                 id="confirmacao_24h"
                 checked={formData.confirmacao_24h}
-                onCheckedChange={(checked) => setFormData({ ...formData, confirmacao_24h: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, confirmacao_24h: checked })
+                }
               />
             </div>
 
@@ -250,7 +304,9 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
               <Switch
                 id="ativo"
                 checked={formData.ativo}
-                onCheckedChange={(checked) => setFormData({ ...formData, ativo: checked })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, ativo: checked })
+                }
               />
             </div>
           </div>

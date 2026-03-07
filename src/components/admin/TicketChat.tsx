@@ -1,13 +1,23 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ArrowLeft, Send, FileText, Tag, X } from "lucide-react";
 import { toast } from "sonner";
 import { SLAIndicator } from "./SLAIndicator";
@@ -31,10 +41,16 @@ interface Macro {
 interface TicketChatProps {
   ticket: any;
   onBack: () => void;
-  onStatusUpdate: (status: "open" | "in_progress" | "waiting_customer" | "resolved" | "closed") => void;
+  onStatusUpdate: (
+    status: "open" | "in_progress" | "waiting_customer" | "resolved" | "closed",
+  ) => void;
 }
 
-export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) => {
+export const TicketChat = ({
+  ticket,
+  onBack,
+  onStatusUpdate,
+}: TicketChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isInternal, setIsInternal] = useState(false);
@@ -47,21 +63,12 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
   const [agentProfile, setAgentProfile] = useState<any>(null);
   const [customerProfile, setCustomerProfile] = useState<any>(null);
 
-  useEffect(() => {
-    loadMessages();
-    loadMacros();
-    loadProfiles();
-    subscribeToMessages();
-  }, [ticket.id]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const loadProfiles = async () => {
+  const loadProfiles = useCallback(async () => {
     try {
       // Load agent profile (current user)
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: agent } = await (supabase as any)
           .from("profiles")
@@ -83,9 +90,9 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
     } catch (error) {
       console.error("Error loading profiles:", error);
     }
-  };
+  }, [ticket.user_id]);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
       const { data, error } = await (supabase as any)
         .from("support_ticket_messages")
@@ -98,9 +105,9 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
     } catch (error) {
       console.error("Error loading messages:", error);
     }
-  };
+  }, [ticket.id]);
 
-  const loadMacros = async () => {
+  const loadMacros = useCallback(async () => {
     try {
       const { data, error } = await (supabase as any)
         .from("support_ticket_macros")
@@ -113,24 +120,43 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
     } catch (error) {
       console.error("Error loading macros:", error);
     }
-  };
+  }, []);
 
-  const subscribeToMessages = () => {
+  const subscribeToMessages = useCallback(() => {
     const channel = (supabase as any)
       .channel(`ticket_messages_${ticket.id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "support_ticket_messages", filter: `ticket_id=eq.${ticket.id}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "support_ticket_messages",
+          filter: `ticket_id=eq.${ticket.id}`,
+        },
         (payload: any) => {
           setMessages((prev) => [...prev, payload.new as Message]);
-        }
+        },
       )
       .subscribe();
 
     return () => {
       (supabase as any).removeChannel(channel);
     };
-  };
+  }, [ticket.id]);
+
+  useEffect(() => {
+    loadMessages();
+    loadMacros();
+    loadProfiles();
+    const unsubscribe = subscribeToMessages();
+    return () => {
+      unsubscribe();
+    };
+  }, [loadMessages, loadMacros, loadProfiles, subscribeToMessages]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -141,16 +167,20 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
 
     setSending(true);
     try {
-      const { data: { user } } = await (supabase as any).auth.getUser();
+      const {
+        data: { user },
+      } = await (supabase as any).auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await (supabase as any).from("support_ticket_messages").insert({
-        ticket_id: ticket.id,
-        user_id: user.id,
-        sender_type: "agent",
-        mensagem: newMessage,
-        is_internal: isInternal,
-      });
+      const { error } = await (supabase as any)
+        .from("support_ticket_messages")
+        .insert({
+          ticket_id: ticket.id,
+          user_id: user.id,
+          sender_type: "agent",
+          mensagem: newMessage,
+          is_internal: isInternal,
+        });
 
       if (error) throw error;
 
@@ -159,8 +189,8 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
         action_type: "message_sent",
         target_type: "ticket",
         target_id: ticket.id,
-        description: `Mensagem ${isInternal ? 'interna' : 'pública'} enviada`,
-        metadata: { is_internal: isInternal }
+        description: `Mensagem ${isInternal ? "interna" : "pública"} enviada`,
+        metadata: { is_internal: isInternal },
       });
 
       setNewMessage("");
@@ -178,15 +208,20 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
 
     // Variables data
     const ticketNumber = ticket.numero?.toString() || ticket.id.slice(0, 8);
-    const customerName = customerProfile?.nome || ticket.guest_name || "Cliente";
-    const customerEmail = customerProfile?.email || ticket.guest_email || "Email não disponível";
-    const customerPhone = customerProfile?.telefone || ticket.guest_phone || "Telefone não disponível";
+    const customerName =
+      customerProfile?.nome || ticket.guest_name || "Cliente";
+    const customerEmail =
+      customerProfile?.email || ticket.guest_email || "Email não disponível";
+    const customerPhone =
+      customerProfile?.telefone ||
+      ticket.guest_phone ||
+      "Telefone não disponível";
     const agentName = agentProfile?.nome || "Agente";
     const agentEmail = agentProfile?.email || "Email não disponível";
 
     // Date formatting
-    const createdDate = new Date(ticket.created_at).toLocaleDateString('pt-BR');
-    const currentDate = new Date().toLocaleDateString('pt-BR');
+    const createdDate = new Date(ticket.created_at).toLocaleDateString("pt-BR");
+    const currentDate = new Date().toLocaleDateString("pt-BR");
 
     // Greeting logic
     const hour = new Date().getHours();
@@ -197,7 +232,10 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
     // Substitutions
     content = content.replace(/\{\{numero_ticket\}\}/g, ticketNumber);
     content = content.replace(/\{\{titulo_ticket\}\}/g, ticket.titulo);
-    content = content.replace(/\{\{descricao_ticket\}\}/g, ticket.descricao || "");
+    content = content.replace(
+      /\{\{descricao_ticket\}\}/g,
+      ticket.descricao || "",
+    );
     content = content.replace(/\{\{prioridade\}\}/g, ticket.prioridade);
     content = content.replace(/\{\{status\}\}/g, ticket.status);
     content = content.replace(/\{\{data_criacao\}\}/g, createdDate);
@@ -238,7 +276,7 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
   };
 
   const removeTag = async (tagToRemove: string) => {
-    const updatedTags = tags.filter(t => t !== tagToRemove);
+    const updatedTags = tags.filter((t) => t !== tagToRemove);
 
     try {
       const { error } = await (supabase as any)
@@ -266,10 +304,14 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <h2 className="text-xl font-bold">{ticket.titulo}</h2>
-              <Badge variant="outline">#{ticket.numero || ticket.id.slice(0, 8)}</Badge>
+              <Badge variant="outline">
+                #{ticket.numero || ticket.id.slice(0, 8)}
+              </Badge>
               <SLAIndicator sla={ticket.sla || {}} status={ticket.status} />
             </div>
-            <p className="text-sm text-muted-foreground mb-3">{ticket.descricao}</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              {ticket.descricao}
+            </p>
 
             {/* Tags */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -277,7 +319,10 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
                 <Badge key={tag} variant="secondary" className="gap-1">
                   <Tag className="h-3 w-3" />
                   {tag}
-                  <button onClick={() => removeTag(tag)} className="ml-1 hover:text-destructive">
+                  <button
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 hover:text-destructive"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -296,7 +341,7 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === "Enter") {
                           e.preventDefault();
                           addTag();
                         }
@@ -332,12 +377,15 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
             key={msg.id}
             className={`flex ${msg.sender_type === "agent" || msg.sender_type === "support" ? "justify-end" : "justify-start"}`}
           >
-            <div className={`max-w-[70%] rounded-lg p-3 ${msg.sender_type === "agent" || msg.sender_type === "support"
-              ? msg.is_internal
-                ? "bg-yellow-100 dark:bg-yellow-900/30"
-                : "bg-primary text-primary-foreground"
-              : "bg-muted"
-              }`}>
+            <div
+              className={`max-w-[70%] rounded-lg p-3 ${
+                msg.sender_type === "agent" || msg.sender_type === "support"
+                  ? msg.is_internal
+                    ? "bg-yellow-100 dark:bg-yellow-900/30"
+                    : "bg-primary text-primary-foreground"
+                  : "bg-muted"
+              }`}
+            >
               {msg.is_internal && (
                 <p className="text-xs font-semibold mb-1">Nota Interna</p>
               )}
@@ -376,7 +424,9 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
                 <div className="space-y-2">
                   <h4 className="font-semibold mb-3">Selecione uma macro</h4>
                   {macros.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhuma macro disponível</p>
+                    <p className="text-sm text-muted-foreground">
+                      Nenhuma macro disponível
+                    </p>
                   ) : (
                     macros.map((macro) => (
                       <button
@@ -386,7 +436,9 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
                       >
                         <div className="font-medium text-sm">{macro.nome}</div>
                         {macro.categoria && (
-                          <div className="text-xs text-muted-foreground">{macro.categoria}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {macro.categoria}
+                          </div>
                         )}
                       </button>
                     ))
@@ -411,7 +463,10 @@ export const TicketChat = ({ ticket, onBack, onStatusUpdate }: TicketChatProps) 
             className="flex-1"
             rows={4}
           />
-          <Button onClick={sendMessage} disabled={sending || !newMessage.trim()}>
+          <Button
+            onClick={sendMessage}
+            disabled={sending || !newMessage.trim()}
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

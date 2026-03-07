@@ -43,10 +43,10 @@ html {
     --success-foreground: 0 0% 100%;
     --success-light: 152 76% 94%;
 
-    /* Medical Orange for Warnings/Risk */
-    --warning: 25 95% 45%; /* Laranja mais queimado para contraste no branco */
+    /* Medical Orange/Yellow for Warnings/Risk */
+    --warning: 48 95% 45%; /* Amarelo/Ouro para contraste no branco (Pendente) */
     --warning-foreground: 0 0% 100%;
-    --warning-light: 38 94% 95%;
+    --warning-light: 48 100% 95%;
 
     /* Secondary & Neutral */
     --secondary: 210 17% 95%;
@@ -115,6 +115,7 @@ html {
   }
 
   .dark {
+    color-scheme: dark;
     /* Punch Graphite Theme */
     --background: 222 47% 5%; /* #070B12 */
     --foreground: 0 0% 100%; /* Branco puro */
@@ -146,7 +147,7 @@ html {
     --muted-foreground: 0 0% 100%;
 
     --accent: 189 84% 54%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 222 47% 5%; /* Dark color for contrast against cyan bg */
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -163,6 +164,7 @@ html {
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 215 40% 18%;
     --sidebar-ring: 189 84% 54%;
+    --primary-light: 215 40% 12%; /* #111A2E - Dark Blue for backgrounds */
 
     /* Dark gradients */
     --gradient-primary: linear-gradient(
@@ -175,6 +177,11 @@ html {
       hsl(215 25% 12%),
       hsl(215 20% 15%)
     );
+
+    /* Dark Mode Appointment Card Backgrounds (High Contrast) */
+    --success-light: 152 69% 10%;
+    --warning-light: 25 95% 10%;
+    --destructive-light: 0 72% 10%;
   }
 }
 

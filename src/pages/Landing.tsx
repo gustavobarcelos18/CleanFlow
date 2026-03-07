@@ -11,19 +11,15 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { SupportChatWidget } from "@/components/support/SupportChatWidget";
 import { CookieConsent } from "@/components/layout/CookieConsent";
-import { useTheme } from "@/components/theme/ThemeProvider";
 
 const Landing = () => {
-  const { setTheme } = useTheme();
-
   useEffect(() => {
-    setTheme("dark");
     // Ensure root font size is reset on landing page
     document.documentElement.style.fontSize = "";
-  }, [setTheme]);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#070B12] overflow-x-clip">
+    <div className="dark min-h-screen bg-[#070B12] overflow-x-clip text-foreground">
       <LandingHeader />
       <main>
         {/* 1. HERO — Promessa */}

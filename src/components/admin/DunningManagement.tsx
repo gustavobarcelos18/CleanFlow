@@ -1,15 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, Bell, Mail, MessageSquare, Shield } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Loader2,
+  AlertTriangle,
+  Bell,
+  Mail,
+  MessageSquare,
+  Shield,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DunningConfig {
   id: string;
@@ -51,13 +76,11 @@ export function DunningManagement() {
   const [historico, setHistorico] = useState<HistoricoDunning[]>([]);
   const [restricoes, setRestricoes] = useState<RestricaoTenant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingConfig, setEditingConfig] = useState<DunningConfig | null>(null);
+  const [editingConfig, setEditingConfig] = useState<DunningConfig | null>(
+    null,
+  );
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -71,7 +94,7 @@ export function DunningManagement() {
         supabase
           .from("restricoes_tenant")
           .select("*, tenants(nome, email)")
-          .eq("ativo", true)
+          .eq("ativo", true),
       ]);
 
       if (configsRes.error) throw configsRes.error;
@@ -87,7 +110,11 @@ export function DunningManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleToggleConfig = async (id: string, ativo: boolean) => {
     try {
@@ -106,13 +133,16 @@ export function DunningManagement() {
     }
   };
 
-  const handleRemoverRestricao = async (restricaoId: string, tenantId: string) => {
+  const handleRemoverRestricao = async (
+    restricaoId: string,
+    tenantId: string,
+  ) => {
     try {
       const { error } = await supabase
         .from("restricoes_tenant")
         .update({
           ativo: false,
-          removido_em: new Date().toISOString()
+          removido_em: new Date().toISOString(),
         })
         .eq("id", restricaoId);
 
@@ -124,7 +154,7 @@ export function DunningManagement() {
         action_type: "restricao_removida",
         target_type: "restricao_tenant",
         target_id: restricaoId,
-        description: `Restrição removida para tenant ${tenantId}`
+        description: `Restrição removida para tenant ${tenantId}`,
       });
 
       toast.success("Restrição removida!");
@@ -140,7 +170,7 @@ export function DunningManagement() {
       lembrete: Bell,
       restricao_marketing: AlertTriangle,
       restricao_outbound: Shield,
-      suspensao_total: AlertTriangle
+      suspensao_total: AlertTriangle,
     };
     return icons[acao] || Bell;
   };
@@ -150,7 +180,7 @@ export function DunningManagement() {
       nenhuma: { variant: "default", label: "Sem Restrições" },
       soft_marketing: { variant: "outline", label: "Marketing Restrito" },
       soft_outbound: { variant: "destructive", label: "Outbound Restrito" },
-      suspensao_total: { variant: "destructive", label: "Suspenso" }
+      suspensao_total: { variant: "destructive", label: "Suspenso" },
     };
 
     const config = variants[tipo] || variants.nenhuma;
@@ -177,7 +207,9 @@ export function DunningManagement() {
                 <Bell className="h-5 w-5" />
                 Regras de Cobrança (Dunning)
               </CardTitle>
-              <CardDescription>Configure as ações automáticas para inadimplência</CardDescription>
+              <CardDescription>
+                Configure as ações automáticas para inadimplência
+              </CardDescription>
             </div>
             <DunningConfigDialog onSave={loadData} />
           </div>
@@ -195,7 +227,8 @@ export function DunningManagement() {
                     <div className="flex items-center gap-3 mb-2">
                       <Icon className="h-5 w-5 text-primary" />
                       <span className="font-semibold">
-                        D+{config.dias_atraso}: {config.acao.replace(/_/g, " ").toUpperCase()}
+                        D+{config.dias_atraso}:{" "}
+                        {config.acao.replace(/_/g, " ").toUpperCase()}
                       </span>
                       <Badge variant={config.ativo ? "default" : "secondary"}>
                         {config.ativo ? "Ativo" : "Inativo"}
@@ -221,7 +254,9 @@ export function DunningManagement() {
                     <Button
                       variant={config.ativo ? "destructive" : "default"}
                       size="sm"
-                      onClick={() => handleToggleConfig(config.id, config.ativo)}
+                      onClick={() =>
+                        handleToggleConfig(config.id, config.ativo)
+                      }
                     >
                       {config.ativo ? "Desativar" : "Ativar"}
                     </Button>
@@ -240,7 +275,9 @@ export function DunningManagement() {
             <Shield className="h-5 w-5" />
             Restrições Ativas
           </CardTitle>
-          <CardDescription>Clientes com restrições por inadimplência</CardDescription>
+          <CardDescription>
+            Clientes com restrições por inadimplência
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {restricoes.length === 0 ? (
@@ -250,25 +287,38 @@ export function DunningManagement() {
           ) : (
             <div className="space-y-3">
               {restricoes.map((restricao) => (
-                <Card key={restricao.id} className="border-l-4 border-l-destructive">
+                <Card
+                  key={restricao.id}
+                  className="border-l-4 border-l-destructive"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="font-semibold">{restricao.tenants?.nome}</span>
+                          <span className="font-semibold">
+                            {restricao.tenants?.nome}
+                          </span>
                           {getRestricaoBadge(restricao.tipo_restricao)}
                         </div>
                         <div className="text-sm text-muted-foreground space-y-1">
                           <div>Motivo: {restricao.motivo}</div>
                           <div>
-                            Desde: {new Date(restricao.iniciado_em).toLocaleDateString()}
+                            Desde:{" "}
+                            {new Date(
+                              restricao.iniciado_em,
+                            ).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleRemoverRestricao(restricao.id, restricao.tenant_id)}
+                        onClick={() =>
+                          handleRemoverRestricao(
+                            restricao.id,
+                            restricao.tenant_id,
+                          )
+                        }
                       >
                         Remover Restrição
                       </Button>
@@ -288,7 +338,9 @@ export function DunningManagement() {
             <MessageSquare className="h-5 w-5" />
             Histórico de Cobranças
           </CardTitle>
-          <CardDescription>Últimas ações de cobrança realizadas</CardDescription>
+          <CardDescription>
+            Últimas ações de cobrança realizadas
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -337,8 +389,8 @@ function DunningConfigDialog({ config, onSave, onClose }: any) {
       acao: "lembrete",
       canal_notificacao: ["email"],
       template_mensagem: "",
-      ativo: true
-    }
+      ativo: true,
+    },
   );
   const [open, setOpen] = useState(!!config);
 
@@ -347,7 +399,10 @@ function DunningConfigDialog({ config, onSave, onClose }: any) {
 
     try {
       const { error } = config
-        ? await supabase.from("dunning_configs").update(formData).eq("id", config.id)
+        ? await supabase
+            .from("dunning_configs")
+            .update(formData)
+            .eq("id", config.id)
         : await supabase.from("dunning_configs").insert([formData]);
 
       if (error) throw error;
@@ -363,13 +418,21 @@ function DunningConfigDialog({ config, onSave, onClose }: any) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o && onClose) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o && onClose) onClose();
+      }}
+    >
       <DialogTrigger asChild>
         <Button>Nova Regra</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{config ? "Editar" : "Nova"} Regra de Cobrança</DialogTitle>
+          <DialogTitle>
+            {config ? "Editar" : "Nova"} Regra de Cobrança
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -378,7 +441,12 @@ function DunningConfigDialog({ config, onSave, onClose }: any) {
               type="number"
               min="1"
               value={formData.dias_atraso}
-              onChange={(e) => setFormData({ ...formData, dias_atraso: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  dias_atraso: parseInt(e.target.value),
+                })
+              }
             />
           </div>
           <div>
@@ -392,8 +460,12 @@ function DunningConfigDialog({ config, onSave, onClose }: any) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="lembrete">Lembrete</SelectItem>
-                <SelectItem value="restricao_marketing">Restringir Marketing</SelectItem>
-                <SelectItem value="restricao_outbound">Restringir Outbound</SelectItem>
+                <SelectItem value="restricao_marketing">
+                  Restringir Marketing
+                </SelectItem>
+                <SelectItem value="restricao_outbound">
+                  Restringir Outbound
+                </SelectItem>
                 <SelectItem value="suspensao_total">Suspensão Total</SelectItem>
               </SelectContent>
             </Select>
@@ -402,11 +474,15 @@ function DunningConfigDialog({ config, onSave, onClose }: any) {
             <Label>Template da Mensagem</Label>
             <Textarea
               value={formData.template_mensagem || ""}
-              onChange={(e) => setFormData({ ...formData, template_mensagem: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, template_mensagem: e.target.value })
+              }
               rows={3}
             />
           </div>
-          <Button type="submit" className="w-full">Salvar</Button>
+          <Button type="submit" className="w-full">
+            Salvar
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

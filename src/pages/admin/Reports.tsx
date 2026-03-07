@@ -1,16 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { ArrowLeft, Download, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  ArrowLeft,
+  Download,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 
-const COLORS = ['#016CA5', '#25D366', '#FFB800', '#FF6B6B'];
+const COLORS = ["#016CA5", "#25D366", "#FFB800", "#FF6B6B"];
 
 interface ReportData {
   ticketsByStatus: any[];
@@ -31,17 +58,206 @@ interface ReportData {
   teamPerformance: any[];
 }
 
+const processTicketsByStatus = (tickets: any[]) => {
+  const statusCount: Record<string, number> = {};
+  tickets.forEach((ticket) => {
+    statusCount[ticket.status] = (statusCount[ticket.status] || 0) + 1;
+  });
+
+  return Object.entries(statusCount).map(([status, count]) => ({
+    name: translateStatus(status),
+    value: count,
+    status,
+  }));
+};
+
+const processTicketsByPriority = (tickets: any[]) => {
+  const priorityCount: Record<string, number> = {};
+  tickets.forEach((ticket) => {
+    priorityCount[ticket.priority] = (priorityCount[ticket.priority] || 0) + 1;
+  });
+
+  return Object.entries(priorityCount).map(([priority, count]) => ({
+    name: translatePriority(priority),
+    value: count,
+  }));
+};
+
+const processTicketsByOrigin = (tickets: any[]) => {
+  const originCount: Record<string, number> = {};
+  tickets.forEach((ticket) => {
+    const origin = ticket.origem || "manual";
+    originCount[origin] = (originCount[origin] || 0) + 1;
+  });
+
+  return Object.entries(originCount).map(([origin, count]) => ({
+    name: translateOrigin(origin),
+    value: count,
+  }));
+};
+
+const processTicketsTrend = (tickets: any[], days: number) => {
+  const trend: Record<string, number> = {};
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+    trend[dateStr] = 0;
+  }
+
+  tickets.forEach((ticket) => {
+    const date = new Date(ticket.created_at);
+    const dateStr = date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+    if (trend[dateStr] !== undefined) {
+      trend[dateStr]++;
+    }
+  });
+
+  return Object.entries(trend).map(([date, count]) => ({
+    date,
+    tickets: count,
+  }));
+};
+
+const processSLAMetrics = (tickets: any[]) => {
+  let cumprido = 0;
+  let emRisco = 0;
+  let estourado = 0;
+
+  tickets.forEach((ticket) => {
+    if (!ticket.sla || !ticket.sla.limite) return;
+
+    const now = new Date();
+    const limite = new Date(ticket.sla.limite);
+    const tempoRestante = limite.getTime() - now.getTime();
+
+    if (ticket.status === "resolved" || ticket.status === "closed") {
+      if (ticket.sla.atingido === false) {
+        cumprido++;
+      } else {
+        estourado++;
+      }
+    } else if (tempoRestante <= 0) {
+      estourado++;
+    } else {
+      const inicio = new Date(ticket.sla.inicio);
+      const tempoTotal = limite.getTime() - inicio.getTime();
+      const percentualGasto = ((tempoTotal - tempoRestante) / tempoTotal) * 100;
+
+      if (percentualGasto >= 80) {
+        emRisco++;
+      } else {
+        cumprido++;
+      }
+    }
+  });
+
+  return {
+    cumprido,
+    emRisco,
+    estourado,
+    total: tickets.length,
+  };
+};
+
+const processResolutionTime = (tickets: any[]) => {
+  const resolvedTickets = tickets.filter((t) => t.resolved_at);
+
+  if (resolvedTickets.length === 0) {
+    return { avg: 0, min: 0, max: 0 };
+  }
+
+  const times = resolvedTickets.map((ticket) => {
+    const created = new Date(ticket.created_at);
+    const resolved = new Date(ticket.resolved_at);
+    return (resolved.getTime() - created.getTime()) / (1000 * 60 * 60); // horas
+  });
+
+  return {
+    avg: times.reduce((a, b) => a + b, 0) / times.length,
+    min: Math.min(...times),
+    max: Math.max(...times),
+  };
+};
+
+const processTeamPerformance = async (tickets: any[]) => {
+  const { data: supportUsers } = await supabase
+    .from("usuarios_suporte")
+    .select("id, nome, auth_user_id");
+
+  if (!supportUsers) return [];
+
+  const performance = supportUsers
+    .map((user) => {
+      const assignedTickets = tickets.filter(
+        (t) => t.assigned_to === user.auth_user_id,
+      );
+      const resolvedTickets = assignedTickets.filter(
+        (t) => t.status === "resolved" || t.status === "closed",
+      );
+
+      return {
+        name: user.nome,
+        atribuidos: assignedTickets.length,
+        resolvidos: resolvedTickets.length,
+        taxa:
+          assignedTickets.length > 0
+            ? Math.round(
+                (resolvedTickets.length / assignedTickets.length) * 100,
+              )
+            : 0,
+      };
+    })
+    .filter((p) => p.atribuidos > 0);
+
+  return performance;
+};
+
+const translateStatus = (status: string) => {
+  const translations: Record<string, string> = {
+    open: "Aberto",
+    in_progress: "Em Progresso",
+    waiting_customer: "Aguardando Cliente",
+    resolved: "Resolvido",
+    closed: "Fechado",
+  };
+  return translations[status] || status;
+};
+
+const translatePriority = (priority: string) => {
+  const translations: Record<string, string> = {
+    urgent: "Urgente",
+    high: "Alta",
+    medium: "Média",
+    low: "Baixa",
+  };
+  return translations[priority] || priority;
+};
+
+const translateOrigin = (origin: string) => {
+  const translations: Record<string, string> = {
+    chat: "Chat",
+    email: "Email",
+    whatsapp: "WhatsApp",
+    manual: "Manual",
+  };
+  return translations[origin] || origin;
+};
+
 const AdminReports = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState("30");
   const [reportData, setReportData] = useState<ReportData | null>(null);
 
-  useEffect(() => {
-    loadReportData();
-  }, [period]);
-
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     setLoading(true);
     try {
       const daysAgo = new Date();
@@ -71,7 +287,7 @@ const AdminReports = () => {
         ticketsTrend,
         slaMetrics,
         resolutionTime,
-        teamPerformance
+        teamPerformance,
       });
     } catch (error) {
       console.error("Error loading report data:", error);
@@ -79,218 +295,52 @@ const AdminReports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
 
-  const processTicketsByStatus = (tickets: any[]) => {
-    const statusCount: Record<string, number> = {};
-    tickets.forEach(ticket => {
-      statusCount[ticket.status] = (statusCount[ticket.status] || 0) + 1;
-    });
+  useEffect(() => {
+    loadReportData();
+  }, [loadReportData]);
 
-    return Object.entries(statusCount).map(([status, count]) => ({
-      name: translateStatus(status),
-      value: count,
-      status
-    }));
-  };
-
-  const processTicketsByPriority = (tickets: any[]) => {
-    const priorityCount: Record<string, number> = {};
-    tickets.forEach(ticket => {
-      priorityCount[ticket.priority] = (priorityCount[ticket.priority] || 0) + 1;
-    });
-
-    return Object.entries(priorityCount).map(([priority, count]) => ({
-      name: translatePriority(priority),
-      value: count
-    }));
-  };
-
-  const processTicketsByOrigin = (tickets: any[]) => {
-    const originCount: Record<string, number> = {};
-    tickets.forEach(ticket => {
-      const origin = ticket.origem || 'manual';
-      originCount[origin] = (originCount[origin] || 0) + 1;
-    });
-
-    return Object.entries(originCount).map(([origin, count]) => ({
-      name: translateOrigin(origin),
-      value: count
-    }));
-  };
-
-  const processTicketsTrend = (tickets: any[], days: number) => {
-    const trend: Record<string, number> = {};
-
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      trend[dateStr] = 0;
-    }
-
-    tickets.forEach(ticket => {
-      const date = new Date(ticket.created_at);
-      const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      if (trend[dateStr] !== undefined) {
-        trend[dateStr]++;
-      }
-    });
-
-    return Object.entries(trend).map(([date, count]) => ({
-      date,
-      tickets: count
-    }));
-  };
-
-  const processSLAMetrics = (tickets: any[]) => {
-    let cumprido = 0;
-    let emRisco = 0;
-    let estourado = 0;
-
-    tickets.forEach(ticket => {
-      if (!ticket.sla || !ticket.sla.limite) return;
-
-      const now = new Date();
-      const limite = new Date(ticket.sla.limite);
-      const tempoRestante = limite.getTime() - now.getTime();
-
-      if (ticket.status === 'resolved' || ticket.status === 'closed') {
-        if (ticket.sla.atingido === false) {
-          cumprido++;
-        } else {
-          estourado++;
-        }
-      } else if (tempoRestante <= 0) {
-        estourado++;
-      } else {
-        const inicio = new Date(ticket.sla.inicio);
-        const tempoTotal = limite.getTime() - inicio.getTime();
-        const percentualGasto = ((tempoTotal - tempoRestante) / tempoTotal) * 100;
-
-        if (percentualGasto >= 80) {
-          emRisco++;
-        } else {
-          cumprido++;
-        }
-      }
-    });
-
-    return {
-      cumprido,
-      emRisco,
-      estourado,
-      total: tickets.length
-    };
-  };
-
-  const processResolutionTime = (tickets: any[]) => {
-    const resolvedTickets = tickets.filter(t => t.resolved_at);
-
-    if (resolvedTickets.length === 0) {
-      return { avg: 0, min: 0, max: 0 };
-    }
-
-    const times = resolvedTickets.map(ticket => {
-      const created = new Date(ticket.created_at);
-      const resolved = new Date(ticket.resolved_at);
-      return (resolved.getTime() - created.getTime()) / (1000 * 60 * 60); // horas
-    });
-
-    return {
-      avg: times.reduce((a, b) => a + b, 0) / times.length,
-      min: Math.min(...times),
-      max: Math.max(...times)
-    };
-  };
-
-  const processTeamPerformance = async (tickets: any[]) => {
-    const { data: supportUsers } = await supabase
-      .from("usuarios_suporte")
-      .select("id, nome, auth_user_id");
-
-    if (!supportUsers) return [];
-
-    const performance = supportUsers.map(user => {
-      const assignedTickets = tickets.filter(t => t.assigned_to === user.auth_user_id);
-      const resolvedTickets = assignedTickets.filter(t => t.status === 'resolved' || t.status === 'closed');
-
-      return {
-        name: user.nome,
-        atribuidos: assignedTickets.length,
-        resolvidos: resolvedTickets.length,
-        taxa: assignedTickets.length > 0
-          ? Math.round((resolvedTickets.length / assignedTickets.length) * 100)
-          : 0
-      };
-    }).filter(p => p.atribuidos > 0);
-
-    return performance;
-  };
-
-  const translateStatus = (status: string) => {
-    const translations: Record<string, string> = {
-      open: 'Aberto',
-      in_progress: 'Em Progresso',
-      waiting_customer: 'Aguardando Cliente',
-      resolved: 'Resolvido',
-      closed: 'Fechado'
-    };
-    return translations[status] || status;
-  };
-
-  const translatePriority = (priority: string) => {
-    const translations: Record<string, string> = {
-      urgent: 'Urgente',
-      high: 'Alta',
-      medium: 'Média',
-      low: 'Baixa'
-    };
-    return translations[priority] || priority;
-  };
-
-  const translateOrigin = (origin: string) => {
-    const translations: Record<string, string> = {
-      chat: 'Chat',
-      email: 'Email',
-      whatsapp: 'WhatsApp',
-      manual: 'Manual'
-    };
-    return translations[origin] || origin;
-  };
-
-  const exportReport = async (format: 'csv' | 'pdf') => {
+  const exportReport = async (format: "csv" | "pdf") => {
     if (!reportData) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      if (format === 'csv') {
+      if (format === "csv") {
         const csvContent = generateCSV();
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `relatorio-suporte-${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `relatorio-suporte-${new Date().toISOString().split("T")[0]}.csv`;
         link.click();
       } else {
         await generatePDF();
       }
 
       // Registrar exportação
-      // @ts-expect-error: o tipo 'registrar_exportacao' pode não estar presente em Database['public']['Functions'] no types.ts
-      await supabase.rpc('registrar_exportacao', {
+      await supabase.rpc("registrar_exportacao", {
         p_user_id: user.id,
-        p_export_type: 'support_report',
-        p_table_name: 'support_tickets',
+        p_export_type: "support_report",
+        p_table_name: "support_tickets",
         p_filters: { period },
-        p_record_count: reportData.ticketsByStatus.reduce((sum, item) => sum + item.value, 0),
-        p_file_format: format
+        p_record_count: reportData.ticketsByStatus.reduce(
+          (sum, item) => sum + item.value,
+          0,
+        ),
+        p_file_format: format,
       });
 
-      toast.success(`Relatório exportado como ${format.toUpperCase()} com sucesso`);
+      toast.success(
+        `Relatório exportado como ${format.toUpperCase()} com sucesso`,
+      );
     } catch (error) {
-      console.error('Erro ao exportar:', error);
+      console.error("Erro ao exportar:", error);
       toast.error("Erro ao registrar exportação");
     }
   };
@@ -309,7 +359,7 @@ const AdminReports = () => {
     doc.setFontSize(11);
     doc.setTextColor(100);
     doc.text(`Período: Últimos ${period} dias`, 14, 30);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 36);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 36);
 
     let finalY = 45;
 
@@ -321,11 +371,23 @@ const AdminReports = () => {
 
     autoTable(doc, {
       startY: finalY,
-      head: [['Status', 'Quantidade', 'Percentual']],
+      head: [["Status", "Quantidade", "Percentual"]],
       body: [
-        ['Cumprido', reportData.slaMetrics.cumprido, `${((reportData.slaMetrics.cumprido / reportData.slaMetrics.total) * 100).toFixed(1)}%`],
-        ['Em Risco', reportData.slaMetrics.emRisco, `${((reportData.slaMetrics.emRisco / reportData.slaMetrics.total) * 100).toFixed(1)}%`],
-        ['Estourado', reportData.slaMetrics.estourado, `${((reportData.slaMetrics.estourado / reportData.slaMetrics.total) * 100).toFixed(1)}%`],
+        [
+          "Cumprido",
+          reportData.slaMetrics.cumprido,
+          `${((reportData.slaMetrics.cumprido / reportData.slaMetrics.total) * 100).toFixed(1)}%`,
+        ],
+        [
+          "Em Risco",
+          reportData.slaMetrics.emRisco,
+          `${((reportData.slaMetrics.emRisco / reportData.slaMetrics.total) * 100).toFixed(1)}%`,
+        ],
+        [
+          "Estourado",
+          reportData.slaMetrics.estourado,
+          `${((reportData.slaMetrics.estourado / reportData.slaMetrics.total) * 100).toFixed(1)}%`,
+        ],
       ],
     });
 
@@ -338,8 +400,8 @@ const AdminReports = () => {
 
     autoTable(doc, {
       startY: finalY,
-      head: [['Status', 'Quantidade']],
-      body: reportData.ticketsByStatus.map(item => [item.name, item.value]),
+      head: [["Status", "Quantidade"]],
+      body: reportData.ticketsByStatus.map((item) => [item.name, item.value]),
     });
 
     // @ts-expect-error: tipagem customizada do autoTable no jsPDF
@@ -351,40 +413,40 @@ const AdminReports = () => {
 
     autoTable(doc, {
       startY: finalY,
-      head: [['Agente', 'Atribuídos', 'Resolvidos', 'Taxa de Resolução']],
-      body: reportData.teamPerformance.map(item => [
+      head: [["Agente", "Atribuídos", "Resolvidos", "Taxa de Resolução"]],
+      body: reportData.teamPerformance.map((item) => [
         item.name,
         item.atribuidos,
         item.resolvidos,
-        `${item.taxa}%`
+        `${item.taxa}%`,
       ]),
     });
 
-    doc.save(`relatorio-suporte-${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`relatorio-suporte-${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
   const generateCSV = () => {
-    if (!reportData) return '';
+    if (!reportData) return "";
 
-    let csv = 'RELATÓRIO DE SUPORTE\n\n';
+    let csv = "RELATÓRIO DE SUPORTE\n\n";
     csv += `Período: Últimos ${period} dias\n`;
-    csv += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n\n`;
+    csv += `Gerado em: ${new Date().toLocaleString("pt-BR")}\n\n`;
 
-    csv += 'MÉTRICAS DE SLA\n';
-    csv += 'Status,Quantidade,Percentual\n';
+    csv += "MÉTRICAS DE SLA\n";
+    csv += "Status,Quantidade,Percentual\n";
     csv += `Cumprido,${reportData.slaMetrics.cumprido},${((reportData.slaMetrics.cumprido / reportData.slaMetrics.total) * 100).toFixed(1)}%\n`;
     csv += `Em Risco,${reportData.slaMetrics.emRisco},${((reportData.slaMetrics.emRisco / reportData.slaMetrics.total) * 100).toFixed(1)}%\n`;
     csv += `Estourado,${reportData.slaMetrics.estourado},${((reportData.slaMetrics.estourado / reportData.slaMetrics.total) * 100).toFixed(1)}%\n\n`;
 
-    csv += 'TICKETS POR STATUS\n';
-    csv += 'Status,Quantidade\n';
-    reportData.ticketsByStatus.forEach(item => {
+    csv += "TICKETS POR STATUS\n";
+    csv += "Status,Quantidade\n";
+    reportData.ticketsByStatus.forEach((item) => {
       csv += `${item.name},${item.value}\n`;
     });
 
-    csv += '\nPERFORMANCE DA EQUIPE\n';
-    csv += 'Agente,Atribuídos,Resolvidos,Taxa de Resolução\n';
-    reportData.teamPerformance.forEach(item => {
+    csv += "\nPERFORMANCE DA EQUIPE\n";
+    csv += "Agente,Atribuídos,Resolvidos,Taxa de Resolução\n";
+    reportData.teamPerformance.forEach((item) => {
       csv += `${item.name},${item.atribuidos},${item.resolvidos},${item.taxa}%\n`;
     });
 
@@ -392,7 +454,11 @@ const AdminReports = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Carregando...
+      </div>
+    );
   }
 
   return (
@@ -402,7 +468,9 @@ const AdminReports = () => {
           <div className="flex items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold">Relatórios de Suporte</h1>
-              <p className="text-muted-foreground">Análises e métricas do sistema de tickets</p>
+              <p className="text-muted-foreground">
+                Análises e métricas do sistema de tickets
+              </p>
             </div>
           </div>
 
@@ -420,11 +488,11 @@ const AdminReports = () => {
               </SelectContent>
             </Select>
 
-            <Button onClick={() => exportReport('csv')} variant="outline">
+            <Button onClick={() => exportReport("csv")} variant="outline">
               <Download className="h-4 w-4 mr-2" />
               CSV
             </Button>
-            <Button onClick={() => exportReport('pdf')}>
+            <Button onClick={() => exportReport("pdf")}>
               <Download className="h-4 w-4 mr-2" />
               PDF
             </Button>
@@ -438,14 +506,22 @@ const AdminReports = () => {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">SLA Cumprido</p>
+                    <p className="text-sm text-muted-foreground">
+                      SLA Cumprido
+                    </p>
                     <p className="text-3xl font-bold text-green-600">
                       {reportData.slaMetrics.total > 0
-                        ? Math.round((reportData.slaMetrics.cumprido / reportData.slaMetrics.total) * 100)
-                        : 0}%
+                        ? Math.round(
+                            (reportData.slaMetrics.cumprido /
+                              reportData.slaMetrics.total) *
+                              100,
+                          )
+                        : 0}
+                      %
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {reportData.slaMetrics.cumprido} de {reportData.slaMetrics.total}
+                      {reportData.slaMetrics.cumprido} de{" "}
+                      {reportData.slaMetrics.total}
                     </p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-green-600" />
@@ -455,11 +531,18 @@ const AdminReports = () => {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">SLA em Risco</p>
+                    <p className="text-sm text-muted-foreground">
+                      SLA em Risco
+                    </p>
                     <p className="text-3xl font-bold text-yellow-600">
                       {reportData.slaMetrics.total > 0
-                        ? Math.round((reportData.slaMetrics.emRisco / reportData.slaMetrics.total) * 100)
-                        : 0}%
+                        ? Math.round(
+                            (reportData.slaMetrics.emRisco /
+                              reportData.slaMetrics.total) *
+                              100,
+                          )
+                        : 0}
+                      %
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {reportData.slaMetrics.emRisco} tickets
@@ -472,11 +555,18 @@ const AdminReports = () => {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">SLA Estourado</p>
+                    <p className="text-sm text-muted-foreground">
+                      SLA Estourado
+                    </p>
                     <p className="text-3xl font-bold text-red-600">
                       {reportData.slaMetrics.total > 0
-                        ? Math.round((reportData.slaMetrics.estourado / reportData.slaMetrics.total) * 100)
-                        : 0}%
+                        ? Math.round(
+                            (reportData.slaMetrics.estourado /
+                              reportData.slaMetrics.total) *
+                              100,
+                          )
+                        : 0}
+                      %
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {reportData.slaMetrics.estourado} tickets
@@ -512,7 +602,9 @@ const AdminReports = () => {
               <TabsContent value="overview" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Tickets por Status</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Tickets por Status
+                    </h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
                         <Pie
@@ -526,7 +618,10 @@ const AdminReports = () => {
                           dataKey="value"
                         >
                           {reportData.ticketsByStatus.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
                           ))}
                         </Pie>
                         <Tooltip />
@@ -535,7 +630,9 @@ const AdminReports = () => {
                   </Card>
 
                   <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Tickets por Prioridade</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Tickets por Prioridade
+                    </h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={reportData.ticketsByPriority}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -548,7 +645,9 @@ const AdminReports = () => {
                   </Card>
 
                   <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Tickets por Origem</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Tickets por Origem
+                    </h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
                         <Pie
@@ -562,7 +661,10 @@ const AdminReports = () => {
                           dataKey="value"
                         >
                           {reportData.ticketsByOrigin.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
                           ))}
                         </Pie>
                         <Tooltip />
@@ -571,19 +673,33 @@ const AdminReports = () => {
                   </Card>
 
                   <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Tempo de Resolução</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Tempo de Resolução
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Tempo Médio</p>
-                        <p className="text-2xl font-bold">{reportData.resolutionTime.avg.toFixed(1)} horas</p>
+                        <p className="text-sm text-muted-foreground">
+                          Tempo Médio
+                        </p>
+                        <p className="text-2xl font-bold">
+                          {reportData.resolutionTime.avg.toFixed(1)} horas
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Tempo Mínimo</p>
-                        <p className="text-xl font-semibold">{reportData.resolutionTime.min.toFixed(1)} horas</p>
+                        <p className="text-sm text-muted-foreground">
+                          Tempo Mínimo
+                        </p>
+                        <p className="text-xl font-semibold">
+                          {reportData.resolutionTime.min.toFixed(1)} horas
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Tempo Máximo</p>
-                        <p className="text-xl font-semibold">{reportData.resolutionTime.max.toFixed(1)} horas</p>
+                        <p className="text-sm text-muted-foreground">
+                          Tempo Máximo
+                        </p>
+                        <p className="text-xl font-semibold">
+                          {reportData.resolutionTime.max.toFixed(1)} horas
+                        </p>
                       </div>
                     </div>
                   </Card>
@@ -592,7 +708,9 @@ const AdminReports = () => {
 
               <TabsContent value="team" className="space-y-4">
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Performance dos Agentes</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Performance dos Agentes
+                  </h3>
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={reportData.teamPerformance}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -600,8 +718,16 @@ const AdminReports = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="atribuidos" fill="#016CA5" name="Atribuídos" />
-                      <Bar dataKey="resolvidos" fill="#25D366" name="Resolvidos" />
+                      <Bar
+                        dataKey="atribuidos"
+                        fill="#016CA5"
+                        name="Atribuídos"
+                      />
+                      <Bar
+                        dataKey="resolvidos"
+                        fill="#25D366"
+                        name="Resolvidos"
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </Card>
@@ -611,14 +737,21 @@ const AdminReports = () => {
                     <Card key={index} className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-semibold text-lg">{agent.name}</h4>
+                          <h4 className="font-semibold text-lg">
+                            {agent.name}
+                          </h4>
                           <p className="text-sm text-muted-foreground">
-                            {agent.atribuidos} tickets atribuídos • {agent.resolvidos} resolvidos
+                            {agent.atribuidos} tickets atribuídos •{" "}
+                            {agent.resolvidos} resolvidos
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-3xl font-bold text-primary">{agent.taxa}%</p>
-                          <p className="text-sm text-muted-foreground">Taxa de Resolução</p>
+                          <p className="text-3xl font-bold text-primary">
+                            {agent.taxa}%
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Taxa de Resolução
+                          </p>
                         </div>
                       </div>
                     </Card>
@@ -628,7 +761,9 @@ const AdminReports = () => {
 
               <TabsContent value="trends" className="space-y-4">
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Tendência de Criação de Tickets</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Tendência de Criação de Tickets
+                  </h3>
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={reportData.ticketsTrend}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -636,7 +771,13 @@ const AdminReports = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="tickets" stroke="#016CA5" strokeWidth={2} name="Tickets Criados" />
+                      <Line
+                        type="monotone"
+                        dataKey="tickets"
+                        stroke="#016CA5"
+                        strokeWidth={2}
+                        name="Tickets Criados"
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </Card>

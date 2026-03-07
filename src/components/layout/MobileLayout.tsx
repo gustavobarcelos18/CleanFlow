@@ -20,7 +20,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   const isMobile = useIsMobile();
   const { profile, loading } = useAuth();
   const navigate = useNavigate();
-  const { width } = useSidebarWidth();
+  const { width, isResizing } = useSidebarWidth();
   const [impersonationId, setImpersonationId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -91,7 +91,6 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   }
 
   // Desktop layout
-  const { isResizing } = useSidebarWidth();
 
   return (
     <div className="min-h-screen bg-background text-foreground">

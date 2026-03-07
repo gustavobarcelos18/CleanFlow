@@ -1,26 +1,69 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { Loader2, Plus, CalendarIcon, Search } from "lucide-react";
+import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { validateCPF, formatCPF } from "@/lib/cpf";
 
 const patientSchema = z.object({
-  nome: z.string().trim().min(1, { message: "Nome é obrigatório" }).max(200, { message: "Nome muito longo" }),
-  telefone: z.string().trim().min(10, { message: "Telefone inválido" }).max(20, { message: "Telefone muito longo" }),
-  email: z.string().trim().email({ message: "E-mail inválido" }).max(255, { message: "E-mail muito longo" }).optional().or(z.literal("")),
-  notas_internas: z.string().max(1000, { message: "Notas muito longas" }).optional()
+  nome: z
+    .string()
+    .trim()
+    .min(1, { message: "O nome é obrigatório" })
+    .max(200, { message: "Nome muito longo" }),
+  telefone: z
+    .string()
+    .trim()
+    .max(20, { message: "Telefone muito longo" })
+    .optional()
+    .or(z.literal("")),
+  email: z
+    .string()
+    .trim()
+    .email({ message: "E-mail inválido" })
+    .max(255, { message: "E-mail muito longo" })
+    .optional()
+    .or(z.literal("")),
+  cpf: z
+    .string()
+    .trim()
+    .min(1, { message: "O CPF é obrigatório" })
+    .refine((val) => validateCPF(val), {
+      message: "CPF inválido",
+    }),
+  notas_internas: z
+    .string()
+    .max(1000, { message: "Notas muito longas" })
+    .optional(),
 });
 
 interface NewPatientDialogProps {
@@ -30,19 +73,16 @@ interface NewPatientDialogProps {
 import { DynamicForm } from "@/components/common/DynamicForm";
 import { useTerminology } from "@/stores/useSegmentStore";
 import { useAuth } from "@/hooks/useAuth";
-
-// ... existing imports
-
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-
-// ...
 
 export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
   const t = useTerminology();
   const { profile } = useAuth();
   const { checkLimitAndToast } = usePlanLimits();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const [hasChanges, setHasChanges] = useState(false);
 
   const nomeRef = useRef<HTMLInputElement>(null);
@@ -50,6 +90,7 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
 
   const [formData, setFormData] = useState({
     nome: "",
+    cpf: "",
     telefone: "",
     email: "",
     preferencia_contato: "whatsapp" as "whatsapp" | "sms" | "email",
@@ -58,19 +99,21 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
     data_nascimento: undefined as Date | undefined,
     plano_saude_id: "",
     numero_carteirinha: "",
-    custom_data: {} as Record<string, any>
+    custom_data: {} as Record<string, any>,
   });
 
   useEffect(() => {
-    const isDirty = formData.nome !== "" ||
-      formData.telefone !== "" ||
-      formData.email !== "" ||
-      formData.notas_internas !== "";
+    const isDirty =
+      formData.nome.trim() !== "" ||
+      formData.cpf.trim() !== "" ||
+      formData.telefone.trim() !== "" ||
+      formData.email.trim() !== "" ||
+      formData.notas_internas.trim() !== "";
     setHasChanges(isDirty);
   }, [formData]);
 
   const handleOpen = () => {
-    if (checkLimitAndToast('clients')) {
+    if (checkLimitAndToast("clients")) {
       setOpen(true);
     }
   };
@@ -81,20 +124,45 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
     try {
       setIsLoading(true);
 
+      // Garantir nome em MAIÚSCULO no submit também como fallback
+      const dataToSave = {
+        ...formData,
+        nome: formData.nome.trim().toUpperCase(),
+      };
+
+      // Validação com Zod
+      const result = patientSchema.safeParse(dataToSave);
+      if (!result.success) {
+        const errors = result.error.errors.map((err) => err.message).join("\n");
+        toast({
+          title: "Erro de validação",
+          description: errors,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
-        .from('pacientes')
-        .insert([{
-          nome: formData.nome,
-          telefone: formData.telefone,
-          email: formData.email || null,
-          preferencia_contato: formData.preferencia_contato,
-          consentimento_lgpd: formData.consentimento_lgpd,
-          consentimento_data: formData.consentimento_lgpd ? new Date().toISOString() : null,
-          notas_internas: formData.notas_internas || null,
-          data_nascimento: formData.data_nascimento ? format(formData.data_nascimento, 'yyyy-MM-dd') : null,
-          tenant_id: profile.tenant_id,
-          custom_data: formData.custom_data
-        }])
+        .from("pacientes")
+        .insert([
+          {
+            nome: dataToSave.nome,
+            cpf: dataToSave.cpf.replace(/\D/g, ""),
+            telefone: dataToSave.telefone.trim() || null,
+            email: dataToSave.email.trim() || null,
+            preferencia_contato: dataToSave.preferencia_contato,
+            consentimento_lgpd: dataToSave.consentimento_lgpd,
+            consentimento_data: dataToSave.consentimento_lgpd
+              ? new Date().toISOString()
+              : null,
+            notas_internas: dataToSave.notas_internas || null,
+            data_nascimento: dataToSave.data_nascimento
+              ? format(dataToSave.data_nascimento, "yyyy-MM-dd")
+              : null,
+            tenant_id: profile.tenant_id,
+            custom_data: dataToSave.custom_data,
+          },
+        ])
         .select()
         .single();
 
@@ -102,12 +170,13 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
 
       toast({
         title: "Sucesso!",
-        description: `${t.client_label} cadastrado com sucesso.`
+        description: `${t.client_label} cadastrado com sucesso.`,
       });
 
       setOpen(false);
       setFormData({
         nome: "",
+        cpf: "",
         telefone: "",
         email: "",
         preferencia_contato: "whatsapp",
@@ -116,18 +185,27 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
         data_nascimento: undefined,
         plano_saude_id: "",
         numero_carteirinha: "",
-        custom_data: {}
+        custom_data: {},
       });
 
       if (onSuccess && data) {
         onSuccess(data.id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+
+      let errorMessage = "Erro ao cadastrar paciente.";
+      if (error.code === "23505") {
+        errorMessage =
+          "Já existe um paciente cadastrado com este mesmo Nome e CPF.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Erro",
-        description: "Erro ao cadastrar paciente.",
-        variant: "destructive"
+        description: errorMessage,
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -142,8 +220,12 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
       </Button>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Cadastrar Novo {t.client_label}</DialogTitle>
-          <DialogDescription>Preencha os dados do {t.client_label.toLowerCase()} para o cadastro.</DialogDescription>
+          <DialogTitle className="text-xl">
+            Cadastrar Novo {t.client_label}
+          </DialogTitle>
+          <DialogDescription>
+            Preencha os dados do {t.client_label.toLowerCase()} para o cadastro.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -153,43 +235,64 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
               id="nome"
               ref={nomeRef}
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value.toUpperCase() })
+              }
               placeholder={`Nome do ${t.client_label.toLowerCase()}`}
-              required
             />
           </div>
 
-          {/* ... existing fields (telefone, email) ... */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="telefone">Telefone *</Label>
+              <Label htmlFor="cpf">CPF *</Label>
+              <Input
+                id="cpf"
+                value={formData.cpf}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    cpf: formatCPF(e.target.value),
+                  })
+                }
+                placeholder="000.000.000-00"
+                maxLength={14}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
                 id="telefone"
                 ref={telefoneRef}
                 value={formData.telefone}
-                onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, telefone: e.target.value })
+                }
                 placeholder="(00) 00000-0000"
-                required
               />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="email@exemplo.com"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              placeholder="email@exemplo.com"
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="preferencia_contato">Preferência de Contato</Label>
             <Select
               value={formData.preferencia_contato}
-              onValueChange={(value: "whatsapp" | "sms" | "email") => setFormData({ ...formData, preferencia_contato: value })}
+              onValueChange={(value: "whatsapp" | "sms" | "email") =>
+                setFormData({ ...formData, preferencia_contato: value })
+              }
             >
               <SelectTrigger id="preferencia_contato">
                 <SelectValue />
@@ -210,12 +313,14 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !formData.data_nascimento && "text-muted-foreground"
+                    !formData.data_nascimento && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {formData.data_nascimento ? (
-                    format(formData.data_nascimento, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                    format(formData.data_nascimento, "dd 'de' MMMM 'de' yyyy", {
+                      locale: ptBR,
+                    })
                   ) : (
                     <span>Selecione a data</span>
                   )}
@@ -225,7 +330,9 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
                 <Calendar
                   mode="single"
                   selected={formData.data_nascimento}
-                  onSelect={(date) => setFormData({ ...formData, data_nascimento: date })}
+                  onSelect={(date) =>
+                    setFormData({ ...formData, data_nascimento: date })
+                  }
                   disabled={(date) =>
                     date > new Date() || date < new Date("1900-01-01")
                   }
@@ -238,17 +345,21 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
 
           <DynamicForm
             data={formData.custom_data}
-            onChange={(key, value) => setFormData(prev => ({
-              ...prev,
-              custom_data: { ...prev.custom_data, [key]: value }
-            }))}
+            onChange={(key, value) =>
+              setFormData((prev) => ({
+                ...prev,
+                custom_data: { ...prev.custom_data, [key]: value },
+              }))
+            }
           />
 
           <div className="flex items-center space-x-2">
             <Switch
               id="consentimento_lgpd"
               checked={formData.consentimento_lgpd}
-              onCheckedChange={(checked) => setFormData({ ...formData, consentimento_lgpd: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, consentimento_lgpd: checked })
+              }
             />
             <Label htmlFor="consentimento_lgpd" className="cursor-pointer">
               Consentimento LGPD obtido
@@ -260,7 +371,9 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
             <Textarea
               id="notas_internas"
               value={formData.notas_internas}
-              onChange={(e) => setFormData({ ...formData, notas_internas: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notas_internas: e.target.value })
+              }
               placeholder={`Anotações sobre o ${t.client_label.toLowerCase()}...`}
               rows={3}
             />
@@ -274,15 +387,19 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
                 onClick={() => {
                   const defaultData = {
                     nome: "",
+                    cpf: "",
                     telefone: "",
                     email: "",
-                    preferencia_contato: "whatsapp" as "whatsapp" | "sms" | "email",
+                    preferencia_contato: "whatsapp" as
+                      | "whatsapp"
+                      | "sms"
+                      | "email",
                     consentimento_lgpd: false,
                     notas_internas: "",
                     data_nascimento: undefined as Date | undefined,
                     plano_saude_id: "",
                     numero_carteirinha: "",
-                    custom_data: {}
+                    custom_data: {},
                   };
                   setFormData(defaultData);
                   setHasChanges(false);

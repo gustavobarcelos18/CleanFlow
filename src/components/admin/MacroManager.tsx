@@ -1,11 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2 } from "lucide-react";
@@ -32,7 +44,7 @@ export const MacroManager = () => {
     conteudo: "",
     visibilidade: "global",
     categoria: "",
-    variaveis_exemplo: "{}"
+    variaveis_exemplo: "{}",
   });
 
   const AVAILABLE_VARIABLES = [
@@ -52,7 +64,7 @@ export const MacroManager = () => {
   ];
 
   const insertVariable = (variable: string) => {
-    const textarea = document.getElementById('conteudo') as HTMLTextAreaElement;
+    const textarea = document.getElementById("conteudo") as HTMLTextAreaElement;
     if (textarea) {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
@@ -63,18 +75,17 @@ export const MacroManager = () => {
 
       setTimeout(() => {
         textarea.focus();
-        textarea.setSelectionRange(start + variable.length, start + variable.length);
+        textarea.setSelectionRange(
+          start + variable.length,
+          start + variable.length,
+        );
       }, 0);
     } else {
       setFormData({ ...formData, conteudo: formData.conteudo + variable });
     }
   };
 
-  useEffect(() => {
-    loadMacros();
-  }, []);
-
-  const loadMacros = async () => {
+  const loadMacros = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("support_ticket_macros")
@@ -89,19 +100,25 @@ export const MacroManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadMacros();
+  }, [loadMacros]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const macroData = {
         ...formData,
         variaveis_exemplo: JSON.parse(formData.variaveis_exemplo),
-        created_by: user.id
+        created_by: user.id,
       };
 
       if (editingMacro) {
@@ -155,7 +172,7 @@ export const MacroManager = () => {
       conteudo: macro.conteudo,
       visibilidade: macro.visibilidade,
       categoria: macro.categoria || "",
-      variaveis_exemplo: JSON.stringify(macro.variaveis_exemplo || {}, null, 2)
+      variaveis_exemplo: JSON.stringify(macro.variaveis_exemplo || {}, null, 2),
     });
     setIsDialogOpen(true);
   };
@@ -167,7 +184,7 @@ export const MacroManager = () => {
       conteudo: "",
       visibilidade: "global",
       categoria: "",
-      variaveis_exemplo: "{}"
+      variaveis_exemplo: "{}",
     });
   };
 
@@ -179,10 +196,13 @@ export const MacroManager = () => {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Macros de Resposta</h2>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -191,7 +211,9 @@ export const MacroManager = () => {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingMacro ? "Editar" : "Nova"} Macro</DialogTitle>
+              <DialogTitle>
+                {editingMacro ? "Editar" : "Nova"} Macro
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -199,7 +221,9 @@ export const MacroManager = () => {
                 <Input
                   id="nome"
                   value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nome: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -209,14 +233,21 @@ export const MacroManager = () => {
                 <Input
                   id="categoria"
                   value={formData.categoria}
-                  onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, categoria: e.target.value })
+                  }
                   placeholder="Ex: Saudações, Resoluções"
                 />
               </div>
 
               <div>
                 <Label htmlFor="visibilidade">Visibilidade</Label>
-                <Select value={formData.visibilidade} onValueChange={(value) => setFormData({ ...formData, visibilidade: value })}>
+                <Select
+                  value={formData.visibilidade}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, visibilidade: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -233,7 +264,9 @@ export const MacroManager = () => {
                   <Textarea
                     id="conteudo"
                     value={formData.conteudo}
-                    onChange={(e) => setFormData({ ...formData, conteudo: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, conteudo: e.target.value })
+                    }
                     rows={8}
                     required
                     placeholder="Use {{variavel}} para placeholders"
@@ -259,19 +292,29 @@ export const MacroManager = () => {
               <div>
                 <Label htmlFor="variaveis">Variáveis de Exemplo (JSON)</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Use este campo apenas para documentar exemplos de valores para as variáveis. Isso não afeta a substituição real.
+                  Use este campo apenas para documentar exemplos de valores para
+                  as variáveis. Isso não afeta a substituição real.
                 </p>
                 <Textarea
                   id="variaveis"
                   value={formData.variaveis_exemplo}
-                  onChange={(e) => setFormData({ ...formData, variaveis_exemplo: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      variaveis_exemplo: e.target.value,
+                    })
+                  }
                   rows={4}
                   placeholder='{"nome_cliente": "Exemplo", "numero_ticket": "123"}'
                 />
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Cancelar
                 </Button>
                 <Button type="submit">
@@ -285,7 +328,9 @@ export const MacroManager = () => {
 
       <div className="space-y-4">
         {macros.length === 0 ? (
-          <p className="text-center py-8 text-muted-foreground">Nenhuma macro cadastrada</p>
+          <p className="text-center py-8 text-muted-foreground">
+            Nenhuma macro cadastrada
+          </p>
         ) : (
           macros.map((macro) => (
             <Card key={macro.id} className="p-4">
@@ -293,8 +338,16 @@ export const MacroManager = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold">{macro.nome}</h3>
-                    {macro.categoria && <Badge variant="outline">{macro.categoria}</Badge>}
-                    <Badge variant={macro.visibilidade === 'global' ? 'default' : 'secondary'}>
+                    {macro.categoria && (
+                      <Badge variant="outline">{macro.categoria}</Badge>
+                    )}
+                    <Badge
+                      variant={
+                        macro.visibilidade === "global"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
                       {macro.visibilidade}
                     </Badge>
                   </div>
@@ -303,10 +356,18 @@ export const MacroManager = () => {
                   </p>
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(macro)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(macro)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(macro.id)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(macro.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

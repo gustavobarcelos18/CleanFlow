@@ -19,18 +19,29 @@ function hexToHSL(hex: string): string {
   let r = parseInt(result[1], 16);
   let g = parseInt(result[2], 16);
   let b = parseInt(result[3], 16);
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s, l = (max + min) / 2;
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s,
+    l = (max + min) / 2;
   if (max === min) {
     h = s = 0;
   } else {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
   }
@@ -57,7 +68,7 @@ import {
   Layers,
   CreditCard,
   Users,
-  HelpCircle
+  HelpCircle,
 } from "lucide-react";
 import { useRef } from "react";
 import FinanceiroConfig from "@/components/configuracoes/FinanceiroConfig";
@@ -77,15 +88,15 @@ const Configuracoes = () => {
   const [isLoadingEspecialidades, setIsLoadingEspecialidades] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [scheduleMode, setScheduleMode] = useState<"por_profissional" | "por_clinica_sala">("por_profissional");
+  const [scheduleMode, setScheduleMode] = useState<
+    "por_profissional" | "por_clinica_sala"
+  >("por_profissional");
   const [clinicData, setClinicData] = useState({
     razaoSocial: "",
     nomeFantasia: "",
     cnpj: "",
     timezone: "America/Sao_Paulo",
-    primaryColor: "#016CA5",
-    accentColor: "#25D366",
-    fontSize: 16
+    fontSize: 16,
   });
   const { toast } = useToast();
 
@@ -96,14 +107,12 @@ const Configuracoes = () => {
   // Sync local state with tenant data from context
   useEffect(() => {
     if (tenantData) {
-      setClinicData(prev => ({
+      setClinicData((prev) => ({
         ...prev,
         razaoSocial: tenantData.razao_social || tenantData.nome || "",
         nomeFantasia: tenantData.nome_fantasia || "",
         cnpj: tenantData.cnpj || "",
         fontSize: tenantData.font_size || 16,
-        primaryColor: tenantData.cor_primaria || "#016CA5",
-        accentColor: tenantData.cor_acao || "#25D366"
       }));
     }
   }, [tenantData]);
@@ -119,19 +128,7 @@ const Configuracoes = () => {
     if (clinicData.fontSize) {
       previewElement.style.fontSize = `${clinicData.fontSize}px`;
     }
-
-    // Colors
-    if (clinicData.primaryColor) {
-      const hsl = hexToHSL(clinicData.primaryColor);
-      previewElement.style.setProperty('--primary', hsl);
-      previewElement.style.setProperty('--ring', hsl);
-    }
-
-    if (clinicData.accentColor) {
-      const hsl = hexToHSL(clinicData.accentColor);
-      previewElement.style.setProperty('--accent', hsl);
-    }
-  }, [clinicData.fontSize, clinicData.primaryColor, clinicData.accentColor]);
+  }, [clinicData.fontSize]);
 
   const handleSaveConfiguracoes = async () => {
     if (!profile?.tenant_id) return;
@@ -140,7 +137,7 @@ const Configuracoes = () => {
       toast({
         title: "Campo obrigatório",
         description: "A Razão Social é obrigatória.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -148,17 +145,15 @@ const Configuracoes = () => {
     setIsSaving(true);
     try {
       const { error } = await supabase
-        .from('tenants')
+        .from("tenants")
         .update({
           razao_social: clinicData.razaoSocial,
           nome_fantasia: clinicData.nomeFantasia || null,
           cnpj: clinicData.cnpj || null,
           nome: clinicData.razaoSocial, // Keep nome in sync with razao_social for backwards compatibility
           font_size: clinicData.fontSize,
-          cor_primaria: clinicData.primaryColor,
-          cor_acao: clinicData.accentColor
         })
-        .eq('id', profile.tenant_id);
+        .eq("id", profile.tenant_id);
 
       if (error) throw error;
 
@@ -169,20 +164,18 @@ const Configuracoes = () => {
         cnpj: clinicData.cnpj,
         nome: clinicData.razaoSocial,
         font_size: clinicData.fontSize,
-        cor_primaria: clinicData.primaryColor,
-        cor_acao: clinicData.accentColor
       });
 
       toast({
         title: "Sucesso",
-        description: "Configurações salvas com sucesso!"
+        description: "Configurações salvas com sucesso!",
       });
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error);
+      console.error("Erro ao salvar configurações:", error);
       toast({
         title: "Erro",
         description: "Não foi possível salvar as configurações.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -193,26 +186,26 @@ const Configuracoes = () => {
     try {
       setIsLoadingEspecialidades(true);
       const { data, error } = await supabase
-        .from('especialidades')
-        .select('id, nome')
-        .eq('ativo', true)
-        .order('nome');
+        .from("especialidades")
+        .select("id, nome")
+        .eq("ativo", true)
+        .order("nome");
 
       if (error) throw error;
 
       // Adicionar "Outra Especialidade" no final
       const especialidadesComOutra = [
         ...(data || []),
-        { id: 'outra', nome: 'Outra Especialidade' }
+        { id: "outra", nome: "Outra Especialidade" },
       ];
 
       setEspecialidades(especialidadesComOutra);
     } catch (error) {
-      console.error('Erro ao buscar especialidades:', error);
+      console.error("Erro ao buscar especialidades:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as especialidades.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoadingEspecialidades(false);
@@ -220,19 +213,20 @@ const Configuracoes = () => {
   };
 
   const toggleClinicType = (typeId: string) => {
-    setSelectedTypes(prev =>
+    setSelectedTypes((prev) =>
       prev.includes(typeId)
-        ? prev.filter(id => id !== typeId)
-        : [...prev, typeId]
+        ? prev.filter((id) => id !== typeId)
+        : [...prev, typeId],
     );
   };
 
   return (
-
     <MainLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Configurações da Clínica</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Configurações da Clínica
+          </h1>
           <p className="text-muted-foreground">
             Personalize sua clínica e configure as funcionalidades do CleanFlow
           </p>
@@ -303,7 +297,9 @@ const Configuracoes = () => {
 
           <TabsContent value="geral" className="space-y-6">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Informações Básicas
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="razao-social">Razão Social *</Label>
@@ -311,9 +307,16 @@ const Configuracoes = () => {
                     id="razao-social"
                     placeholder="Nome legal da empresa"
                     value={clinicData.razaoSocial}
-                    onChange={(e) => setClinicData(prev => ({ ...prev, razaoSocial: e.target.value }))}
+                    onChange={(e) =>
+                      setClinicData((prev) => ({
+                        ...prev,
+                        razaoSocial: e.target.value,
+                      }))
+                    }
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Nome legal registrado</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nome legal registrado
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="nome-fantasia">Nome Fantasia</Label>
@@ -321,9 +324,16 @@ const Configuracoes = () => {
                     id="nome-fantasia"
                     placeholder="Nome comercial (opcional)"
                     value={clinicData.nomeFantasia}
-                    onChange={(e) => setClinicData(prev => ({ ...prev, nomeFantasia: e.target.value }))}
+                    onChange={(e) =>
+                      setClinicData((prev) => ({
+                        ...prev,
+                        nomeFantasia: e.target.value,
+                      }))
+                    }
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Nome exibido no sistema</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nome exibido no sistema
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="cnpj">CNPJ (opcional)</Label>
@@ -331,14 +341,21 @@ const Configuracoes = () => {
                     id="cnpj"
                     placeholder="00.000.000/0000-00"
                     value={clinicData.cnpj}
-                    onChange={(e) => setClinicData(prev => ({ ...prev, cnpj: e.target.value }))}
+                    onChange={(e) =>
+                      setClinicData((prev) => ({
+                        ...prev,
+                        cnpj: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Especialidades da Clínica</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Especialidades da Clínica
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Selecione as especialidades oferecidas pela sua clínica
               </p>
@@ -351,23 +368,25 @@ const Configuracoes = () => {
                 <div className="text-center py-8">
                   <Stethoscope className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    Nenhuma especialidade cadastrada. Cadastre especialidades em Especialidades.
+                    Nenhuma especialidade cadastrada. Cadastre especialidades em
+                    Especialidades.
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {especialidades.map((especialidade) => {
                     const isSelected = selectedTypes.includes(especialidade.id);
-                    const isOutra = especialidade.id === 'outra';
+                    const isOutra = especialidade.id === "outra";
 
                     return (
                       <button
                         key={especialidade.id}
                         onClick={() => toggleClinicType(especialidade.id)}
-                        className={`p-4 rounded-lg border-2 transition-all text-left ${isSelected
-                          ? "border-primary bg-primary-light text-primary"
-                          : "border-border hover:border-primary/50"
-                          } ${isOutra ? "border-dashed" : ""}`}
+                        className={`p-4 rounded-lg border-2 transition-all text-left ${
+                          isSelected
+                            ? "border-primary bg-primary-light text-primary"
+                            : "border-border hover:border-primary/50"
+                        } ${isOutra ? "border-dashed" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           {isOutra ? (
@@ -375,7 +394,9 @@ const Configuracoes = () => {
                           ) : (
                             <Stethoscope className="h-5 w-5 flex-shrink-0" />
                           )}
-                          <p className="text-sm font-medium line-clamp-2">{especialidade.nome}</p>
+                          <p className="text-sm font-medium line-clamp-2">
+                            {especialidade.nome}
+                          </p>
                         </div>
                       </button>
                     );
@@ -387,13 +408,26 @@ const Configuracoes = () => {
 
           <TabsContent value="agenda" className="space-y-6">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Modo de Agendamento</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Modo de Agendamento
+              </h3>
               <div className="space-y-4">
-                <div className={`p-4 border rounded-lg cursor-pointer transition-colors ${scheduleMode === "por_profissional" ? "border-primary bg-primary-light" : "border-border"
-                  }`} onClick={() => setScheduleMode("por_profissional")}>
+                <div
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    scheduleMode === "por_profissional"
+                      ? "border-primary bg-primary-light"
+                      : "border-border"
+                  }`}
+                  onClick={() => setScheduleMode("por_profissional")}
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${scheduleMode === "por_profissional" ? "border-primary bg-primary" : "border-border"
-                      }`} />
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 ${
+                        scheduleMode === "por_profissional"
+                          ? "border-primary bg-primary"
+                          : "border-border"
+                      }`}
+                    />
                     <div>
                       <h4 className="font-medium">Por Profissional</h4>
                       <p className="text-sm text-muted-foreground">
@@ -403,11 +437,22 @@ const Configuracoes = () => {
                   </div>
                 </div>
 
-                <div className={`p-4 border rounded-lg cursor-pointer transition-colors ${scheduleMode === "por_clinica_sala" ? "border-primary bg-primary-light" : "border-border"
-                  }`} onClick={() => setScheduleMode("por_clinica_sala")}>
+                <div
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    scheduleMode === "por_clinica_sala"
+                      ? "border-primary bg-primary-light"
+                      : "border-border"
+                  }`}
+                  onClick={() => setScheduleMode("por_clinica_sala")}
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${scheduleMode === "por_clinica_sala" ? "border-primary bg-primary" : "border-border"
-                      }`} />
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 ${
+                        scheduleMode === "por_clinica_sala"
+                          ? "border-primary bg-primary"
+                          : "border-border"
+                      }`}
+                    />
                     <div>
                       <h4 className="font-medium">Por Clínica/Sala</h4>
                       <p className="text-sm text-muted-foreground">
@@ -420,10 +465,14 @@ const Configuracoes = () => {
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Políticas de Agendamento</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Políticas de Agendamento
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="antecedencia">Antecedência Mínima (horas)</Label>
+                  <Label htmlFor="antecedencia">
+                    Antecedência Mínima (horas)
+                  </Label>
                   <Input id="antecedencia" type="number" defaultValue="12" />
                 </div>
                 <div>
@@ -445,28 +494,38 @@ const Configuracoes = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">WhatsApp (Deep Link)</h4>
-                    <p className="text-sm text-muted-foreground">Gratuito - abre conversa no WhatsApp</p>
+                    <p className="text-sm text-muted-foreground">
+                      Gratuito - abre conversa no WhatsApp
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">CallMeBot (WhatsApp automático)</h4>
-                    <p className="text-sm text-muted-foreground">Gratuito - envio automático</p>
+                    <h4 className="font-medium">
+                      CallMeBot (WhatsApp automático)
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Gratuito - envio automático
+                    </p>
                   </div>
                   <Switch />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">E-mail</h4>
-                    <p className="text-sm text-muted-foreground">Configurável por provedor</p>
+                    <p className="text-sm text-muted-foreground">
+                      Configurável por provedor
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">SMS</h4>
-                    <p className="text-sm text-muted-foreground">Desabilitado por padrão</p>
+                    <p className="text-sm text-muted-foreground">
+                      Desabilitado por padrão
+                    </p>
                   </div>
                   <Switch />
                 </div>
@@ -474,10 +533,14 @@ const Configuracoes = () => {
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Templates de Mensagem</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Templates de Mensagem
+              </h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="template-d2">Confirmação D-2 (WhatsApp)</Label>
+                  <Label htmlFor="template-d2">
+                    Confirmação D-2 (WhatsApp)
+                  </Label>
                   <Textarea
                     id="template-d2"
                     defaultValue="Olá {{paciente}}, sua consulta é {{data}} às {{hora}} com {{profissional}} na {{clinica}}. Confirmar: {{link_confirmar}} • Reagendar: {{link_reagendar}}"
@@ -512,9 +575,12 @@ const Configuracoes = () => {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <Label htmlFor="font-size" className="text-base">Tamanho da Fonte</Label>
+                      <Label htmlFor="font-size" className="text-base">
+                        Tamanho da Fonte
+                      </Label>
                       <p className="text-sm text-muted-foreground">
-                        Ajuste o tamanho da fonte do sistema para melhor legibilidade.
+                        Ajuste o tamanho da fonte do sistema para melhor
+                        legibilidade.
                       </p>
                     </div>
                     <Badge variant="outline" className="text-base px-3 py-1">
@@ -527,7 +593,9 @@ const Configuracoes = () => {
                     max={20}
                     step={1}
                     value={[clinicData.fontSize]}
-                    onValueChange={(value) => setClinicData(prev => ({ ...prev, fontSize: value[0] }))}
+                    onValueChange={(value) =>
+                      setClinicData((prev) => ({ ...prev, fontSize: value[0] }))
+                    }
                     className="w-full max-w-xl"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground max-w-xl mt-2">
@@ -541,58 +609,35 @@ const Configuracoes = () => {
                     ref={previewRef}
                     className="mt-8 p-6 border rounded-lg bg-background/50"
                   >
-                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Visualização</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">
+                      Visualização
+                    </h4>
                     <div className="space-y-4">
                       <div>
-                        <h1 className="text-2xl font-bold">Título Principal (H1)</h1>
-                        <p className="text-sm text-muted-foreground">Exemplo de título de página</p>
+                        <h1 className="text-2xl font-bold">
+                          Título Principal (H1)
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                          Exemplo de título de página
+                        </p>
                       </div>
                       <div>
-                        <h2 className="text-xl font-semibold">Subtítulo (H2)</h2>
+                        <h2 className="text-xl font-semibold">
+                          Subtítulo (H2)
+                        </h2>
                         <p className="text-base">
-                          Este é um exemplo de texto padrão do corpo. O tamanho da fonte ajustado afetará a legibilidade de todo o conteúdo.
+                          Este é um exemplo de texto padrão do corpo. O tamanho
+                          da fonte ajustado afetará a legibilidade de todo o
+                          conteúdo.
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge>Badge</Badge>
                         <Button size="sm">Botão Pequeno</Button>
-                        <p className="text-sm text-muted-foreground">Texto pequeno e legendas</p>
+                        <p className="text-sm text-muted-foreground">
+                          Texto pequeno e legendas
+                        </p>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                  <div>
-                    <Label htmlFor="primary-color">Cor Primária</Label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        id="primary-color"
-                        type="color"
-                        value={clinicData.primaryColor}
-                        onChange={(e) => setClinicData(prev => ({ ...prev, primaryColor: e.target.value }))}
-                        className="w-16 h-10"
-                      />
-                      <Input
-                        value={clinicData.primaryColor}
-                        onChange={(e) => setClinicData(prev => ({ ...prev, primaryColor: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="accent-color">Cor de Ação</Label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        id="accent-color"
-                        type="color"
-                        value={clinicData.accentColor}
-                        onChange={(e) => setClinicData(prev => ({ ...prev, accentColor: e.target.value }))}
-                        className="w-16 h-10"
-                      />
-                      <Input
-                        value={clinicData.accentColor}
-                        onChange={(e) => setClinicData(prev => ({ ...prev, accentColor: e.target.value }))}
-                      />
                     </div>
                   </div>
                 </div>
@@ -607,21 +652,27 @@ const Configuracoes = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Consentimento Obrigatório</h4>
-                    <p className="text-sm text-muted-foreground">Exigir aceite antes do agendamento</p>
+                    <p className="text-sm text-muted-foreground">
+                      Exigir aceite antes do agendamento
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Logs de Auditoria</h4>
-                    <p className="text-sm text-muted-foreground">Registrar todas as ações</p>
+                    <p className="text-sm text-muted-foreground">
+                      Registrar todas as ações
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Minimização de Dados</h4>
-                    <p className="text-sm text-muted-foreground">Coletar apenas dados essenciais</p>
+                    <p className="text-sm text-muted-foreground">
+                      Coletar apenas dados essenciais
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -631,7 +682,11 @@ const Configuracoes = () => {
         </Tabs>
 
         <div className="flex gap-3">
-          <Button size="lg" onClick={handleSaveConfiguracoes} disabled={isSaving}>
+          <Button
+            size="lg"
+            onClick={handleSaveConfiguracoes}
+            disabled={isSaving}
+          >
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,11 @@ export const WhatsAppCreditsWidget = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadCredits();
-  }, []);
-
-  const loadCredits = async () => {
+  const loadCredits = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profile } = await supabase
@@ -42,7 +40,11 @@ export const WhatsAppCreditsWidget = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadCredits();
+  }, [loadCredits]);
 
   if (loading) {
     return (
@@ -66,16 +68,21 @@ export const WhatsAppCreditsWidget = () => {
   const saldoCreditos = credits?.saldo_creditos || 0;
   const creditosConsumidos = credits?.creditos_consumidos || 0;
   const limiarAlerta = credits?.limiar_alerta || 100;
-  
-  const percentualUsado = creditosConsumidos > 0 
-    ? ((creditosConsumidos / (creditosConsumidos + saldoCreditos)) * 100).toFixed(1)
-    : "0";
 
-  const status = saldoCreditos <= 0 
-    ? "critical" 
-    : saldoCreditos <= limiarAlerta 
-    ? "warning" 
-    : "good";
+  const percentualUsado =
+    creditosConsumidos > 0
+      ? (
+          (creditosConsumidos / (creditosConsumidos + saldoCreditos)) *
+          100
+        ).toFixed(1)
+      : "0";
+
+  const status =
+    saldoCreditos <= 0
+      ? "critical"
+      : saldoCreditos <= limiarAlerta
+        ? "warning"
+        : "good";
 
   const statusConfig = {
     good: { color: "bg-green-500", text: "Saldo Bom", icon: TrendingUp },
@@ -103,12 +110,18 @@ export const WhatsAppCreditsWidget = () => {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Saldo Disponível</span>
-            <span className="text-2xl font-bold">{saldoCreditos.toLocaleString()}</span>
+            <span className="text-sm text-muted-foreground">
+              Saldo Disponível
+            </span>
+            <span className="text-2xl font-bold">
+              {saldoCreditos.toLocaleString()}
+            </span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Consumidos no Mês</span>
-            <span className="font-medium">{creditosConsumidos.toLocaleString()}</span>
+            <span className="font-medium">
+              {creditosConsumidos.toLocaleString()}
+            </span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Taxa de Uso</span>
@@ -128,7 +141,9 @@ export const WhatsAppCreditsWidget = () => {
           className="w-full"
           variant={status === "critical" ? "destructive" : "default"}
         >
-          {status === "critical" ? "Comprar Créditos Agora" : "Gerenciar Créditos"}
+          {status === "critical"
+            ? "Comprar Créditos Agora"
+            : "Gerenciar Créditos"}
         </Button>
       </CardContent>
     </Card>

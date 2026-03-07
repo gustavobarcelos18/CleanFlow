@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,15 +66,14 @@ const defaultPermissions: Record<string, RolePermissions["permissions"]> = {
 };
 
 export const SupportPermissionsManagement = () => {
-  const [permissions, setPermissions] = useState<Record<string, RolePermissions["permissions"]>>(defaultPermissions);
+  const [permissions, setPermissions] =
+    useState<Record<string, RolePermissions["permissions"]>>(
+      defaultPermissions,
+    );
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadPermissions();
-  }, []);
-
-  const loadPermissions = async () => {
+  const loadPermissions = useCallback(async () => {
     try {
       // Load custom permissions from database if they exist
       const { data, error } = await supabase
@@ -92,10 +91,18 @@ export const SupportPermissionsManagement = () => {
     } catch (error) {
       console.error("Error loading permissions:", error);
     }
-  };
+  }, []);
 
-  const handlePermissionChange = (role: string, permission: string, value: boolean) => {
-    setPermissions(prev => ({
+  useEffect(() => {
+    loadPermissions();
+  }, [loadPermissions]);
+
+  const handlePermissionChange = (
+    role: string,
+    permission: string,
+    value: boolean,
+  ) => {
+    setPermissions((prev) => ({
       ...prev,
       [role]: {
         ...prev[role],
@@ -119,7 +126,9 @@ export const SupportPermissionsManagement = () => {
       }
 
       // Log action
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("support_actions_log").insert({
           support_user_id: user.id,
@@ -200,7 +209,9 @@ export const SupportPermissionsManagement = () => {
                   <Switch
                     id={`${role}-${permission}`}
                     checked={enabled}
-                    onCheckedChange={(value) => handlePermissionChange(role, permission, value)}
+                    onCheckedChange={(value) =>
+                      handlePermissionChange(role, permission, value)
+                    }
                     disabled={role === "master"}
                   />
                   <Label htmlFor={`${role}-${permission}`} className="text-sm">

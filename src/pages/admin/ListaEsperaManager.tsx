@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,13 +43,7 @@ export default function ListaEsperaManager() {
   const [analytics, setAnalytics] = useState<EncaixeAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (profile?.tenant_id) {
-      loadData();
-    }
-  }, [profile?.tenant_id]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -83,7 +77,13 @@ export default function ListaEsperaManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.tenant_id]);
+
+  useEffect(() => {
+    if (profile?.tenant_id) {
+      loadData();
+    }
+  }, [profile?.tenant_id, loadData]);
 
   const handleAdicionarListaEspera = async (
     pacienteId: string,

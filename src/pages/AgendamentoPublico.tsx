@@ -1,22 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Clock, User, Phone, Mail, CheckCircle } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  CheckCircle,
+} from "lucide-react";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export default function AgendamentoPublico() {
   const [searchParams] = useSearchParams();
-  const tenantSlug = searchParams.get('clinica');
+  const tenantSlug = searchParams.get("clinica");
 
-  const [step, setStep] = useState<'select-service' | 'select-datetime' | 'fill-data' | 'confirm'>('select-service');
+  const [step, setStep] = useState<
+    "select-service" | "select-datetime" | "fill-data" | "confirm"
+  >("select-service");
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<any[]>([]);
   const [professionals, setProfessionals] = useState<any[]>([]);
@@ -36,24 +51,20 @@ export default function AgendamentoPublico() {
 
   const [tenantId, setTenantId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTenantAndServices();
-  }, [tenantSlug]);
-
-  const loadTenantAndServices = async () => {
+  const loadTenantAndServices = useCallback(async () => {
     try {
       setLoading(true);
 
       // Buscar configuração de agendamento online pelo slug
       const { data: config, error: configError } = await supabase
-        .from('agendamento_online_config')
-        .select('*, tenants(*)')
-        .eq('slug_publico', tenantSlug)
-        .eq('ativo', true)
+        .from("agendamento_online_config")
+        .select("*, tenants(*)")
+        .eq("slug_publico", tenantSlug)
+        .eq("ativo", true)
         .single();
 
       if (configError || !config) {
-        toast.error('Link de agendamento não encontrado ou inativo');
+        toast.error("Link de agendamento não encontrado ou inativo");
         return;
       }
 
@@ -61,30 +72,34 @@ export default function AgendamentoPublico() {
 
       // Buscar serviços disponíveis
       const { data: servicesData } = await supabase
-        .from('servicos')
-        .select('*')
-        .eq('tenant_id', config.tenant_id)
-        .eq('ativo', true);
+        .from("servicos")
+        .select("*")
+        .eq("tenant_id", config.tenant_id)
+        .eq("ativo", true);
 
       setServices(servicesData || []);
 
       // Buscar profissionais
       const { data: profsData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('tenant_id', config.tenant_id)
-        .in('role', ['profissional', 'admin']);
+        .from("profiles")
+        .select("*")
+        .eq("tenant_id", config.tenant_id)
+        .in("role", ["profissional", "admin"]);
 
       setProfessionals(profsData || []);
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao carregar informações de agendamento');
+      console.error("Erro ao carregar dados:", error);
+      toast.error("Erro ao carregar informações de agendamento");
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenantSlug]);
 
-  const loadAvailableSlots = async () => {
+  useEffect(() => {
+    loadTenantAndServices();
+  }, [loadTenantAndServices]);
+
+  const loadAvailableSlots = useCallback(async () => {
     if (!selectedDate || !selectedService || !selectedProfessional) return;
 
     try {
@@ -96,11 +111,11 @@ export default function AgendamentoPublico() {
       endOfDay.setHours(23, 59, 59, 999);
 
       const { data: appointments } = await supabase
-        .from('agenda')
-        .select('inicio, fim')
-        .eq('profissional_id', selectedProfessional.id)
-        .gte('inicio', startOfDay.toISOString())
-        .lte('inicio', endOfDay.toISOString());
+        .from("agenda")
+        .select("inicio, fim")
+        .eq("profissional_id", selectedProfessional.id)
+        .gte("inicio", startOfDay.toISOString())
+        .lte("inicio", endOfDay.toISOString());
 
       // Gerar slots disponíveis (8h às 18h, a cada 30 min)
       const slots = [];
@@ -113,14 +128,18 @@ export default function AgendamentoPublico() {
           slotTime.setHours(hour, minute, 0, 0);
 
           const slotEndTime = new Date(slotTime);
-          slotEndTime.setMinutes(slotEndTime.getMinutes() + selectedService.duracao_minutos);
+          slotEndTime.setMinutes(
+            slotEndTime.getMinutes() + selectedService.duracao_minutos,
+          );
 
           // Verificar se está ocupado
           const isOccupied = appointments?.some((apt: any) => {
             const aptStart = new Date(apt.inicio);
             const aptEnd = new Date(apt.fim);
-            return (slotTime >= aptStart && slotTime < aptEnd) ||
-              (slotEndTime > aptStart && slotEndTime <= aptEnd);
+            return (
+              (slotTime >= aptStart && slotTime < aptEnd) ||
+              (slotEndTime > aptStart && slotEndTime <= aptEnd)
+            );
           });
 
           if (!isOccupied && slotTime > new Date()) {
@@ -134,16 +153,16 @@ export default function AgendamentoPublico() {
 
       setAvailableSlots(slots);
     } catch (error) {
-      console.error('Erro ao carregar horários:', error);
-      toast.error('Erro ao carregar horários disponíveis');
+      console.error("Erro ao carregar horários:", error);
+      toast.error("Erro ao carregar horários disponíveis");
     }
-  };
+  }, [selectedDate, selectedService, selectedProfessional]);
 
   useEffect(() => {
     if (selectedDate && selectedService && selectedProfessional) {
       loadAvailableSlots();
     }
-  }, [selectedDate, selectedService, selectedProfessional]);
+  }, [selectedDate, selectedService, selectedProfessional, loadAvailableSlots]);
 
   const handleConfirmAppointment = async () => {
     try {
@@ -153,17 +172,17 @@ export default function AgendamentoPublico() {
       let patientId;
 
       const { data: existingPatient } = await supabase
-        .from('pacientes')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('telefone', patientData.telefone)
+        .from("pacientes")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("telefone", patientData.telefone)
         .single();
 
       if (existingPatient) {
         patientId = existingPatient.id;
       } else {
         const { data: newPatient, error: patientError } = await supabase
-          .from('pacientes')
+          .from("pacientes")
           .insert({
             tenant_id: tenantId,
             nome: patientData.nome,
@@ -181,46 +200,46 @@ export default function AgendamentoPublico() {
       }
 
       // Criar agendamento
-      const [hours, minutes] = selectedSlot.split(':').map(Number);
+      const [hours, minutes] = selectedSlot.split(":").map(Number);
       const startTime = new Date(selectedDate);
       startTime.setHours(hours, minutes, 0, 0);
 
       const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + selectedService.duracao_minutos);
+      endTime.setMinutes(
+        endTime.getMinutes() + selectedService.duracao_minutos,
+      );
 
-      const { error: agendamentoError } = await supabase
-        .from('agenda')
-        .insert({
-          tenant_id: tenantId,
-          paciente_id: patientId,
-          profissional_id: selectedProfessional.id,
-          servico_id: selectedService.id,
-          inicio: startTime.toISOString(),
-          fim: endTime.toISOString(),
-          status: 'agendado',
-          origem: 'online',
-          confirmado: false,
-        });
+      const { error: agendamentoError } = await supabase.from("agenda").insert({
+        tenant_id: tenantId,
+        paciente_id: patientId,
+        profissional_id: selectedProfessional.id,
+        servico_id: selectedService.id,
+        inicio: startTime.toISOString(),
+        fim: endTime.toISOString(),
+        status: "agendado",
+        origem: "online",
+        confirmado: false,
+      });
 
       if (agendamentoError) throw agendamentoError;
 
       // Registrar consentimento
-      await supabase.from('consent_records' as any).insert({
+      await supabase.from("consent_records" as any).insert({
         tenant_id: tenantId,
         contact_id: patientId,
-        contact_type: 'paciente',
-        consent_type: 'operational',
-        status: 'opted_in',
-        origin: 'agendamento_online',
-        term_version: '1.0',
+        contact_type: "paciente",
+        consent_type: "operational",
+        status: "opted_in",
+        origin: "agendamento_online",
+        term_version: "1.0",
         given_at: new Date().toISOString(),
       });
 
-      setStep('confirm');
-      toast.success('Agendamento realizado com sucesso!');
+      setStep("confirm");
+      toast.success("Agendamento realizado com sucesso!");
     } catch (error: any) {
-      console.error('Erro ao confirmar agendamento:', error);
-      toast.error('Erro ao realizar agendamento');
+      console.error("Erro ao confirmar agendamento:", error);
+      toast.error("Erro ao realizar agendamento");
     }
   };
 
@@ -251,13 +270,16 @@ export default function AgendamentoPublico() {
       <LandingHeader />
 
       <main className="container mx-auto px-4 py-12">
-        {step === 'confirm' ? (
+        {step === "confirm" ? (
           <Card className="max-w-2xl mx-auto">
             <CardContent className="p-12 text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Agendamento Confirmado!</h2>
+              <h2 className="text-2xl font-bold mb-2">
+                Agendamento Confirmado!
+              </h2>
               <p className="text-muted-foreground mb-4">
-                Seu agendamento foi realizado com sucesso. Em breve você receberá uma confirmação por WhatsApp.
+                Seu agendamento foi realizado com sucesso. Em breve você
+                receberá uma confirmação por WhatsApp.
               </p>
               <div className="bg-muted p-4 rounded-lg mb-6">
                 <p className="font-medium">{selectedService?.nome}</p>
@@ -265,7 +287,7 @@ export default function AgendamentoPublico() {
                   Dr(a). {selectedProfessional?.nome}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedDate?.toLocaleDateString('pt-BR')} às {selectedSlot}
+                  {selectedDate?.toLocaleDateString("pt-BR")} às {selectedSlot}
                 </p>
               </div>
               <Button onClick={() => window.location.reload()}>
@@ -285,28 +307,43 @@ export default function AgendamentoPublico() {
               <CardContent>
                 {/* Progress Steps */}
                 <div className="flex justify-between mb-8">
-                  {['Serviço', 'Data e Hora', 'Dados', 'Confirmar'].map((label, idx) => (
-                    <div key={idx} className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${['select-service', 'select-datetime', 'fill-data', 'confirm'][idx] === step
-                        ? 'bg-primary text-white'
-                        : 'bg-muted'
-                        }`}>
-                        {idx + 1}
+                  {["Serviço", "Data e Hora", "Dados", "Confirmar"].map(
+                    (label, idx) => (
+                      <div key={idx} className="flex items-center">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            [
+                              "select-service",
+                              "select-datetime",
+                              "fill-data",
+                              "confirm",
+                            ][idx] === step
+                              ? "bg-primary text-white"
+                              : "bg-muted"
+                          }`}
+                        >
+                          {idx + 1}
+                        </div>
+                        <span className="ml-2 text-sm hidden sm:inline">
+                          {label}
+                        </span>
                       </div>
-                      <span className="ml-2 text-sm hidden sm:inline">{label}</span>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
 
-                {step === 'select-service' && (
+                {step === "select-service" && (
                   <div className="space-y-4">
                     <h3 className="font-semibold mb-4">Selecione o Serviço</h3>
                     <div className="grid gap-4">
                       {services.map((service) => (
                         <Card
                           key={service.id}
-                          className={`cursor-pointer hover:border-primary transition-colors ${selectedService?.id === service.id ? 'border-primary' : ''
-                            }`}
+                          className={`cursor-pointer hover:border-primary transition-colors ${
+                            selectedService?.id === service.id
+                              ? "border-primary"
+                              : ""
+                          }`}
                           onClick={() => setSelectedService(service)}
                         >
                           <CardContent className="p-4">
@@ -326,7 +363,7 @@ export default function AgendamentoPublico() {
                       ))}
                     </div>
                     <Button
-                      onClick={() => setStep('select-datetime')}
+                      onClick={() => setStep("select-datetime")}
                       disabled={!selectedService}
                       className="w-full"
                     >
@@ -335,22 +372,29 @@ export default function AgendamentoPublico() {
                   </div>
                 )}
 
-                {step === 'select-datetime' && (
+                {step === "select-datetime" && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="font-semibold mb-4">Selecione o Profissional</h3>
+                      <h3 className="font-semibold mb-4">
+                        Selecione o Profissional
+                      </h3>
                       <div className="grid gap-3">
                         {professionals.map((prof) => (
                           <Card
                             key={prof.id}
-                            className={`cursor-pointer hover:border-primary transition-colors ${selectedProfessional?.id === prof.id ? 'border-primary' : ''
-                              }`}
+                            className={`cursor-pointer hover:border-primary transition-colors ${
+                              selectedProfessional?.id === prof.id
+                                ? "border-primary"
+                                : ""
+                            }`}
                             onClick={() => setSelectedProfessional(prof)}
                           >
                             <CardContent className="p-3 flex items-center gap-3">
                               <User className="h-8 w-8 text-muted-foreground" />
                               <div>
-                                <p className="font-medium">Dr(a). {prof.nome}</p>
+                                <p className="font-medium">
+                                  Dr(a). {prof.nome}
+                                </p>
                               </div>
                             </CardContent>
                           </Card>
@@ -365,7 +409,9 @@ export default function AgendamentoPublico() {
                           mode="single"
                           selected={selectedDate}
                           onSelect={setSelectedDate}
-                          disabled={(date) => date < new Date() || date.getDay() === 0}
+                          disabled={(date) =>
+                            date < new Date() || date.getDay() === 0
+                          }
                           className="rounded-md border mx-auto"
                         />
                       </div>
@@ -373,12 +419,18 @@ export default function AgendamentoPublico() {
 
                     {selectedDate && availableSlots.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-4">Horários Disponíveis</h3>
+                        <h3 className="font-semibold mb-4">
+                          Horários Disponíveis
+                        </h3>
                         <div className="grid grid-cols-4 gap-2">
                           {availableSlots.map((slot) => (
                             <Button
                               key={slot.time}
-                              variant={selectedSlot === slot.time ? "default" : "outline"}
+                              variant={
+                                selectedSlot === slot.time
+                                  ? "default"
+                                  : "outline"
+                              }
                               onClick={() => setSelectedSlot(slot.time)}
                               className="text-sm"
                             >
@@ -390,11 +442,14 @@ export default function AgendamentoPublico() {
                     )}
 
                     <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setStep('select-service')}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep("select-service")}
+                      >
                         Voltar
                       </Button>
                       <Button
-                        onClick={() => setStep('fill-data')}
+                        onClick={() => setStep("fill-data")}
                         disabled={!selectedSlot}
                         className="flex-1"
                       >
@@ -404,7 +459,7 @@ export default function AgendamentoPublico() {
                   </div>
                 )}
 
-                {step === 'fill-data' && (
+                {step === "fill-data" && (
                   <div className="space-y-4">
                     <h3 className="font-semibold mb-4">Seus Dados</h3>
                     <div className="space-y-2">
@@ -412,7 +467,12 @@ export default function AgendamentoPublico() {
                       <Input
                         id="nome"
                         value={patientData.nome}
-                        onChange={(e) => setPatientData({ ...patientData, nome: e.target.value })}
+                        onChange={(e) =>
+                          setPatientData({
+                            ...patientData,
+                            nome: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -422,7 +482,12 @@ export default function AgendamentoPublico() {
                         id="telefone"
                         type="tel"
                         value={patientData.telefone}
-                        onChange={(e) => setPatientData({ ...patientData, telefone: e.target.value })}
+                        onChange={(e) =>
+                          setPatientData({
+                            ...patientData,
+                            telefone: e.target.value,
+                          })
+                        }
                         placeholder="(00) 00000-0000"
                         required
                       />
@@ -433,7 +498,12 @@ export default function AgendamentoPublico() {
                         id="email"
                         type="email"
                         value={patientData.email}
-                        onChange={(e) => setPatientData({ ...patientData, email: e.target.value })}
+                        onChange={(e) =>
+                          setPatientData({
+                            ...patientData,
+                            email: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -441,12 +511,20 @@ export default function AgendamentoPublico() {
                       <Input
                         id="notas"
                         value={patientData.notas}
-                        onChange={(e) => setPatientData({ ...patientData, notas: e.target.value })}
+                        onChange={(e) =>
+                          setPatientData({
+                            ...patientData,
+                            notas: e.target.value,
+                          })
+                        }
                         placeholder="Algo que o profissional deva saber..."
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setStep('select-datetime')}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep("select-datetime")}
+                      >
                         Voltar
                       </Button>
                       <Button

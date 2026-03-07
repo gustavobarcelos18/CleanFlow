@@ -1,6 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,10 +47,15 @@ const roleOptions = [
   { value: "agente", label: "Agente" },
   { value: "financeiro", label: "Financeiro" },
   { value: "admin", label: "Admin" },
-  { value: "master", label: "Master" }
+  { value: "master", label: "Master" },
 ];
 
-export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }: EditSupportUserDialogProps) {
+export function EditSupportUserDialog({
+  open,
+  onOpenChange,
+  userId,
+  onSuccess,
+}: EditSupportUserDialogProps) {
   const [loading, setLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [user, setUser] = useState<SupportUser | null>(null);
@@ -54,15 +64,7 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
   const [tenantBindings, setTenantBindings] = useState<TenantBinding[]>([]);
   const [availableTenants, setAvailableTenants] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (open && userId) {
-      loadUser();
-      loadTenantBindings();
-      loadAvailableTenants();
-    }
-  }, [open, userId]);
-
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("usuarios_suporte")
@@ -79,16 +81,18 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
       console.error("Error loading user:", error);
       toast.error("Erro ao carregar usuário");
     }
-  };
+  }, [userId]);
 
-  const loadTenantBindings = async () => {
+  const loadTenantBindings = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("vinculo_usuario_tenant")
-        .select(`
+        .select(
+          `
           *,
           tenant:tenants(nome)
-        `)
+        `,
+        )
         .eq("usuario_id", userId);
 
       if (error) throw error;
@@ -96,9 +100,9 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
     } catch (error) {
       console.error("Error loading tenant bindings:", error);
     }
-  };
+  }, [userId]);
 
-  const loadAvailableTenants = async () => {
+  const loadAvailableTenants = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("tenants")
@@ -111,7 +115,15 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
     } catch (error) {
       console.error("Error loading tenants:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (open && userId) {
+      loadUser();
+      loadTenantBindings();
+      loadAvailableTenants();
+    }
+  }, [open, userId, loadUser, loadTenantBindings, loadAvailableTenants]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,19 +146,19 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
 
     setUploadingPhoto(true);
     try {
-      const fileExt = photoFile.name.split('.').pop();
+      const fileExt = photoFile.name.split(".").pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from("avatars")
         .upload(filePath, photoFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
         .from("usuarios_suporte")
@@ -175,20 +187,18 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
     setUser({
       ...user,
       funcoes: user.funcoes.includes(role)
-        ? user.funcoes.filter(r => r !== role)
-        : [...user.funcoes, role]
+        ? user.funcoes.filter((r) => r !== role)
+        : [...user.funcoes, role],
     });
   };
 
   const handleAddTenantBinding = async (tenantId: string) => {
     try {
-      const { error } = await supabase
-        .from("vinculo_usuario_tenant")
-        .insert({
-          usuario_id: userId,
-          tenant_id: tenantId,
-          papeis_no_tenant: ['leitura']
-        });
+      const { error } = await supabase.from("vinculo_usuario_tenant").insert({
+        usuario_id: userId,
+        tenant_id: tenantId,
+        papeis_no_tenant: ["leitura"],
+      });
 
       if (error) throw error;
       toast.success("Tenant vinculado com sucesso");
@@ -215,7 +225,10 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
     }
   };
 
-  const handleUpdateTenantRoles = async (bindingId: string, roles: string[]) => {
+  const handleUpdateTenantRoles = async (
+    bindingId: string,
+    roles: string[],
+  ) => {
     try {
       const { error } = await supabase
         .from("vinculo_usuario_tenant")
@@ -247,13 +260,15 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
           nome: user.nome,
           telefone: user.telefone,
           status: user.status as any,
-          funcoes: user.funcoes as any
+          funcoes: user.funcoes as any,
         })
         .eq("id", userId);
 
       if (error) throw error;
 
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
       if (currentUser) {
         await supabase.from("support_actions_log").insert({
           support_user_id: currentUser.id,
@@ -280,7 +295,7 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
   }
 
   const unboundTenants = availableTenants.filter(
-    t => !tenantBindings.some(b => b.tenant_id === t.id)
+    (t) => !tenantBindings.some((b) => b.tenant_id === t.id),
   );
 
   return (
@@ -309,12 +324,7 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
 
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user.email}
-                disabled
-              />
+              <Input id="email" type="email" value={user.email} disabled />
             </div>
 
             <div>
@@ -350,9 +360,9 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
             <div className="flex items-center space-x-2">
               <Switch
                 id="status"
-                checked={user.status === 'ativo'}
-                onCheckedChange={(checked) => 
-                  setUser({ ...user, status: checked ? 'ativo' : 'suspenso' })
+                checked={user.status === "ativo"}
+                onCheckedChange={(checked) =>
+                  setUser({ ...user, status: checked ? "ativo" : "suspenso" })
                 }
               />
               <Label htmlFor="status">Ativo</Label>
@@ -372,7 +382,9 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => document.getElementById('photo-upload')?.click()}
+                  onClick={() =>
+                    document.getElementById("photo-upload")?.click()
+                  }
                   disabled={uploadingPhoto}
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -392,7 +404,9 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
                       onClick={handleUploadPhoto}
                       disabled={uploadingPhoto}
                     >
-                      {uploadingPhoto && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      {uploadingPhoto && (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      )}
                       Salvar Foto
                     </Button>
                     <Button
@@ -441,7 +455,10 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
                 </p>
               ) : (
                 tenantBindings.map((binding) => (
-                  <div key={binding.id} className="border rounded-lg p-4 space-y-3">
+                  <div
+                    key={binding.id}
+                    className="border rounded-lg p-4 space-y-3"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">{binding.tenant?.nome}</h4>
                       <Button
@@ -454,14 +471,21 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {roleOptions.map((role) => (
-                        <div key={role.value} className="flex items-center space-x-2">
+                        <div
+                          key={role.value}
+                          className="flex items-center space-x-2"
+                        >
                           <Checkbox
                             id={`tenant-${binding.id}-${role.value}`}
-                            checked={binding.papeis_no_tenant.includes(role.value)}
+                            checked={binding.papeis_no_tenant.includes(
+                              role.value,
+                            )}
                             onCheckedChange={(checked) => {
                               const newRoles = checked
                                 ? [...binding.papeis_no_tenant, role.value]
-                                : binding.papeis_no_tenant.filter(r => r !== role.value);
+                                : binding.papeis_no_tenant.filter(
+                                    (r) => r !== role.value,
+                                  );
                               handleUpdateTenantRoles(binding.id, newRoles);
                             }}
                           />
@@ -482,7 +506,11 @@ export function EditSupportUserDialog({ open, onOpenChange, userId, onSuccess }:
         </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancelar
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { WhatsAppConversationList } from "./WhatsAppConversationList";
@@ -18,16 +18,14 @@ interface Conversation {
 
 export function ChatUnificado() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
 
-  useEffect(() => {
-    loadConversations();
-    subscribeToConversations();
-  }, []);
-
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profile } = await supabase
@@ -40,30 +38,33 @@ export function ChatUnificado() {
 
       const { data, error } = await supabase
         .from("whatsapp_conversations")
-        .select(`
+        .select(
+          `
           *,
           pacientes:paciente_id(nome)
-        `)
+        `,
+        )
         .eq("tenant_id", profile.tenant_id)
         .in("status", ["aguardando", "em_atendimento"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const formattedData = data?.map(conv => ({
-        ...conv,
-        paciente_nome: conv.pacientes?.nome,
-        tenant_id: profile.tenant_id
-      })) || [];
+      const formattedData =
+        data?.map((conv) => ({
+          ...conv,
+          paciente_nome: conv.pacientes?.nome,
+          tenant_id: profile.tenant_id,
+        })) || [];
 
       setConversations(formattedData);
     } catch (error) {
       console.error("Erro ao carregar conversas:", error);
       toast.error("Erro ao carregar conversas");
     }
-  };
+  }, []);
 
-  const subscribeToConversations = () => {
+  const subscribeToConversations = useCallback(() => {
     const channel = supabase
       .channel("whatsapp-conversations")
       .on(
@@ -75,18 +76,28 @@ export function ChatUnificado() {
         },
         () => {
           loadConversations();
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [loadConversations]);
+
+  useEffect(() => {
+    loadConversations();
+    const cleanup = subscribeToConversations();
+    return () => {
+      cleanup();
+    };
+  }, [loadConversations, subscribeToConversations]);
 
   const handleTakeConversation = async (conversationId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { error } = await supabase
@@ -101,8 +112,8 @@ export function ChatUnificado() {
 
       toast.success("Conversa assumida com sucesso");
       loadConversations();
-      
-      const conversation = conversations.find(c => c.id === conversationId);
+
+      const conversation = conversations.find((c) => c.id === conversationId);
       if (conversation) {
         setSelectedConversation({ ...conversation, status: "em_atendimento" });
       }
@@ -133,7 +144,7 @@ export function ChatUnificado() {
         conversations={conversations}
         selectedConversationId={selectedConversation?.id}
         onSelectConversation={(id) => {
-          const conv = conversations.find(c => c.id === id);
+          const conv = conversations.find((c) => c.id === id);
           if (conv) setSelectedConversation(conv);
         }}
         onTakeConversation={handleTakeConversation}

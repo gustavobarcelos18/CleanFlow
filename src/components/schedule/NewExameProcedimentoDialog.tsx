@@ -1,10 +1,23 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
@@ -13,9 +26,16 @@ interface NewExameProcedimentoDialogProps {
   onSuccess?: (id: string) => void;
 }
 
-type TipoExameProcedimento = "exame_laboratorial" | "exame_imagem" | "procedimento_cirurgico" | "procedimento_terapeutico" | "procedimento_diagnostico";
+type TipoExameProcedimento =
+  | "exame_laboratorial"
+  | "exame_imagem"
+  | "procedimento_cirurgico"
+  | "procedimento_terapeutico"
+  | "procedimento_diagnostico";
 
-export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDialogProps) {
+export function NewExameProcedimentoDialog({
+  onSuccess,
+}: NewExameProcedimentoDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<{
@@ -39,7 +59,7 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
     duracao_minutos: "",
     valor: "",
     instrucoes: "",
-    requisitos: ""
+    requisitos: "",
   });
 
   const { toast } = useToast();
@@ -51,7 +71,7 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
       toast({
         title: "Campos obrigatórios",
         description: "Nome e tipo são obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -59,40 +79,52 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
     try {
       setIsLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (!profile || !profile.tenant_id) {
-        throw new Error("Perfil não configurado. Configure seu perfil em Configurações.");
+        throw new Error(
+          "Perfil não configurado. Configure seu perfil em Configurações.",
+        );
       }
 
       const { data, error } = await supabase
-        .from('exames_procedimentos')
-        .insert([{
-          nome: formData.nome.trim(),
-          tipo: formData.tipo,
-          codigo_tuss: formData.codigo_tuss.trim() || null,
-          descricao: formData.descricao.trim() || null,
-          tempo_preparo_minutos: formData.tempo_preparo_minutos ? parseInt(formData.tempo_preparo_minutos) : null,
-          tempo_jejum_horas: formData.tempo_jejum_horas ? parseInt(formData.tempo_jejum_horas) : null,
-          duracao_minutos: formData.duracao_minutos ? parseInt(formData.duracao_minutos) : null,
-          valor: formData.valor ? parseFloat(formData.valor) : null,
-          instrucoes: formData.instrucoes.trim() || null,
-          requisitos: formData.requisitos.trim() || null,
-          tenant_id: profile.tenant_id,
-          ativo: true
-        }])
+        .from("exames_procedimentos")
+        .insert([
+          {
+            nome: formData.nome.trim().toUpperCase(),
+            tipo: formData.tipo,
+            codigo_tuss: formData.codigo_tuss.trim() || null,
+            descricao: formData.descricao.trim() || null,
+            tempo_preparo_minutos: formData.tempo_preparo_minutos
+              ? parseInt(formData.tempo_preparo_minutos)
+              : null,
+            tempo_jejum_horas: formData.tempo_jejum_horas
+              ? parseInt(formData.tempo_jejum_horas)
+              : null,
+            duracao_minutos: formData.duracao_minutos
+              ? parseInt(formData.duracao_minutos)
+              : null,
+            valor: formData.valor ? parseFloat(formData.valor) : null,
+            instrucoes: formData.instrucoes.trim() || null,
+            requisitos: formData.requisitos.trim() || null,
+            tenant_id: profile.tenant_id,
+            ativo: true,
+          },
+        ])
         .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
+        if (error.code === "23505") {
           throw new Error("Já existe um exame/procedimento com este nome");
         }
         throw error;
@@ -100,26 +132,34 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
 
       toast({
         title: "Sucesso!",
-        description: "Item cadastrado com sucesso."
+        description: "Item cadastrado com sucesso.",
       });
 
       setOpen(false);
       setFormData({
-        nome: "", tipo: "exame_laboratorial", codigo_tuss: "", descricao: "",
-        tempo_preparo_minutos: "", tempo_jejum_horas: "", duracao_minutos: "",
-        valor: "", instrucoes: "", requisitos: ""
+        nome: "",
+        tipo: "exame_laboratorial",
+        codigo_tuss: "",
+        descricao: "",
+        tempo_preparo_minutos: "",
+        tempo_jejum_horas: "",
+        duracao_minutos: "",
+        valor: "",
+        instrucoes: "",
+        requisitos: "",
       });
 
       if (onSuccess && data) {
         onSuccess(data.id);
       }
     } catch (error) {
-      console.error('Erro ao cadastrar:', error);
-      const description = (error as any)?.message || "Não foi possível cadastrar o item.";
+      console.error("Erro ao cadastrar:", error);
+      const description =
+        (error as any)?.message || "Não foi possível cadastrar o item.";
       toast({
         title: "Erro",
         description,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -136,7 +176,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Cadastrar Exame ou Procedimento</DialogTitle>
+          <DialogTitle className="text-xl">
+            Cadastrar Exame ou Procedimento
+          </DialogTitle>
           <DialogDescription>
             Cadastre um exame laboratorial, de imagem ou procedimento médico
           </DialogDescription>
@@ -149,24 +191,45 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
               <Input
                 id="nome"
                 value={formData.nome}
-                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                placeholder="Ex: Hemograma completo"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    nome: e.target.value.toUpperCase(),
+                  })
+                }
+                placeholder="NOME DO EXAME OU PROCEDIMENTO"
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo *</Label>
-              <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value as TipoExameProcedimento })}>
+              <Select
+                value={formData.tipo}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    tipo: value as TipoExameProcedimento,
+                  })
+                }
+              >
                 <SelectTrigger id="tipo">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="exame_laboratorial">Exame Laboratorial</SelectItem>
+                  <SelectItem value="exame_laboratorial">
+                    Exame Laboratorial
+                  </SelectItem>
                   <SelectItem value="exame_imagem">Exame de Imagem</SelectItem>
-                  <SelectItem value="procedimento_cirurgico">Procedimento Cirúrgico</SelectItem>
-                  <SelectItem value="procedimento_terapeutico">Procedimento Terapêutico</SelectItem>
-                  <SelectItem value="procedimento_diagnostico">Procedimento Diagnóstico</SelectItem>
+                  <SelectItem value="procedimento_cirurgico">
+                    Procedimento Cirúrgico
+                  </SelectItem>
+                  <SelectItem value="procedimento_terapeutico">
+                    Procedimento Terapêutico
+                  </SelectItem>
+                  <SelectItem value="procedimento_diagnostico">
+                    Procedimento Diagnóstico
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -178,7 +241,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
               <Input
                 id="codigo_tuss"
                 value={formData.codigo_tuss}
-                onChange={(e) => setFormData({ ...formData, codigo_tuss: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, codigo_tuss: e.target.value })
+                }
                 placeholder="Código da tabela TUSS"
               />
             </div>
@@ -190,7 +255,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
                 type="number"
                 step="0.01"
                 value={formData.valor}
-                onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, valor: e.target.value })
+                }
                 placeholder="0.00"
               />
             </div>
@@ -203,7 +270,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
                 id="duracao"
                 type="number"
                 value={formData.duracao_minutos}
-                onChange={(e) => setFormData({ ...formData, duracao_minutos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, duracao_minutos: e.target.value })
+                }
                 placeholder="30"
               />
             </div>
@@ -214,7 +283,12 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
                 id="preparo"
                 type="number"
                 value={formData.tempo_preparo_minutos}
-                onChange={(e) => setFormData({ ...formData, tempo_preparo_minutos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    tempo_preparo_minutos: e.target.value,
+                  })
+                }
                 placeholder="0"
               />
             </div>
@@ -225,7 +299,12 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
                 id="jejum"
                 type="number"
                 value={formData.tempo_jejum_horas}
-                onChange={(e) => setFormData({ ...formData, tempo_jejum_horas: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    tempo_jejum_horas: e.target.value,
+                  })
+                }
                 placeholder="0"
               />
             </div>
@@ -236,7 +315,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
             <Textarea
               id="descricao"
               value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, descricao: e.target.value })
+              }
               placeholder="Breve descrição..."
               rows={2}
             />
@@ -247,7 +328,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
             <Textarea
               id="instrucoes"
               value={formData.instrucoes}
-              onChange={(e) => setFormData({ ...formData, instrucoes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, instrucoes: e.target.value })
+              }
               placeholder="Ex: Comparecer em jejum de 8 horas..."
               rows={2}
             />
@@ -258,7 +341,9 @@ export function NewExameProcedimentoDialog({ onSuccess }: NewExameProcedimentoDi
             <Textarea
               id="requisitos"
               value={formData.requisitos}
-              onChange={(e) => setFormData({ ...formData, requisitos: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, requisitos: e.target.value })
+              }
               placeholder="Ex: Exames anteriores necessários..."
               rows={2}
             />

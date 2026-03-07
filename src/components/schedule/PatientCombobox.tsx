@@ -28,15 +28,20 @@ interface PatientComboboxProps {
   patients: Patient[];
 }
 
-export function PatientCombobox({ value, onValueChange, patients }: PatientComboboxProps) {
+export function PatientCombobox({
+  value,
+  onValueChange,
+  patients,
+}: PatientComboboxProps) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
   const selectedPatient = patients.find((patient) => patient.id === value);
 
-  const filteredPatients = patients.filter((patient) =>
-    patient.nome.toLowerCase().includes(searchValue.toLowerCase()) ||
-    patient.telefone.includes(searchValue)
+  const filteredPatients = patients.filter(
+    (patient) =>
+      patient.nome.toLowerCase().includes(searchValue.toLowerCase()) ||
+      patient.telefone.includes(searchValue),
   );
 
   return (
@@ -67,7 +72,7 @@ export function PatientCombobox({ value, onValueChange, patients }: PatientCombo
           />
           <CommandList>
             <CommandEmpty>
-              {patients.length === 0 
+              {patients.length === 0
                 ? "Nenhum paciente cadastrado."
                 : "Nenhum paciente encontrado."}
             </CommandEmpty>
@@ -85,12 +90,14 @@ export function PatientCombobox({ value, onValueChange, patients }: PatientCombo
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === patient.id ? "opacity-100" : "opacity-0"
+                      value === patient.id ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <div className="flex flex-col">
                     <span className="font-medium">{patient.nome}</span>
-                    <span className="text-xs text-muted-foreground">{patient.telefone}</span>
+                    <span className="text-xs opacity-70">
+                      {patient.telefone}
+                    </span>
                   </div>
                 </CommandItem>
               ))}

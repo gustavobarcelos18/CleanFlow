@@ -1,15 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, DollarSign, TrendingUp, Calendar } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Preco {
   id: string;
@@ -40,17 +58,17 @@ export function PriceManagement() {
   const [editingPrice, setEditingPrice] = useState<Preco | null>(null);
   const [editingFX, setEditingFX] = useState<FXRate | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const [precosRes, fxRes] = await Promise.all([
         supabase.from("precos_atual").select("*").order("categoria"),
-        supabase.from("fx_rates").select("*").eq("ativo", true).order("data_cotacao", { ascending: false })
+        supabase
+          .from("fx_rates")
+          .select("*")
+          .eq("ativo", true)
+          .order("data_cotacao", { ascending: false }),
       ]);
 
       if (precosRes.error) throw precosRes.error;
@@ -64,12 +82,19 @@ export function PriceManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleSavePrice = async (priceData: any) => {
     try {
       const { error } = editingPrice
-        ? await supabase.from("precos_atual").update(priceData).eq("id", editingPrice.id)
+        ? await supabase
+            .from("precos_atual")
+            .update(priceData)
+            .eq("id", editingPrice.id)
         : await supabase.from("precos_atual").insert([priceData]);
 
       if (error) throw error;
@@ -81,10 +106,12 @@ export function PriceManagement() {
         target_type: "preco",
         target_id: editingPrice?.id,
         description: `${editingPrice ? "Atualizado" : "Criado"} preço para categoria ${priceData.categoria}`,
-        metadata: { priceData }
+        metadata: { priceData },
       });
 
-      toast.success(`Preço ${editingPrice ? "atualizado" : "criado"} com sucesso!`);
+      toast.success(
+        `Preço ${editingPrice ? "atualizado" : "criado"} com sucesso!`,
+      );
       setEditingPrice(null);
       loadData();
     } catch (error: any) {
@@ -108,10 +135,12 @@ export function PriceManagement() {
         target_type: "fx_rate",
         target_id: editingFX?.id,
         description: `${editingFX ? "Atualizada" : "Criada"} taxa FX ${fxData.moeda_origem}/${fxData.moeda_destino}`,
-        metadata: { fxData }
+        metadata: { fxData },
       });
 
-      toast.success(`Taxa FX ${editingFX ? "atualizada" : "criada"} com sucesso!`);
+      toast.success(
+        `Taxa FX ${editingFX ? "atualizada" : "criada"} com sucesso!`,
+      );
       setEditingFX(null);
       loadData();
     } catch (error: any) {
@@ -139,7 +168,9 @@ export function PriceManagement() {
                 <DollarSign className="h-5 w-5" />
                 Preços por Categoria
               </CardTitle>
-              <CardDescription>Gerencie os preços unitários por categoria de serviço</CardDescription>
+              <CardDescription>
+                Gerencie os preços unitários por categoria de serviço
+              </CardDescription>
             </div>
             <PriceDialog onSave={handleSavePrice} />
           </div>
@@ -168,11 +199,15 @@ export function PriceManagement() {
                       {preco.moeda} {preco.preco_unitario.toFixed(6)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Vigência: {new Date(preco.vigencia_inicio).toLocaleDateString()}
-                      {preco.vigencia_fim && ` até ${new Date(preco.vigencia_fim).toLocaleDateString()}`}
+                      Vigência:{" "}
+                      {new Date(preco.vigencia_inicio).toLocaleDateString()}
+                      {preco.vigencia_fim &&
+                        ` até ${new Date(preco.vigencia_fim).toLocaleDateString()}`}
                     </div>
                     {preco.notas && (
-                      <div className="text-xs text-muted-foreground mt-2">{preco.notas}</div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        {preco.notas}
+                      </div>
                     )}
                   </div>
                 </CardContent>
@@ -191,7 +226,9 @@ export function PriceManagement() {
                 <TrendingUp className="h-5 w-5" />
                 Taxas de Câmbio (FX)
               </CardTitle>
-              <CardDescription>Configure as taxas de conversão de moedas</CardDescription>
+              <CardDescription>
+                Configure as taxas de conversão de moedas
+              </CardDescription>
             </div>
             <FXDialog onSave={handleSaveFX} />
           </div>
@@ -199,7 +236,10 @@ export function PriceManagement() {
         <CardContent>
           <div className="space-y-3">
             {fxRates.map((fx) => (
-              <div key={fx.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={fx.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex-1">
                   <div className="font-semibold">
                     {fx.moeda_origem} → {fx.moeda_destino}
@@ -209,7 +249,11 @@ export function PriceManagement() {
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {new Date(fx.data_cotacao).toLocaleString()} • {fx.fonte}
-                    {fx.override_manual && <Badge className="ml-2" variant="outline">Manual</Badge>}
+                    {fx.override_manual && (
+                      <Badge className="ml-2" variant="outline">
+                        Manual
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <Button
@@ -254,8 +298,8 @@ function PriceDialog({ price, onSave, onClose }: any) {
       vigencia_inicio: new Date().toISOString().split("T")[0],
       vigencia_fim: null,
       ativo: true,
-      notas: ""
-    }
+      notas: "",
+    },
   );
   const [open, setOpen] = useState(!!price);
 
@@ -267,7 +311,13 @@ function PriceDialog({ price, onSave, onClose }: any) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o && onClose) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o && onClose) onClose();
+      }}
+    >
       <DialogTrigger asChild>
         <Button>Novo Preço</Button>
       </DialogTrigger>
@@ -278,7 +328,10 @@ function PriceDialog({ price, onSave, onClose }: any) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>Categoria</Label>
-            <Select value={formData.categoria} onValueChange={(v) => setFormData({ ...formData, categoria: v })}>
+            <Select
+              value={formData.categoria}
+              onValueChange={(v) => setFormData({ ...formData, categoria: v })}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -297,12 +350,20 @@ function PriceDialog({ price, onSave, onClose }: any) {
               type="number"
               step="0.000001"
               value={formData.preco_unitario}
-              onChange={(e) => setFormData({ ...formData, preco_unitario: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  preco_unitario: parseFloat(e.target.value),
+                })
+              }
             />
           </div>
           <div>
             <Label>Moeda</Label>
-            <Select value={formData.moeda} onValueChange={(v) => setFormData({ ...formData, moeda: v })}>
+            <Select
+              value={formData.moeda}
+              onValueChange={(v) => setFormData({ ...formData, moeda: v })}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -316,10 +377,14 @@ function PriceDialog({ price, onSave, onClose }: any) {
             <Label>Notas</Label>
             <Textarea
               value={formData.notas || ""}
-              onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notas: e.target.value })
+              }
             />
           </div>
-          <Button type="submit" className="w-full">Salvar</Button>
+          <Button type="submit" className="w-full">
+            Salvar
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
@@ -335,8 +400,8 @@ function FXDialog({ fx, onSave, onClose }: any) {
       taxa: 0,
       fonte: "manual",
       override_manual: true,
-      ativo: true
-    }
+      ativo: true,
+    },
   );
   const [open, setOpen] = useState(!!fx);
 
@@ -348,7 +413,13 @@ function FXDialog({ fx, onSave, onClose }: any) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o && onClose) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o && onClose) onClose();
+      }}
+    >
       <DialogTrigger asChild>
         <Button>Nova Taxa FX</Button>
       </DialogTrigger>
@@ -362,14 +433,24 @@ function FXDialog({ fx, onSave, onClose }: any) {
               <Label>Moeda Origem</Label>
               <Input
                 value={formData.moeda_origem}
-                onChange={(e) => setFormData({ ...formData, moeda_origem: e.target.value.toUpperCase() })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    moeda_origem: e.target.value.toUpperCase(),
+                  })
+                }
               />
             </div>
             <div>
               <Label>Moeda Destino</Label>
               <Input
                 value={formData.moeda_destino}
-                onChange={(e) => setFormData({ ...formData, moeda_destino: e.target.value.toUpperCase() })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    moeda_destino: e.target.value.toUpperCase(),
+                  })
+                }
               />
             </div>
           </div>
@@ -379,17 +460,23 @@ function FXDialog({ fx, onSave, onClose }: any) {
               type="number"
               step="0.000001"
               value={formData.taxa}
-              onChange={(e) => setFormData({ ...formData, taxa: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                setFormData({ ...formData, taxa: parseFloat(e.target.value) })
+              }
             />
           </div>
           <div>
             <Label>Fonte</Label>
             <Input
               value={formData.fonte}
-              onChange={(e) => setFormData({ ...formData, fonte: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, fonte: e.target.value })
+              }
             />
           </div>
-          <Button type="submit" className="w-full">Salvar</Button>
+          <Button type="submit" className="w-full">
+            Salvar
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

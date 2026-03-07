@@ -1,15 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-type TipoExameProcedimento = "exame_laboratorial" | "exame_imagem" | "procedimento_cirurgico" | "procedimento_terapeutico" | "procedimento_diagnostico";
+type TipoExameProcedimento =
+  | "exame_laboratorial"
+  | "exame_imagem"
+  | "procedimento_cirurgico"
+  | "procedimento_terapeutico"
+  | "procedimento_diagnostico";
 
 interface EditExameProcedimentoDialogProps {
   itemId: string;
@@ -18,11 +35,11 @@ interface EditExameProcedimentoDialogProps {
   onSuccess?: () => void;
 }
 
-export function EditExameProcedimentoDialog({ 
-  itemId, 
-  open, 
-  onOpenChange, 
-  onSuccess 
+export function EditExameProcedimentoDialog({
+  itemId,
+  open,
+  onOpenChange,
+  onSuccess,
 }: EditExameProcedimentoDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,23 +52,17 @@ export function EditExameProcedimentoDialog({
     duracao_minutos: "",
     valor: "",
     instrucoes: "",
-    requisitos: ""
+    requisitos: "",
   });
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (open && itemId) {
-      fetchItem();
-    }
-  }, [open, itemId]);
-
-  const fetchItem = async () => {
+  const fetchItem = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from('exames_procedimentos')
-        .select('*')
-        .eq('id', itemId)
+        .from("exames_procedimentos")
+        .select("*")
+        .eq("id", itemId)
         .single();
 
       if (error) throw error;
@@ -66,17 +77,23 @@ export function EditExameProcedimentoDialog({
         duracao_minutos: data.duracao_minutos?.toString() || "",
         valor: data.valor?.toString() || "",
         instrucoes: data.instrucoes || "",
-        requisitos: data.requisitos || ""
+        requisitos: data.requisitos || "",
       });
     } catch (error) {
-      console.error('Erro ao buscar item:', error);
+      console.error("Erro ao buscar item:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os dados do item.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
-  };
+  }, [itemId, toast]);
+
+  useEffect(() => {
+    if (open && itemId) {
+      fetchItem();
+    }
+  }, [open, itemId, fetchItem]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +102,7 @@ export function EditExameProcedimentoDialog({
       toast({
         title: "Campos obrigatórios",
         description: "Nome e tipo são obrigatórios.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -94,27 +111,33 @@ export function EditExameProcedimentoDialog({
       setIsLoading(true);
 
       const { error } = await supabase
-        .from('exames_procedimentos')
+        .from("exames_procedimentos")
         .update({
-          nome: formData.nome.trim(),
+          nome: formData.nome.trim().toUpperCase(),
           tipo: formData.tipo,
           codigo_tuss: formData.codigo_tuss.trim() || null,
           descricao: formData.descricao.trim() || null,
-          tempo_preparo_minutos: formData.tempo_preparo_minutos ? parseInt(formData.tempo_preparo_minutos) : null,
-          tempo_jejum_horas: formData.tempo_jejum_horas ? parseInt(formData.tempo_jejum_horas) : null,
-          duracao_minutos: formData.duracao_minutos ? parseInt(formData.duracao_minutos) : null,
+          tempo_preparo_minutos: formData.tempo_preparo_minutos
+            ? parseInt(formData.tempo_preparo_minutos)
+            : null,
+          tempo_jejum_horas: formData.tempo_jejum_horas
+            ? parseInt(formData.tempo_jejum_horas)
+            : null,
+          duracao_minutos: formData.duracao_minutos
+            ? parseInt(formData.duracao_minutos)
+            : null,
           valor: formData.valor ? parseFloat(formData.valor) : null,
           instrucoes: formData.instrucoes.trim() || null,
           requisitos: formData.requisitos.trim() || null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', itemId);
+        .eq("id", itemId);
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: "Item atualizado com sucesso."
+        description: "Item atualizado com sucesso.",
       });
 
       onOpenChange(false);
@@ -123,11 +146,11 @@ export function EditExameProcedimentoDialog({
         onSuccess();
       }
     } catch (error) {
-      console.error('Erro ao atualizar:', error);
+      console.error("Erro ao atualizar:", error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o item.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -138,7 +161,9 @@ export function EditExameProcedimentoDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Editar Exame/Procedimento</DialogTitle>
+          <DialogTitle className="text-xl">
+            Editar Exame/Procedimento
+          </DialogTitle>
           <DialogDescription>
             Atualize as informações do exame ou procedimento
           </DialogDescription>
@@ -151,24 +176,45 @@ export function EditExameProcedimentoDialog({
               <Input
                 id="nome"
                 value={formData.nome}
-                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                placeholder="Nome do exame ou procedimento"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    nome: e.target.value.toUpperCase(),
+                  })
+                }
+                placeholder="NOME DO EXAME OU PROCEDIMENTO"
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo *</Label>
-              <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value as TipoExameProcedimento })}>
+              <Select
+                value={formData.tipo}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    tipo: value as TipoExameProcedimento,
+                  })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="exame_laboratorial">Exame Laboratorial</SelectItem>
+                  <SelectItem value="exame_laboratorial">
+                    Exame Laboratorial
+                  </SelectItem>
                   <SelectItem value="exame_imagem">Exame de Imagem</SelectItem>
-                  <SelectItem value="procedimento_cirurgico">Procedimento Cirúrgico</SelectItem>
-                  <SelectItem value="procedimento_terapeutico">Procedimento Terapêutico</SelectItem>
-                  <SelectItem value="procedimento_diagnostico">Procedimento Diagnóstico</SelectItem>
+                  <SelectItem value="procedimento_cirurgico">
+                    Procedimento Cirúrgico
+                  </SelectItem>
+                  <SelectItem value="procedimento_terapeutico">
+                    Procedimento Terapêutico
+                  </SelectItem>
+                  <SelectItem value="procedimento_diagnostico">
+                    Procedimento Diagnóstico
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -180,7 +226,9 @@ export function EditExameProcedimentoDialog({
               <Input
                 id="codigo_tuss"
                 value={formData.codigo_tuss}
-                onChange={(e) => setFormData({ ...formData, codigo_tuss: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, codigo_tuss: e.target.value })
+                }
                 placeholder="Código TUSS"
               />
             </div>
@@ -193,7 +241,9 @@ export function EditExameProcedimentoDialog({
                 step="0.01"
                 min="0"
                 value={formData.valor}
-                onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, valor: e.target.value })
+                }
                 placeholder="0.00"
               />
             </div>
@@ -204,7 +254,9 @@ export function EditExameProcedimentoDialog({
             <Textarea
               id="descricao"
               value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, descricao: e.target.value })
+              }
               placeholder="Descrição detalhada"
               rows={2}
             />
@@ -218,7 +270,12 @@ export function EditExameProcedimentoDialog({
                 type="number"
                 min="0"
                 value={formData.tempo_preparo_minutos}
-                onChange={(e) => setFormData({ ...formData, tempo_preparo_minutos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    tempo_preparo_minutos: e.target.value,
+                  })
+                }
                 placeholder="0"
               />
             </div>
@@ -230,7 +287,12 @@ export function EditExameProcedimentoDialog({
                 type="number"
                 min="0"
                 value={formData.tempo_jejum_horas}
-                onChange={(e) => setFormData({ ...formData, tempo_jejum_horas: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    tempo_jejum_horas: e.target.value,
+                  })
+                }
                 placeholder="0"
               />
             </div>
@@ -242,7 +304,9 @@ export function EditExameProcedimentoDialog({
                 type="number"
                 min="0"
                 value={formData.duracao_minutos}
-                onChange={(e) => setFormData({ ...formData, duracao_minutos: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, duracao_minutos: e.target.value })
+                }
                 placeholder="0"
               />
             </div>
@@ -253,7 +317,9 @@ export function EditExameProcedimentoDialog({
             <Textarea
               id="instrucoes"
               value={formData.instrucoes}
-              onChange={(e) => setFormData({ ...formData, instrucoes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, instrucoes: e.target.value })
+              }
               placeholder="Instruções para o paciente"
               rows={2}
             />
@@ -264,7 +330,9 @@ export function EditExameProcedimentoDialog({
             <Textarea
               id="requisitos"
               value={formData.requisitos}
-              onChange={(e) => setFormData({ ...formData, requisitos: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, requisitos: e.target.value })
+              }
               placeholder="Requisitos necessários"
               rows={2}
             />

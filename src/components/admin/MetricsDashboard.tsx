@@ -1,9 +1,33 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, TrendingDown, Activity, Clock, AlertTriangle, MessageSquare } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Clock,
+  AlertTriangle,
+  MessageSquare,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface MetricData {
@@ -19,29 +43,25 @@ interface MetricData {
 export const MetricsDashboard = () => {
   const [metrics, setMetrics] = useState<MetricData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('30days');
+  const [period, setPeriod] = useState<"7days" | "30days" | "90days">("30days");
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadMetrics();
-  }, [period]);
-
-  const loadMetrics = async () => {
+  const loadMetrics = useCallback(async () => {
     try {
       setLoading(true);
-      
-      const days = period === '7days' ? 7 : period === '30days' ? 30 : 90;
+
+      const days = period === "7days" ? 7 : period === "30days" ? 30 : 90;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
       const { data, error } = await supabase
-        .from('support_metrics')
-        .select('*')
-        .gte('data', startDate.toISOString().split('T')[0])
-        .order('data', { ascending: true });
+        .from("support_metrics")
+        .select("*")
+        .gte("data", startDate.toISOString().split("T")[0])
+        .order("data", { ascending: true });
 
       if (error) throw error;
-      setMetrics(data || []);
+      setMetrics((data as any) || []);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar métricas",
@@ -51,31 +71,44 @@ export const MetricsDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period, toast]);
 
-  const calculateTotals = () => {
-    return metrics.reduce((acc, m) => ({
-      tickets_abertos: acc.tickets_abertos + m.tickets_abertos,
-      tickets_fechados: acc.tickets_fechados + m.tickets_fechados,
-      slas_estourados: acc.slas_estourados + m.slas_estourados,
-      chats_iniciados: acc.chats_iniciados + m.chats_iniciados,
-      tempo_medio_resposta: metrics.length > 0 
-        ? metrics.reduce((sum, m) => sum + m.tempo_medio_primeira_resposta_minutos, 0) / metrics.length
-        : 0,
-      tempo_medio_resolucao: metrics.length > 0
-        ? metrics.reduce((sum, m) => sum + m.tempo_medio_resolucao_horas, 0) / metrics.length
-        : 0,
-    }), {
-      tickets_abertos: 0,
-      tickets_fechados: 0,
-      slas_estourados: 0,
-      chats_iniciados: 0,
-      tempo_medio_resposta: 0,
-      tempo_medio_resolucao: 0,
-    });
-  };
+  useEffect(() => {
+    loadMetrics();
+  }, [loadMetrics]);
 
-  const totals = calculateTotals();
+  const totals = useMemo(() => {
+    return metrics.reduce(
+      (acc, m) => ({
+        tickets_abertos: acc.tickets_abertos + m.tickets_abertos,
+        tickets_fechados: acc.tickets_fechados + m.tickets_fechados,
+        slas_estourados: acc.slas_estourados + m.slas_estourados,
+        chats_iniciados: acc.chats_iniciados + m.chats_iniciados,
+        tempo_medio_resposta:
+          metrics.length > 0
+            ? metrics.reduce(
+                (sum, me) => sum + me.tempo_medio_primeira_resposta_minutos,
+                0,
+              ) / metrics.length
+            : 0,
+        tempo_medio_resolucao:
+          metrics.length > 0
+            ? metrics.reduce(
+                (sum, me) => sum + me.tempo_medio_resolucao_horas,
+                0,
+              ) / metrics.length
+            : 0,
+      }),
+      {
+        tickets_abertos: 0,
+        tickets_fechados: 0,
+        slas_estourados: 0,
+        chats_iniciados: 0,
+        tempo_medio_resposta: 0,
+        tempo_medio_resolucao: 0,
+      },
+    );
+  }, [metrics]);
 
   if (loading) {
     return <div className="p-4">Carregando métricas...</div>;
@@ -98,7 +131,9 @@ export const MetricsDashboard = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Abertos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tickets Abertos
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -109,7 +144,9 @@ export const MetricsDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Fechados</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tickets Fechados
+            </CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -120,22 +157,30 @@ export const MetricsDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tempo Médio Resposta</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tempo Médio Resposta
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totals.tempo_medio_resposta.toFixed(0)} min</div>
+            <div className="text-2xl font-bold">
+              {totals.tempo_medio_resposta.toFixed(0)} min
+            </div>
             <p className="text-xs text-muted-foreground">Primeira resposta</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SLAs Estourados</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              SLAs Estourados
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{totals.slas_estourados}</div>
+            <div className="text-2xl font-bold text-destructive">
+              {totals.slas_estourados}
+            </div>
             <p className="text-xs text-muted-foreground">Período selecionado</p>
           </CardContent>
         </Card>
@@ -163,8 +208,18 @@ export const MetricsDashboard = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="tickets_abertos" stroke="#8884d8" name="Abertos" />
-                  <Line type="monotone" dataKey="tickets_fechados" stroke="#82ca9d" name="Fechados" />
+                  <Line
+                    type="monotone"
+                    dataKey="tickets_abertos"
+                    stroke="#8884d8"
+                    name="Abertos"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="tickets_fechados"
+                    stroke="#82ca9d"
+                    name="Fechados"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -185,8 +240,16 @@ export const MetricsDashboard = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="tempo_medio_primeira_resposta_minutos" fill="#8884d8" name="1ª Resposta (min)" />
-                  <Bar dataKey="tempo_medio_resolucao_horas" fill="#82ca9d" name="Resolução (h)" />
+                  <Bar
+                    dataKey="tempo_medio_primeira_resposta_minutos"
+                    fill="#8884d8"
+                    name="1ª Resposta (min)"
+                  />
+                  <Bar
+                    dataKey="tempo_medio_resolucao_horas"
+                    fill="#82ca9d"
+                    name="Resolução (h)"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -207,7 +270,11 @@ export const MetricsDashboard = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="chats_iniciados" fill="#8884d8" name="Chats Iniciados" />
+                  <Bar
+                    dataKey="chats_iniciados"
+                    fill="#8884d8"
+                    name="Chats Iniciados"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

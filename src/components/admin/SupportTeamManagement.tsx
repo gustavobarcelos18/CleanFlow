@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,11 +29,7 @@ export const SupportTeamManagement = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSupportUsers();
-  }, []);
-
-  const loadSupportUsers = async () => {
+  const loadSupportUsers = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("usuarios_suporte")
@@ -48,12 +44,16 @@ export const SupportTeamManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSupportUsers();
+  }, [loadSupportUsers]);
 
   const handleResetPassword = async (userId: string) => {
     try {
       await supabase.rpc("reset_support_user_password", {
-        p_usuario_id: userId
+        p_usuario_id: userId,
       });
 
       toast.success("Instruções de reset de senha enviadas por email");
@@ -66,7 +66,7 @@ export const SupportTeamManagement = () => {
 
   const toggleUserStatus = async (userId: string, currentStatus: string) => {
     try {
-      const newStatus = currentStatus === 'ativo' ? 'suspenso' : 'ativo';
+      const newStatus = currentStatus === "ativo" ? "suspenso" : "ativo";
       const { error } = await supabase
         .from("usuarios_suporte")
         .update({ status: newStatus })
@@ -74,7 +74,9 @@ export const SupportTeamManagement = () => {
 
       if (error) throw error;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("support_actions_log").insert({
           support_user_id: user.id,
@@ -93,9 +95,10 @@ export const SupportTeamManagement = () => {
     }
   };
 
-  const filteredUsers = supportUsers.filter(user => 
-    user.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = supportUsers.filter(
+    (user) =>
+      user.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -135,9 +138,13 @@ export const SupportTeamManagement = () => {
         </div>
 
         {loading ? (
-          <p className="text-center py-8 text-muted-foreground">Carregando...</p>
+          <p className="text-center py-8 text-muted-foreground">
+            Carregando...
+          </p>
         ) : filteredUsers.length === 0 ? (
-          <p className="text-center py-8 text-muted-foreground">Nenhum membro encontrado</p>
+          <p className="text-center py-8 text-muted-foreground">
+            Nenhum membro encontrado
+          </p>
         ) : (
           <div className="space-y-2">
             {filteredUsers.map((user) => (
@@ -147,16 +154,24 @@ export const SupportTeamManagement = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{user.nome}</h3>
                       <Badge variant="outline">{user.funcoes.join(", ")}</Badge>
-                      <Badge variant={user.status === 'ativo' ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          user.status === "ativo" ? "default" : "secondary"
+                        }
+                      >
                         {user.status}
                       </Badge>
                       {user.forcar_troca_senha && (
                         <Badge variant="destructive">Trocar Senha</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
                     {user.telefone && (
-                      <p className="text-sm text-muted-foreground">{user.telefone}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user.telefone}
+                      </p>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -180,11 +195,13 @@ export const SupportTeamManagement = () => {
                       Editar
                     </Button>
                     <Button
-                      variant={user.status === 'ativo' ? "destructive" : "default"}
+                      variant={
+                        user.status === "ativo" ? "destructive" : "default"
+                      }
                       size="sm"
                       onClick={() => toggleUserStatus(user.id, user.status)}
                     >
-                      {user.status === 'ativo' ? "Desativar" : "Ativar"}
+                      {user.status === "ativo" ? "Desativar" : "Ativar"}
                     </Button>
                   </div>
                 </div>

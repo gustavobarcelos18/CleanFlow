@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Pencil, Trash2, Search } from "lucide-react";
 import { NewPlanoSaudeDialog } from "@/components/planos/NewPlanoSaudeDialog";
 import { EditPlanoSaudeDialog } from "@/components/planos/EditPlanoSaudeDialog";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 interface PlanoSaude {
   id: string;
@@ -23,11 +24,15 @@ export default function PlanosSaude() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [planoToDelete, setPlanoToDelete] = useState<PlanoSaude | null>(null);
   const { toast } = useToast();
 
   const fetchPlanos = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data: profile } = await supabase
@@ -62,13 +67,18 @@ export default function PlanosSaude() {
   }, []);
 
   const handleDelete = async (id: string, nome: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o plano "${nome}"?`)) return;
+    setPlanoToDelete(planos.find((p) => p.id === id) || null);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!planoToDelete) return;
 
     try {
       const { error } = await supabase
         .from("planos_saude")
         .delete()
-        .eq("id", id);
+        .eq("id", planoToDelete.id);
 
       if (error) throw error;
 
@@ -83,11 +93,13 @@ export default function PlanosSaude() {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setPlanoToDelete(null);
     }
   };
 
-  const filteredPlanos = planos.filter(plano =>
-    plano.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPlanos = planos.filter((plano) =>
+    plano.nome.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (isLoading) {
@@ -105,7 +117,9 @@ export default function PlanosSaude() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Planos de Saúde</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Planos de Saúde
+            </h1>
             <p className="text-muted-foreground">
               Gerencie os planos de saúde aceitos pela clínica
             </p>
@@ -132,7 +146,9 @@ export default function PlanosSaude() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground mb-4">
-                {searchTerm ? "Nenhum plano encontrado" : "Nenhum plano cadastrado"}
+                {searchTerm
+                  ? "Nenhum plano encontrado"
+                  : "Nenhum plano cadastrado"}
               </p>
               {!searchTerm && (
                 <NewPlanoSaudeDialog onSuccess={fetchPlanos}>
@@ -197,6 +213,14 @@ export default function PlanosSaude() {
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Plano de Saúde"
+        description={`Tem certeza que deseja excluir o plano "${planoToDelete?.nome}"? Esta ação não pode ser desfeita.`}
+      />
     </MainLayout>
   );
 }

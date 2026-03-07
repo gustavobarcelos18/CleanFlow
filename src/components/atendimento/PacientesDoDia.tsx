@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,8 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, User, CheckCircle2, Circle, AlertCircle, Search, Filter } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Clock,
+  User,
+  CheckCircle2,
+  Circle,
+  AlertCircle,
+  Search,
+  Filter,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -23,13 +37,11 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
   const [salaFilter, setSalaFilter] = useState<string>("todas");
   const [servicoFilter, setServicoFilter] = useState<string>("todos");
 
-  useEffect(() => {
-    loadAgendamentos();
-  }, []);
-
-  const loadAgendamentos = async () => {
+  const loadAgendamentos = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const hoje = new Date();
@@ -38,47 +50,53 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
       amanha.setDate(amanha.getDate() + 1);
 
       const { data, error } = await supabase
-        .from('agenda')
-        .select(`
+        .from("agenda")
+        .select(
+          `
           *,
           pacientes(id, nome, telefone, email),
           servicos(nome, duracao_minutos)
-        `)
-        .eq('profissional_id', user.id)
-        .gte('inicio', hoje.toISOString())
-        .lt('inicio', amanha.toISOString())
-        .neq('status', 'cancelado')
-        .order('inicio', { ascending: true });
+        `,
+        )
+        .eq("profissional_id", user.id)
+        .gte("inicio", hoje.toISOString())
+        .lt("inicio", amanha.toISOString())
+        .neq("status", "cancelado")
+        .order("inicio", { ascending: true });
 
       if (error) throw error;
 
       setAgendamentos(data || []);
     } catch (error: any) {
-      console.error('Erro ao carregar agendamentos:', error);
-      toast.error('Erro ao carregar lista de pacientes');
+      console.error("Erro ao carregar agendamentos:", error);
+      toast.error("Erro ao carregar lista de pacientes");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadAgendamentos();
+  }, [loadAgendamentos]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'concluido':
-        return 'bg-success/10 text-success border-success/20';
-      case 'em_atendimento':
-        return 'bg-primary/10 text-primary border-primary/20';
-      case 'agendado':
-        return 'bg-muted/50 text-muted-foreground border-border';
+      case "concluido":
+        return "bg-success/10 text-success border-success/20";
+      case "em_atendimento":
+        return "bg-primary/10 text-primary border-primary/20";
+      case "agendado":
+        return "bg-muted/50 text-muted-foreground border-border";
       default:
-        return 'bg-muted text-muted-foreground';
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'concluido':
+      case "concluido":
         return <CheckCircle2 className="h-5 w-5" />;
-      case 'em_atendimento':
+      case "em_atendimento":
         return <AlertCircle className="h-5 w-5" />;
       default:
         return <Circle className="h-5 w-5" />;
@@ -87,47 +105,59 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      agendado: 'Aguardando',
-      em_atendimento: 'Em Atendimento',
-      concluido: 'Atendido',
+      agendado: "Aguardando",
+      em_atendimento: "Em Atendimento",
+      concluido: "Atendido",
     };
     return labels[status] || status;
   };
 
   // Extrair salas e serviços únicos
   const salas = useMemo(() => {
-    const uniqueSalas = [...new Set(agendamentos.map(a => a.sala).filter(Boolean))];
+    const uniqueSalas = [
+      ...new Set(agendamentos.map((a) => a.sala).filter(Boolean)),
+    ];
     return uniqueSalas;
   }, [agendamentos]);
 
   const servicos = useMemo(() => {
-    const uniqueServicos = [...new Set(agendamentos.map(a => a.servicos?.nome).filter(Boolean))];
+    const uniqueServicos = [
+      ...new Set(agendamentos.map((a) => a.servicos?.nome).filter(Boolean)),
+    ];
     return uniqueServicos;
   }, [agendamentos]);
 
   // Filtrar agendamentos
   const agendamentosFiltrados = useMemo(() => {
-    return agendamentos.filter(agendamento => {
+    return agendamentos.filter((agendamento) => {
       // Filtro de busca por nome
-      if (searchTerm && !agendamento.pacientes?.nome.toLowerCase().includes(searchTerm.toLowerCase())) {
+      if (
+        searchTerm &&
+        !agendamento.pacientes?.nome
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      ) {
         return false;
       }
-      
+
       // Filtro de status
       if (statusFilter !== "todos" && agendamento.status !== statusFilter) {
         return false;
       }
-      
+
       // Filtro de sala
       if (salaFilter !== "todas" && agendamento.sala !== salaFilter) {
         return false;
       }
-      
+
       // Filtro de serviço
-      if (servicoFilter !== "todos" && agendamento.servicos?.nome !== servicoFilter) {
+      if (
+        servicoFilter !== "todos" &&
+        agendamento.servicos?.nome !== servicoFilter
+      ) {
         return false;
       }
-      
+
       return true;
     });
   }, [agendamentos, searchTerm, statusFilter, salaFilter, servicoFilter]);
@@ -135,10 +165,11 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
   // Contadores por status
   const contadores = useMemo(() => {
     return {
-      aguardando: agendamentos.filter(a => a.status === 'agendado').length,
-      em_atendimento: agendamentos.filter(a => a.status === 'em_atendimento').length,
-      atendido: agendamentos.filter(a => a.status === 'concluido').length,
-      total: agendamentos.length
+      aguardando: agendamentos.filter((a) => a.status === "agendado").length,
+      em_atendimento: agendamentos.filter((a) => a.status === "em_atendimento")
+        .length,
+      atendido: agendamentos.filter((a) => a.status === "concluido").length,
+      total: agendamentos.length,
     };
   }, [agendamentos]);
 
@@ -162,7 +193,9 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
         <CardContent className="py-12">
           <div className="text-center text-muted-foreground">
             <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">Nenhum paciente agendado para hoje</p>
+            <p className="text-lg font-medium">
+              Nenhum paciente agendado para hoje
+            </p>
             <p className="text-sm mt-2">Sua agenda está livre</p>
           </div>
         </CardContent>
@@ -196,7 +229,9 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Em Atendimento</p>
-                <p className="text-2xl font-bold">{contadores.em_atendimento}</p>
+                <p className="text-2xl font-bold">
+                  {contadores.em_atendimento}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -210,7 +245,9 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Atendidos</p>
-                <p className="text-2xl font-bold text-success">{contadores.atendido}</p>
+                <p className="text-2xl font-bold text-success">
+                  {contadores.atendido}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -238,7 +275,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
             <Filter className="h-5 w-5 text-muted-foreground" />
             <h3 className="font-semibold">Filtros</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Busca por nome */}
             <div className="relative">
@@ -271,8 +308,10 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas as salas</SelectItem>
-                {salas.map(sala => (
-                  <SelectItem key={sala} value={sala}>{sala}</SelectItem>
+                {salas.map((sala) => (
+                  <SelectItem key={sala} value={sala}>
+                    {sala}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -284,15 +323,20 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os serviços</SelectItem>
-                {servicos.map(servico => (
-                  <SelectItem key={servico} value={servico}>{servico}</SelectItem>
+                {servicos.map((servico) => (
+                  <SelectItem key={servico} value={servico}>
+                    {servico}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Botão para limpar filtros */}
-          {(searchTerm || statusFilter !== "todos" || salaFilter !== "todas" || servicoFilter !== "todos") && (
+          {(searchTerm ||
+            statusFilter !== "todos" ||
+            salaFilter !== "todas" ||
+            servicoFilter !== "todos") && (
             <div className="mt-4">
               <Button
                 variant="ghost"
@@ -328,7 +372,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
             <Card
               key={agendamento.id}
               className={`transition-all hover:shadow-lg cursor-pointer ${
-                agendamento.status === 'concluido' ? 'opacity-75' : ''
+                agendamento.status === "concluido" ? "opacity-75" : ""
               }`}
               onClick={() => onSelectPaciente(agendamento)}
             >
@@ -336,7 +380,9 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${getStatusColor(agendamento.status)}`}>
+                      <div
+                        className={`p-2 rounded-lg ${getStatusColor(agendamento.status)}`}
+                      >
                         {getStatusIcon(agendamento.status)}
                       </div>
                       <div>
@@ -353,14 +399,17 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
                         <span>
-                          {format(new Date(agendamento.inicio), "HH:mm", { locale: ptBR })}
-                          {agendamento.servicos?.duracao_minutos && 
-                            ` (${agendamento.servicos.duracao_minutos}min)`
-                          }
+                          {format(new Date(agendamento.inicio), "HH:mm", {
+                            locale: ptBR,
+                          })}
+                          {agendamento.servicos?.duracao_minutos &&
+                            ` (${agendamento.servicos.duracao_minutos}min)`}
                         </span>
                       </div>
                       {agendamento.sala && (
-                        <Badge variant="outline">Sala: {agendamento.sala}</Badge>
+                        <Badge variant="outline">
+                          Sala: {agendamento.sala}
+                        </Badge>
                       )}
                     </div>
 
@@ -376,7 +425,9 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
                       {getStatusLabel(agendamento.status)}
                     </Badge>
                     <Button size="sm" variant="default">
-                      {agendamento.status === 'concluido' ? 'Ver Prontuário' : 'Iniciar Atendimento'}
+                      {agendamento.status === "concluido"
+                        ? "Ver Prontuário"
+                        : "Iniciar Atendimento"}
                     </Button>
                   </div>
                 </div>

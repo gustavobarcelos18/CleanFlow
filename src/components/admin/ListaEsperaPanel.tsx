@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,11 +40,7 @@ export function ListaEsperaPanel() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -57,7 +53,9 @@ export function ListaEsperaPanel() {
       const [listaRes, pacientesRes, servicosRes] = await Promise.all([
         supabase
           .from("lista_espera" as any)
-          .select("*, pacientes(nome, telefone), procedimentos:servico_id(nome)")
+          .select(
+            "*, pacientes(nome, telefone), procedimentos:servico_id(nome)",
+          )
           .eq("tenant_id", profile.tenant_id)
           .eq("status", "ativo")
           .order("score_total", { ascending: false }),
@@ -84,7 +82,11 @@ export function ListaEsperaPanel() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -102,11 +104,18 @@ export function ListaEsperaPanel() {
         paciente_id: formData.get("paciente_id"),
         servico_id: formData.get("servico_id") || null,
         prioridade_clinica: formData.get("prioridade_clinica"),
-        proximidade_score: parseInt(formData.get("proximidade_score") as string),
-        probabilidade_comparecimento: parseInt(formData.get("probabilidade_comparecimento") as string),
+        proximidade_score: parseInt(
+          formData.get("proximidade_score") as string,
+        ),
+        probabilidade_comparecimento: parseInt(
+          formData.get("probabilidade_comparecimento") as string,
+        ),
         notas: formData.get("notas"),
         consentimento_ofertas: formData.get("consentimento_ofertas") === "on",
-        data_consentimento: formData.get("consentimento_ofertas") === "on" ? new Date().toISOString() : null,
+        data_consentimento:
+          formData.get("consentimento_ofertas") === "on"
+            ? new Date().toISOString()
+            : null,
       });
 
       if (error) throw error;
@@ -158,7 +167,11 @@ export function ListaEsperaPanel() {
       media: "secondary",
       baixa: "outline",
     };
-    return <Badge variant={colors[prioridade] as any}>{prioridade.toUpperCase()}</Badge>;
+    return (
+      <Badge variant={colors[prioridade] as any}>
+        {prioridade.toUpperCase()}
+      </Badge>
+    );
   };
 
   if (isLoading) {
@@ -235,28 +248,48 @@ export function ListaEsperaPanel() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Score Proximidade (0-100)</Label>
-                    <Input type="number" name="proximidade_score" defaultValue="50" min="0" max="100" />
+                    <Input
+                      type="number"
+                      name="proximidade_score"
+                      defaultValue="50"
+                      min="0"
+                      max="100"
+                    />
                   </div>
                   <div>
                     <Label>Probabilidade Comparecimento (0-100)</Label>
-                    <Input type="number" name="probabilidade_comparecimento" defaultValue="70" min="0" max="100" />
+                    <Input
+                      type="number"
+                      name="probabilidade_comparecimento"
+                      defaultValue="70"
+                      min="0"
+                      max="100"
+                    />
                   </div>
                 </div>
 
                 <div>
                   <Label>Notas</Label>
-                  <Textarea name="notas" placeholder="Observações clínicas..." />
+                  <Textarea
+                    name="notas"
+                    placeholder="Observações clínicas..."
+                  />
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <Switch name="consentimento_ofertas" id="consentimento" />
                   <Label htmlFor="consentimento">
-                    Paciente consentiu receber ofertas de vagas via WhatsApp (LGPD)
+                    Paciente consentiu receber ofertas de vagas via WhatsApp
+                    (LGPD)
                   </Label>
                 </div>
 
                 <div className="flex gap-2 justify-end">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit">Adicionar</Button>
@@ -282,10 +315,14 @@ export function ListaEsperaPanel() {
           <TableBody>
             {listaEspera.map((item) => (
               <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.pacientes?.nome}</TableCell>
+                <TableCell className="font-medium">
+                  {item.pacientes?.nome}
+                </TableCell>
                 <TableCell>{item.pacientes?.telefone}</TableCell>
                 <TableCell>{item.servicos?.nome || "Qualquer"}</TableCell>
-                <TableCell>{getPrioridadeBadge(item.prioridade_clinica)}</TableCell>
+                <TableCell>
+                  {getPrioridadeBadge(item.prioridade_clinica)}
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <TrendingUp className="h-4 w-4 text-primary" />

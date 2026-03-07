@@ -1,11 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, FileText, AlertCircle, CheckCircle, Calendar } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Loader2,
+  FileText,
+  AlertCircle,
+  CheckCircle,
+  Calendar,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Fatura {
   id: string;
@@ -41,14 +58,10 @@ export function InvoiceManagement() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const [itensFatura, setItensFatura] = useState<ItemFatura[]>([]);
 
-  useEffect(() => {
-    loadFaturas();
-  }, []);
-
-  const loadFaturas = async () => {
+  const loadFaturas = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from("faturas")
         .select("*, tenants(nome, email)")
@@ -64,7 +77,11 @@ export function InvoiceManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadFaturas();
+  }, [loadFaturas]);
 
   const loadItensFatura = async (faturaId: string) => {
     try {
@@ -93,7 +110,7 @@ export function InvoiceManagement() {
         .from("faturas")
         .update({
           status: "pago",
-          pago_em: new Date().toISOString()
+          pago_em: new Date().toISOString(),
         })
         .eq("id", faturaId);
 
@@ -105,7 +122,7 @@ export function InvoiceManagement() {
         action_type: "fatura_paga",
         target_type: "fatura",
         target_id: faturaId,
-        description: "Fatura marcada como paga manualmente"
+        description: "Fatura marcada como paga manualmente",
       });
 
       toast.success("Fatura marcada como paga!");
@@ -118,10 +135,22 @@ export function InvoiceManagement() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      pendente: { variant: "outline", icon: AlertCircle, color: "text-yellow-500" },
+      pendente: {
+        variant: "outline",
+        icon: AlertCircle,
+        color: "text-yellow-500",
+      },
       pago: { variant: "default", icon: CheckCircle, color: "text-green-500" },
-      atrasado: { variant: "destructive", icon: AlertCircle, color: "text-red-500" },
-      cancelado: { variant: "secondary", icon: AlertCircle, color: "text-gray-500" }
+      atrasado: {
+        variant: "destructive",
+        icon: AlertCircle,
+        color: "text-red-500",
+      },
+      cancelado: {
+        variant: "secondary",
+        icon: AlertCircle,
+        color: "text-gray-500",
+      },
     };
 
     const config = variants[status] || variants.pendente;
@@ -151,7 +180,9 @@ export function InvoiceManagement() {
             <FileText className="h-5 w-5" />
             Gerenciamento de Faturas
           </CardTitle>
-          <CardDescription>Visualize e gerencie todas as faturas dos clientes</CardDescription>
+          <CardDescription>
+            Visualize e gerencie todas as faturas dos clientes
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -166,19 +197,25 @@ export function InvoiceManagement() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="font-semibold">{fatura.numero_fatura}</span>
+                          <span className="font-semibold">
+                            {fatura.numero_fatura}
+                          </span>
                           {getStatusBadge(fatura.status)}
                         </div>
                         <div className="text-sm text-muted-foreground space-y-1">
                           <div>Cliente: {fatura.tenants?.nome || "N/A"}</div>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-3 w-3" />
-                            Vencimento: {new Date(fatura.data_vencimento).toLocaleDateString()}
+                            Vencimento:{" "}
+                            {new Date(
+                              fatura.data_vencimento,
+                            ).toLocaleDateString()}
                           </div>
                           <div className="font-semibold text-foreground">
                             Total: R$ {fatura.valor_total.toFixed(2)}
                             <span className="text-xs text-muted-foreground ml-2">
-                              (Plano: R$ {fatura.valor_plano.toFixed(2)} + Excedente: R$ {fatura.valor_excedente.toFixed(2)})
+                              (Plano: R$ {fatura.valor_plano.toFixed(2)} +
+                              Excedente: R$ {fatura.valor_excedente.toFixed(2)})
                             </span>
                           </div>
                         </div>
@@ -212,28 +249,45 @@ export function InvoiceManagement() {
 
       {/* Dialog de detalhes da fatura */}
       {selectedFatura && (
-        <Dialog open={!!selectedFatura} onOpenChange={() => setSelectedFatura(null)}>
+        <Dialog
+          open={!!selectedFatura}
+          onOpenChange={() => setSelectedFatura(null)}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Detalhes da Fatura {selectedFatura.numero_fatura}</DialogTitle>
+              <DialogTitle>
+                Detalhes da Fatura {selectedFatura.numero_fatura}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-muted-foreground">Cliente</div>
-                  <div className="font-semibold">{selectedFatura.tenants?.nome}</div>
+                  <div className="font-semibold">
+                    {selectedFatura.tenants?.nome}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Status</div>
                   <div>{getStatusBadge(selectedFatura.status)}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Data de Emissão</div>
-                  <div>{new Date(selectedFatura.data_emissao).toLocaleDateString()}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Data de Emissão
+                  </div>
+                  <div>
+                    {new Date(selectedFatura.data_emissao).toLocaleDateString()}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Vencimento</div>
-                  <div>{new Date(selectedFatura.data_vencimento).toLocaleDateString()}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Vencimento
+                  </div>
+                  <div>
+                    {new Date(
+                      selectedFatura.data_vencimento,
+                    ).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
 
@@ -241,15 +295,23 @@ export function InvoiceManagement() {
                 <h3 className="font-semibold mb-3">Itens da Fatura</h3>
                 <div className="space-y-2">
                   {itensFatura.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-center p-2 bg-muted/50 rounded"
+                    >
                       <div>
                         <div className="font-medium">{item.categoria}</div>
-                        <div className="text-sm text-muted-foreground">{item.descricao}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {item.descricao}
+                        </div>
                         <div className="text-xs text-muted-foreground">
-                          {item.quantidade} x R$ {item.preco_unitario.toFixed(6)}
+                          {item.quantidade} x R${" "}
+                          {item.preco_unitario.toFixed(6)}
                         </div>
                       </div>
-                      <div className="font-semibold">R$ {item.total.toFixed(2)}</div>
+                      <div className="font-semibold">
+                        R$ {item.total.toFixed(2)}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -157,7 +157,6 @@ const App = () => (
     <ThemeProvider defaultTheme="dark" storageKey="cleanflow-ui-theme">
       <TooltipProvider>
         <Toaster />
-        <Sonner />
         <BrowserRouter>
           <AuthProvider>
             <ThemeSync />
