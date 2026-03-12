@@ -68,6 +68,7 @@ const patientSchema = z.object({
 
 interface NewPatientDialogProps {
   onSuccess?: (patientId: string) => void;
+  inline?: boolean;
 }
 
 import { DynamicForm } from "@/components/common/DynamicForm";
@@ -75,7 +76,10 @@ import { useTerminology } from "@/stores/useSegmentStore";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 
-export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
+export function NewPatientDialog({
+  onSuccess,
+  inline = false,
+}: NewPatientDialogProps) {
   const t = useTerminology();
   const { profile } = useAuth();
   const { checkLimitAndToast } = usePlanLimits();
@@ -212,12 +216,27 @@ export function NewPatientDialog({ onSuccess }: NewPatientDialogProps) {
     }
   };
 
+  const trigger = inline ? (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={handleOpen}
+      className="h-auto p-0 text-xs text-primary font-medium hover:bg-transparent hover:text-primary/80 gap-1"
+    >
+      <Plus className="h-3 w-3" />
+      Novo {t.client_label}
+    </Button>
+  ) : (
+    <Button type="button" onClick={handleOpen}>
+      <Plus className="h-4 w-4 mr-2" />
+      Novo {t.client_label}
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button type="button" onClick={handleOpen}>
-        <Plus className="h-4 w-4 mr-2" />
-        Novo {t.client_label}
-      </Button>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">

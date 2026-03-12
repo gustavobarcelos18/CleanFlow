@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { NewProfessionalDialog } from "@/components/schedule/NewProfessionalDialog";
 import { EditProfessionalDialog } from "@/components/schedule/EditProfessionalDialog";
 import { DeleteProfessionalDialog } from "@/components/schedule/DeleteProfessionalDialog";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 
 interface Professional {
   id: string;
@@ -48,6 +49,7 @@ const Profissionais = () => {
     nome: string;
   } | null>(null);
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
 
   const fetchProfessionals = useCallback(async () => {
     try {
@@ -93,6 +95,13 @@ const Profissionais = () => {
     fetchProfessionals();
   }, [fetchProfessionals]);
 
+  useEffect(() => {
+    setTitle("Profissionais");
+    setSubtitle(
+      `Gerenciar cadastro de profissionais de saúde (${professionals.length})`,
+    );
+  }, [setTitle, setSubtitle, professionals.length]);
+
   const filteredProfessionals = professionals.filter(
     (p) =>
       p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,16 +112,7 @@ const Profissionais = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Profissionais
-            </h1>
-            <p className="text-muted-foreground">
-              Gerenciar cadastro de profissionais de saúde (
-              {professionals.length})
-            </p>
-          </div>
+        <div className="flex items-center justify-end">
           {!isLoading && professionals.length > 0 && (
             <div className="flex gap-2">
               <Button

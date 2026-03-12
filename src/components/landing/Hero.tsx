@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center bg-transparent">
+    <section className="relative flex items-center bg-transparent">
       {/* Background glow effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] md:w-[900px] h-[400px] md:h-[600px] bg-cyan-500/10 rounded-full blur-[100px] md:blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] md:bottom-[-20%] right-[-10%] md:right-0 w-[100%] md:w-[700px] h-[300px] md:h-[500px] bg-orange-500/10 rounded-full blur-[100px] md:blur-[120px] pointer-events-none" />
@@ -22,7 +22,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative landing-container py-16 md:py-24 3xl:py-36">
+      <div className="relative landing-container py-12 md:py-20 3xl:py-28">
         <div className="max-w-5xl 2xl:max-w-7xl mx-auto text-center space-y-8">
           {/* Main headline — escala fluida até ~96px em 4K */}
           <h1 className="headline-punch">

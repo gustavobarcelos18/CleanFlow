@@ -312,3 +312,9 @@ html {
   scrollbar-width: thin;
   scrollbar-color: rgba(150, 150, 150, 0.35) transparent;
 }
+
+/* Helper to disable all transitions during theme switching */
+.disable-transitions,
+.disable-transitions * {
+  transition: none !important;
+}

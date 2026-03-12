@@ -20,11 +20,21 @@ import {
   Filter,
   Search,
   Calendar,
+  Users,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useProfessionals } from "@/hooks/data/useProfessionals";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 import {
   format,
   addDays,
@@ -80,7 +90,15 @@ const Agenda = () => {
     useState(false);
   const [newAppointmentTime, setNewAppointmentTime] = useState("");
   const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
+  const [selectedProfessionalId, setSelectedProfessionalId] =
+    useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: professionalsData } = useProfessionals({ pageSize: 100 });
+  const professionals = professionalsData?.data || [];
+
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
 
   const {
     data: appointmentsData,
@@ -88,10 +106,14 @@ const Agenda = () => {
     refetch: refetchAppointments,
   } = useAgendaDia({
     date: selectedDate,
+    professionalId:
+      selectedProfessionalId === "all" ? undefined : selectedProfessionalId,
   });
 
   const { data: nextDayData, isLoading: isLoadingNextDay } = useAgendaDia({
     date: addDays(selectedDate, 1),
+    professionalId:
+      selectedProfessionalId === "all" ? undefined : selectedProfessionalId,
   });
 
   useEffect(() => {
@@ -121,6 +143,7 @@ const Agenda = () => {
           ordem: apt.ordem,
           inicio: apt.inicio,
           riskLevel: apt.no_show_risk_level,
+          profissional_id: apt.profissional_id,
         };
       });
 
@@ -137,6 +160,7 @@ const Agenda = () => {
           aptInicio,
           aptFim,
           formattedAppointments,
+          apt.profissional_id,
         );
 
         return {
@@ -176,6 +200,7 @@ const Agenda = () => {
           duration: safeDuration,
           ordem: apt.ordem,
           inicio: apt.inicio,
+          profissional_id: apt.profissional_id,
         };
       });
 
@@ -210,25 +235,27 @@ const Agenda = () => {
     };
   }, [selectedDate]);
 
+  // Configurar títulos no header
+  useEffect(() => {
+    setTitle(getPageTitle());
+    setSubtitle("Gerenciar consultas e horários");
+  }, [selectedDate, setTitle, setSubtitle]);
+
   // Recarregar dados ao trocar de visualização ou data
   // useEffect(() => {
   //   fetchAppointments();
   //   fetchNextDayAppointments();
   // }, [viewMode, selectedDate]);
 
-  const handlePreviousDay = () => {
-    setSelectedDate((prev) => subDays(prev, 1));
-  };
-
-  const handleNextDay = () => {
-    setSelectedDate((prev) => addDays(prev, 1));
-  };
-
   const handleNavigateToNextDay = () => {
     setSelectedDate((prev) => addDays(prev, 1));
   };
 
-  const handleToday = () => {
+  const handleNavigateToPreviousDay = () => {
+    setSelectedDate((prev) => subDays(prev, 1));
+  };
+
+  const handleGoToToday = () => {
     setSelectedDate(new Date());
   };
 
@@ -300,8 +327,12 @@ const Agenda = () => {
         const appFim = new Date(appInicio);
         appFim.setMinutes(appInicio.getMinutes() + app.duration);
 
-        // Verificar se há sobreposição
-        return newInicio < appFim && newFim > appInicio;
+        // Verificar se há sobreposição (apenas para o mesmo profissional)
+        return (
+          app.profissional_id === appointment.profissional_id &&
+          newInicio < appFim &&
+          newFim > appInicio
+        );
       });
 
       // Atualização otimista - atualizar UI imediatamente
@@ -373,6 +404,7 @@ const Agenda = () => {
           aptInicio,
           aptFim,
           adjustedAppointments,
+          apt.profissional_id,
         );
 
         return {
@@ -461,6 +493,7 @@ const Agenda = () => {
         newInicio,
         appointment.duration,
         appointments,
+        appointment.profissional_id,
       );
 
       // Se há ajustes necessários e o usuário não viu o aviso ainda
@@ -626,101 +659,88 @@ const Agenda = () => {
     }
   };
 
+  const filteredAppointments = appointmentsWithConflicts.filter((apt) =>
+    apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {getPageTitle()}
-            </h1>
-            <p className="text-muted-foreground">
-              Gerenciar consultas e horários
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handlePreviousDay}
-              title="Dia anterior"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <Popover
-              open={calendarPopoverOpen}
-              onOpenChange={setCalendarPopoverOpen}
-            >
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[200px]">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {format(selectedDate, "dd/MM/yyyy - EEEE", { locale: ptBR })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(date);
-                      setCalendarPopoverOpen(false);
-                    }
-                  }}
-                  initialFocus
-                  locale={ptBR}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleNextDay}
-              title="Próximo dia"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            {!isToday(selectedDate) && (
-              <Button variant="outline" onClick={handleToday}>
-                Hoje
+        <div className="flex items-center justify-between flex-wrap gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1 bg-muted p-1 rounded-lg">
+              <Button
+                variant={viewMode === "timeline" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("timeline")}
+                className="h-8"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Timeline
               </Button>
-            )}
+              <Button
+                variant={viewMode === "cards" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("cards")}
+                className="h-8"
+              >
+                Cards
+              </Button>
+            </div>
+
+            <div className="h-6 w-px bg-border mx-2" />
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleNavigateToPreviousDay}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleNavigateToNextDay}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "timeline" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("timeline")}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Timeline
-            </Button>
-            <Button
-              variant={viewMode === "cards" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("cards")}
-            >
-              Cards
-            </Button>
-          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar paciente..."
+                className="h-9 w-[200px] pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
-            </Button>
-            <Button variant="outline">
-              <Search className="h-4 w-4 mr-2" />
-              Buscar
-            </Button>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <Select
+                value={selectedProfessionalId}
+                onValueChange={setSelectedProfessionalId}
+              >
+                <SelectTrigger className="h-9 w-[180px]">
+                  <SelectValue placeholder="Profissional" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos Profissionais</SelectItem>
+                  {professionals.map((prof) => (
+                    <SelectItem key={prof.id} value={prof.id}>
+                      {prof.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <NewAppointmentDialog
               selectedDate={selectedDate}
               onSuccess={() => refetchAppointments()}
@@ -731,7 +751,7 @@ const Agenda = () => {
               }}
               selectedTime={newAppointmentTime}
             >
-              <Button>
+              <Button className="h-9 px-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Consulta
               </Button>
@@ -770,7 +790,7 @@ const Agenda = () => {
                     </p>
                   </div>
                   <DragSchedule
-                    appointments={appointmentsWithConflicts}
+                    appointments={filteredAppointments}
                     timeSlots={timeSlots}
                     onAppointmentMove={handleAppointmentMove}
                     viewMode="timeline"
@@ -790,7 +810,7 @@ const Agenda = () => {
                     </p>
                   </div>
                   <DragSchedule
-                    appointments={appointmentsWithConflicts}
+                    appointments={filteredAppointments}
                     timeSlots={[]}
                     onAppointmentMove={handleAppointmentMove}
                     onCardReorder={handleCardReorder}
@@ -812,7 +832,6 @@ const Agenda = () => {
                 onNavigate={handleNavigateToNextDay}
                 isLoading={isLoadingNextDay}
               />
-              <DigitalClock />
             </div>
           </div>
         )}
@@ -939,6 +958,11 @@ const Agenda = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Relógio Digital Fixo */}
+      <div className="fixed bottom-6 right-8 z-[100] hidden md:block">
+        <DigitalClock className="shadow-2xl border-primary/20 bg-background/80 backdrop-blur-md" />
+      </div>
     </MainLayout>
   );
 };

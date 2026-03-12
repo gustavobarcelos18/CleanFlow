@@ -14,9 +14,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import {
-  useSortable,
-} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { AppointmentCard } from "../dashboard/AppointmentCard";
@@ -26,7 +24,15 @@ interface Appointment {
   patientName: string;
   time: string;
   doctor: string;
-  status: "confirmed" | "pending" | "cancelled" | "completed" | "no-show" | "risk-high" | "risk-medium" | "risk-low";
+  status:
+    | "confirmed"
+    | "pending"
+    | "cancelled"
+    | "completed"
+    | "no-show"
+    | "risk-high"
+    | "risk-medium"
+    | "risk-low";
   phone?: string;
   duration: number;
 }
@@ -49,14 +55,14 @@ interface DragScheduleProps {
   selectedDate?: Date;
 }
 
-function SortableAppointmentCard({ 
-  appointment, 
+function SortableAppointmentCard({
+  appointment,
   viewMode = "timeline",
   onEdit,
   onDelete,
-  onResolveConflict
-}: { 
-  appointment: any; 
+  onResolveConflict,
+}: {
+  appointment: any;
   viewMode?: "timeline" | "cards";
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
@@ -85,7 +91,7 @@ function SortableAppointmentCard({
       className={cn(
         "cursor-grab active:cursor-grabbing",
         viewMode === "timeline" ? "w-full h-full" : "h-full",
-        isDragging && "opacity-50 z-50"
+        isDragging && "opacity-50 z-50",
       )}
     >
       <AppointmentCard
@@ -97,34 +103,31 @@ function SortableAppointmentCard({
         onResolveConflict={onResolveConflict}
         className={cn(
           viewMode === "timeline" && "mb-2 w-full",
-          viewMode === "cards" && "h-full"
+          viewMode === "cards" && "h-full",
         )}
       />
     </div>
   );
 }
 
-function DroppableTimeSlot({ 
-  timeSlot, 
-  appointment,
+function DroppableTimeSlot({
+  timeSlot,
+  appointments = [],
   onEdit,
   onDelete,
   onResolveConflict,
   onEmptySlotClick,
-  selectedDate
-}: { 
-  timeSlot: TimeSlot; 
-  appointment?: any;
+  selectedDate,
+}: {
+  timeSlot: TimeSlot;
+  appointments?: any[];
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onResolveConflict?: (id: string) => void;
   onEmptySlotClick?: (time: string) => void;
   selectedDate?: Date;
 }) {
-  const {
-    setNodeRef,
-    isOver,
-  } = useSortable({
+  const { setNodeRef, isOver } = useSortable({
     id: timeSlot.id,
   });
 
@@ -132,14 +135,14 @@ function DroppableTimeSlot({
   const isPastSlot = (() => {
     if (!selectedDate) return false;
     const now = new Date();
-    const [hours, minutes] = timeSlot.time.split(':').map(Number);
+    const [hours, minutes] = timeSlot.time.split(":").map(Number);
     const slotDateTime = new Date(selectedDate);
     slotDateTime.setHours(hours, minutes, 0, 0);
     return slotDateTime < now;
   })();
 
   const handleEmptySlotClick = () => {
-    if (!appointment && onEmptySlotClick && !isPastSlot) {
+    if (appointments.length === 0 && onEmptySlotClick && !isPastSlot) {
       onEmptySlotClick(timeSlot.time);
     }
   };
@@ -150,66 +153,89 @@ function DroppableTimeSlot({
       className={cn(
         "min-h-[80px] p-2 border border-dashed border-border rounded-lg transition-colors w-full",
         isOver && !isPastSlot && "border-primary bg-primary/10",
-        !appointment && !isPastSlot && "border-muted-foreground/30 cursor-pointer hover:border-primary hover:bg-primary/5",
-        !appointment && isPastSlot && "border-muted/20 bg-muted/5 cursor-not-allowed opacity-50"
+        appointments.length === 0 &&
+          !isPastSlot &&
+          "border-muted-foreground/30 cursor-pointer hover:border-primary hover:bg-primary/5",
+        appointments.length === 0 &&
+          isPastSlot &&
+          "border-muted/20 bg-muted/5 cursor-not-allowed opacity-50",
       )}
       onClick={handleEmptySlotClick}
     >
-      <div className={cn(
-        "text-sm font-medium mb-2",
-        isPastSlot ? "text-muted-foreground/50" : "text-muted-foreground"
-      )}>
+      <div
+        className={cn(
+          "text-sm font-medium mb-2",
+          isPastSlot ? "text-muted-foreground/50" : "text-muted-foreground",
+        )}
+      >
         {timeSlot.time}
       </div>
-      {appointment && (
-        <div className="w-full" onClick={(e) => e.stopPropagation()}>
-          <SortableAppointmentCard 
-            appointment={appointment} 
-            viewMode="timeline"
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onResolveConflict={onResolveConflict}
-          />
-        </div>
-      )}
-      {!appointment && (
-        <div className={cn(
-          "text-xs text-center py-4",
-          isPastSlot ? "text-muted-foreground/40" : "text-muted-foreground"
-        )}>
-          {isPastSlot ? "Horário passado" : "Clique para agendar"}
-        </div>
-      )}
+      <div
+        className={cn(
+          "flex flex-col gap-2 w-full",
+          appointments.length > 1 && "md:flex-row flex-wrap",
+        )}
+      >
+        {appointments.map((appointment) => (
+          <div
+            key={appointment.id}
+            className={cn(
+              "w-full h-full",
+              appointments.length > 1 && "md:flex-1 md:min-w-[280px]",
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SortableAppointmentCard
+              appointment={appointment}
+              viewMode="timeline"
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onResolveConflict={onResolveConflict}
+            />
+          </div>
+        ))}
+        {appointments.length === 0 && (
+          <div
+            className={cn(
+              "text-xs text-center py-4 w-full",
+              isPastSlot ? "text-muted-foreground/40" : "text-muted-foreground",
+            )}
+          >
+            {isPastSlot ? "Horário passado" : "Clique para agendar"}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-export function DragSchedule({ 
-  appointments, 
-  onAppointmentMove, 
-  timeSlots, 
+export function DragSchedule({
+  appointments,
+  onAppointmentMove,
+  timeSlots,
   viewMode = "timeline",
   onCardReorder,
   onEdit,
   onDelete,
   onResolveConflict,
   onEmptySlotClick,
-  selectedDate
+  selectedDate,
 }: DragScheduleProps & { onResolveConflict?: (id: string) => void }) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeAppointment, setActiveAppointment] = useState<Appointment | null>(null);
+  const [activeAppointment, setActiveAppointment] =
+    useState<Appointment | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
-    })
+    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-    const appointment = appointments.find(app => app.id === event.active.id);
+    const appointment = appointments.find((app) => app.id === event.active.id);
     setActiveAppointment(appointment || null);
   };
 
@@ -231,8 +257,8 @@ export function DragSchedule({
       // Modo timeline: mover para novo horário
       if (active.id !== over.id) {
         const appointmentId = active.id as string;
-        const newTimeSlot = timeSlots.find(slot => slot.id === over.id);
-        
+        const newTimeSlot = timeSlots.find((slot) => slot.id === over.id);
+
         if (newTimeSlot) {
           onAppointmentMove(appointmentId, newTimeSlot.time);
         }
@@ -245,9 +271,11 @@ export function DragSchedule({
 
   // Modo Timeline: slots com agendamentos
   if (viewMode === "timeline") {
-    const slotsWithAppointments = timeSlots.map(slot => {
-      const appointment = appointments.find(app => app.time === slot.time);
-      return { ...slot, appointment };
+    const slotsWithAppointments = timeSlots.map((slot) => {
+      const slotAppointments = appointments.filter(
+        (app) => app.time === slot.time,
+      );
+      return { ...slot, appointments: slotAppointments };
     });
 
     return (
@@ -258,7 +286,10 @@ export function DragSchedule({
         collisionDetection={closestCenter}
       >
         <SortableContext
-          items={[...timeSlots.map(slot => slot.id), ...appointments.map(app => app.id)]}
+          items={[
+            ...timeSlots.map((slot) => slot.id),
+            ...appointments.map((app) => app.id),
+          ]}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2 w-full">
@@ -266,7 +297,7 @@ export function DragSchedule({
               <DroppableTimeSlot
                 key={slot.id}
                 timeSlot={slot}
-                appointment={slot.appointment}
+                appointments={slot.appointments}
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onResolveConflict={onResolveConflict}
@@ -298,7 +329,7 @@ export function DragSchedule({
       collisionDetection={closestCenter}
     >
       <SortableContext
-        items={appointments.map(app => app.id)}
+        items={appointments.map((app) => app.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 export function FinalCTA() {
   return (
-    <section className="py-20 md:py-32 bg-[#070B12] relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-[#070B12] relative overflow-hidden">
       {/* Glow */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"

@@ -27,7 +27,7 @@ const passos = [
 export function HowItWorks() {
   return (
     <section
-      className="py-16 md:py-24 bg-transparent relative z-10"
+      className="py-12 md:py-16 bg-transparent relative z-10"
       id="como-funciona"
     >
       <div className="container mx-auto px-4">

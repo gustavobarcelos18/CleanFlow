@@ -40,16 +40,30 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      localStorage.setItem(`${storageKey}-updated-at`, Date.now().toString());
-      setTheme(theme);
-    },
-    toggleTheme: () => {
-      const newTheme = theme === "light" ? "dark" : "light";
+    setTheme: (newTheme: Theme) => {
+      const root = window.document.documentElement;
+      root.classList.add("disable-transitions");
+
       localStorage.setItem(storageKey, newTheme);
       localStorage.setItem(`${storageKey}-updated-at`, Date.now().toString());
       setTheme(newTheme);
+
+      window.setTimeout(() => {
+        root.classList.remove("disable-transitions");
+      }, 0);
+    },
+    toggleTheme: () => {
+      const newTheme = theme === "light" ? "dark" : "light";
+      const root = window.document.documentElement;
+      root.classList.add("disable-transitions");
+
+      localStorage.setItem(storageKey, newTheme);
+      localStorage.setItem(`${storageKey}-updated-at`, Date.now().toString());
+      setTheme(newTheme);
+
+      window.setTimeout(() => {
+        root.classList.remove("disable-transitions");
+      }, 0);
     },
   };
 

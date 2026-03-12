@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -362,8 +364,14 @@ export function SupportChatWidget() {
     localStorage.removeItem("cleanflow_guest_ticket");
   };
 
+  const location = useLocation();
+  const isLandingPage = location.pathname === "/";
+
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-4">
+    <div className={cn(
+      "fixed right-6 z-40 flex flex-col items-end gap-4 transition-all duration-300",
+      isLandingPage ? "bottom-6" : "bottom-20"
+    )}>
       {isOpen && (
         <Card className="w-[350px] h-[500px] shadow-2xl border-blue-500/20 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
           <CardHeader

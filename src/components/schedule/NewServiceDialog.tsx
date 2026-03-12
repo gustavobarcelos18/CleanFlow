@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
+import { formatCurrencyBRL, parseCurrencyToNumber } from "@/lib/currency";
 
 interface NewServiceDialogProps {
   onSuccess?: (serviceId: string) => void;
@@ -121,7 +122,7 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
       return;
     }
 
-    const preco = formData.preco ? parseFloat(formData.preco) : null;
+    const preco = formData.preco ? parseCurrencyToNumber(formData.preco) : null;
     if (preco !== null && (isNaN(preco) || preco < 0)) {
       toast({
         title: "Preço inválido",
@@ -265,14 +266,15 @@ export function NewServiceDialog({ onSuccess }: NewServiceDialogProps) {
               <Label htmlFor="preco">Preço (R$)</Label>
               <Input
                 id="preco"
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
                 value={formData.preco}
                 onChange={(e) =>
-                  setFormData({ ...formData, preco: e.target.value })
+                  setFormData({
+                    ...formData,
+                    preco: formatCurrencyBRL(e.target.value),
+                  })
                 }
-                placeholder="150.00"
+                placeholder="R$ 0,00"
               />
             </div>
           </div>

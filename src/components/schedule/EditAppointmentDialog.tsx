@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { PatientCombobox } from "./PatientCombobox";
 import { ProfessionalCombobox } from "./ProfessionalCombobox";
 import { PackageUsageNotification } from "@/components/pacotes/PackageUsageNotification";
+import { formatCurrencyBRL, parseCurrencyToNumber } from "@/lib/currency";
 
 interface EditAppointmentDialogProps {
   children: React.ReactNode;
@@ -146,7 +147,9 @@ export function EditAppointmentDialog({
         status: data.status || "agendado",
         tipo_atendimento: data.tipo_atendimento || "particular",
         plano_saude_id: data.plano_saude_id || "",
-        valor_consulta: data.valor_consulta?.toString() || "",
+        valor_consulta: data.valor_consulta
+          ? formatCurrencyBRL(data.valor_consulta)
+          : "",
         forma_pagamento_id: data.forma_pagamento_id || "",
         conta_pix_id: data.conta_pix_id || "",
       });
@@ -346,7 +349,7 @@ export function EditAppointmentDialog({
             ? formData.plano_saude_id || null
             : null;
         updateData.valor_consulta = formData.valor_consulta
-          ? parseFloat(formData.valor_consulta)
+          ? parseCurrencyToNumber(formData.valor_consulta)
           : null;
         updateData.forma_pagamento_id =
           formData.tipo_atendimento === "particular"
@@ -634,13 +637,12 @@ export function EditAppointmentDialog({
                   <div className="space-y-1.5">
                     <Label>Valor da Consulta</Label>
                     <Input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       value={formData.valor_consulta}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          valor_consulta: e.target.value,
+                          valor_consulta: formatCurrencyBRL(e.target.value),
                         })
                       }
                       placeholder="R$ 0,00"

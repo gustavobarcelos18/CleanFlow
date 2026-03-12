@@ -32,7 +32,7 @@ const faqs = [
 
 export function FAQ() {
   return (
-    <section className="py-16 md:py-24 bg-[#070B12]" id="faq">
+    <section className="py-12 md:py-16 bg-[#070B12]" id="faq">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           {/* Header */}

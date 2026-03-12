@@ -157,7 +157,7 @@ export function DashboardOverview() {
         generatedAlerts.push({
           type: "risk-high",
           title: "Alto Risco de Falta",
-          message: `${highRiskApt.pacientes?.nome} (${format(new Date(highRiskApt.inicio), "HH:mm")}) tem históico de ${highRiskApt.pacientes?.historico_faltas || 0} faltas recentes.`,
+          message: `${highRiskApt.pacientes?.nome} (${format(new Date(highRiskApt.inicio), "HH:mm")}) tem histórico de ${highRiskApt.pacientes?.historico_faltas || 0} faltas recentes.`,
           actions: ["Ligar Agora", "Enviar WhatsApp"],
         });
       }
@@ -216,50 +216,47 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-8">
-      {/* Stats Grid - Only show when there's data */}
-      {todayStats.totalAppointments > 0 && (
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
-          data-tour="dashboard-stats"
-        >
-          <StatsCard
-            title="Total Hoje"
-            value={todayStats.totalAppointments}
-            icon={Calendar}
-            variant="default"
-          />
-          <StatsCard
-            title="Confirmados"
-            value={todayStats.confirmed}
-            icon={CheckCircle}
-            variant="success"
-          />
-          <StatsCard
-            title="Pendentes"
-            value={todayStats.pending}
-            icon={Clock}
-            variant="warning"
-          />
-          <StatsCard
-            title="Realizados"
-            value={todayStats.completed}
-            icon={Users}
-            variant="success"
-          />
-          <StatsCard
-            title="Faltas"
-            value={todayStats.noShows}
-            icon={AlertTriangle}
-            variant="destructive"
-          />
-          <StatsCard
-            title="Lista Espera"
-            value={todayStats.waitingList}
-            icon={MessageSquare}
-            variant="default"
-          />
-        </div>
-      )}
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
+        data-tour="dashboard-stats"
+      >
+        <StatsCard
+          title="Total Hoje"
+          value={todayStats.totalAppointments}
+          icon={Calendar}
+          variant="default"
+        />
+        <StatsCard
+          title="Confirmados"
+          value={todayStats.confirmed}
+          icon={CheckCircle}
+          variant="success"
+        />
+        <StatsCard
+          title="Pendentes"
+          value={todayStats.pending}
+          icon={Clock}
+          variant="warning"
+        />
+        <StatsCard
+          title="Realizados"
+          value={todayStats.completed}
+          icon={Users}
+          variant="success"
+        />
+        <StatsCard
+          title="Faltas"
+          value={todayStats.noShows}
+          icon={AlertTriangle}
+          variant="destructive"
+        />
+        <StatsCard
+          title="Lista Espera"
+          value={todayStats.waitingList}
+          icon={MessageSquare}
+          variant="default"
+        />
+      </div>
 
       {/* Próximas Consultas e WhatsApp Credits */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

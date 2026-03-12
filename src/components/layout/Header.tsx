@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { startOfDay, endOfDay } from "date-fns";
 import { User, Calendar, Clock, Users, LogOut } from "lucide-react";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 
 interface HeaderProps {
   className?: string;
@@ -24,6 +25,7 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const { user, profile, signOut } = useAuth();
+  const { title, subtitle } = useLayoutTitle();
   const [stats, setStats] = useState({
     today: 0,
     pending: 0,
@@ -127,6 +129,20 @@ export function Header({ className }: HeaderProps) {
                 </div>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Dynamic Center Title */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 animate-in fade-in slide-in-from-top-2 duration-500">
+          {title && (
+            <h1 className="text-2xl font-black text-foreground tracking-tight leading-none">
+              {title}
+            </h1>
+          )}
+          {subtitle && (
+            <p className="text-[11px] text-muted-foreground font-medium mt-1 uppercase tracking-[0.2em] opacity-70">
+              {subtitle}
+            </p>
           )}
         </div>
 

@@ -38,7 +38,7 @@ const objecoes = [
 
 export function Testimonials() {
   return (
-    <section className="py-16 md:py-24 bg-[#070B12]" id="depoimentos">
+    <section className="py-12 md:py-16 bg-[#070B12]" id="depoimentos">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           {/* Header */}

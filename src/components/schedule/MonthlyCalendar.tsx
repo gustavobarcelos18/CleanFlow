@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+} from "lucide-react";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  isSameMonth,
+  addMonths,
+  subMonths,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  subDays,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +36,11 @@ interface MonthlyCalendarProps {
   className?: string;
 }
 
-export function MonthlyCalendar({ selectedDate, onDateSelect, className }: MonthlyCalendarProps) {
+export function MonthlyCalendar({
+  selectedDate,
+  onDateSelect,
+  className,
+}: MonthlyCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(selectedDate);
   const [dayStats, setDayStats] = useState<DayStats[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,33 +55,36 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
       const monthEnd = endOfMonth(currentMonth);
 
       const { data, error } = await supabase
-        .from('agenda')
-        .select('inicio, id')
-        .gte('inicio', monthStart.toISOString())
-        .lte('inicio', monthEnd.toISOString());
+        .from("agenda")
+        .select("inicio, id")
+        .gte("inicio", monthStart.toISOString())
+        .lte("inicio", monthEnd.toISOString());
 
       if (error) throw error;
 
       // Agrupar por dia
       const statsByDay = new Map<string, number>();
-      
+
       (data || []).forEach((apt) => {
         const aptDate = new Date(apt.inicio);
-        const dateKey = format(aptDate, 'yyyy-MM-dd');
+        const dateKey = format(aptDate, "yyyy-MM-dd");
         statsByDay.set(dateKey, (statsByDay.get(dateKey) || 0) + 1);
       });
 
       // Criar array de estatísticas
-      const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-      const stats: DayStats[] = daysInMonth.map(day => ({
+      const daysInMonth = eachDayOfInterval({
+        start: monthStart,
+        end: monthEnd,
+      });
+      const stats: DayStats[] = daysInMonth.map((day) => ({
         date: day,
-        appointmentCount: statsByDay.get(format(day, 'yyyy-MM-dd')) || 0,
-        maxCapacity: MAX_APPOINTMENTS_PER_DAY
+        appointmentCount: statsByDay.get(format(day, "yyyy-MM-dd")) || 0,
+        maxCapacity: MAX_APPOINTMENTS_PER_DAY,
       }));
 
       setDayStats(stats);
     } catch (error) {
-      console.error('Erro ao buscar estatísticas do mês:', error);
+      console.error("Erro ao buscar estatísticas do mês:", error);
     } finally {
       setIsLoading(false);
     }
@@ -78,11 +102,11 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
   }, [selectedDate]);
 
   const handlePreviousMonth = () => {
-    setCurrentMonth(prev => subMonths(prev, 1));
+    setCurrentMonth((prev) => subMonths(prev, 1));
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth(prev => addMonths(prev, 1));
+    setCurrentMonth((prev) => addMonths(prev, 1));
   };
 
   const handleToday = () => {
@@ -107,9 +131,12 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
   const monthEnd = endOfMonth(currentMonth);
   const calendarStart = startOfWeek(monthStart, { locale: ptBR });
   const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  const calendarDays = eachDayOfInterval({
+    start: calendarStart,
+    end: calendarEnd,
+  });
 
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   return (
     <Card className={cn("", className)}>
@@ -138,14 +165,34 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
             </Button>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleToday}
-          className="w-full mt-2"
-        >
-          Hoje
-        </Button>
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => onDateSelect(subDays(selectedDate, 1))}
+            title="Dia anterior"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleToday}
+            className="flex-1"
+          >
+            Hoje
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => onDateSelect(addDays(selectedDate, 1))}
+            title="Próximo dia"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="pt-0">
@@ -170,7 +217,7 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
             {/* Grid de dias */}
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((day) => {
-                const stats = dayStats.find(s => isSameDay(s.date, day));
+                const stats = dayStats.find((s) => isSameDay(s.date, day));
                 const isCurrentMonth = isSameMonth(day, currentMonth);
                 const isSelected = isSameDay(day, selectedDate);
                 const isToday = isSameDay(day, new Date());
@@ -187,16 +234,22 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
                       isCurrentMonth && stats && getDayColor(stats),
                       !isCurrentMonth && "bg-muted/30 hover:bg-muted/50",
                       isSelected && "ring-2 ring-primary ring-offset-2",
-                      isToday && !isSelected && "ring-1 ring-primary/50",
-                      "hover:scale-105 active:scale-95"
+                      isToday &&
+                        "border-2 border-primary font-bold shadow-sm z-10",
+                      isToday && !isSelected && "scale-105",
+                      "hover:scale-105 active:scale-95",
                     )}
                   >
-                    <span className={cn(
-                      "font-medium",
-                      isCurrentMonth ? "text-foreground" : "text-muted-foreground",
-                      isToday && "font-bold"
-                    )}>
-                      {format(day, 'd')}
+                    <span
+                      className={cn(
+                        "font-medium",
+                        isCurrentMonth
+                          ? "text-foreground"
+                          : "text-muted-foreground",
+                        isToday && "font-bold",
+                      )}
+                    >
+                      {format(day, "d")}
                     </span>
                     {stats && stats.appointmentCount > 0 && (
                       <span className="text-[10px] font-semibold mt-0.5">
@@ -210,7 +263,9 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
 
             {/* Legenda */}
             <div className="mt-4 pt-4 border-t space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">Legenda:</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">
+                Legenda:
+              </p>
               <div className="flex items-center gap-2 text-xs">
                 <div className="h-4 w-4 rounded bg-green-500/20 border border-green-500/50"></div>
                 <span className="text-muted-foreground">Livre</span>
@@ -221,7 +276,9 @@ export function MonthlyCalendar({ selectedDate, onDateSelect, className }: Month
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <div className="h-4 w-4 rounded bg-red-500/20 border border-red-500/50"></div>
-                <span className="text-muted-foreground">Lotado ({MAX_APPOINTMENTS_PER_DAY}+)</span>
+                <span className="text-muted-foreground">
+                  Lotado ({MAX_APPOINTMENTS_PER_DAY}+)
+                </span>
               </div>
             </div>
           </>

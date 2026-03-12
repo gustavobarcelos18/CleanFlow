@@ -19,6 +19,7 @@ import {
   Stethoscope,
   ClipboardList,
   History,
+  Calendar,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -321,32 +322,53 @@ export function ProntuarioAtendimento({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-6 rounded-2xl border border-border shadow-sm mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <ArrowLeft className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="rounded-full hover:bg-muted transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold">{pacienteInfo?.nome}</h2>
-            <p className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-2xl font-black tracking-tight text-foreground">
+                {pacienteInfo?.nome}
+              </h2>
+              <Badge
+                variant="outline"
+                className="bg-primary/5 text-primary border-primary/20 text-[10px] uppercase font-bold tracking-widest px-2"
+              >
+                Em Atendimento
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+              <Clock className="h-4 w-4" />
               {format(
                 new Date(agendamento.inicio),
                 "dd 'de' MMMM 'de' yyyy 'às' HH:mm",
                 { locale: ptBR },
               )}
-            </p>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
             onClick={() => handleSave(false)}
             disabled={loading}
+            className="h-11 px-6 border-border/50 hover:bg-muted font-bold uppercase tracking-widest text-[11px] transition-all"
           >
             <Save className="h-4 w-4 mr-2" />
             Salvar Rascunho
           </Button>
-          <Button onClick={() => handleSave(true)} disabled={loading}>
+          <Button
+            onClick={() => handleSave(true)}
+            disabled={loading}
+            className="h-11 px-6 shadow-lg shadow-primary/20 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-95"
+          >
             <FileCheck className="h-4 w-4 mr-2" />
             Finalizar Atendimento
           </Button>
@@ -360,27 +382,32 @@ export function ProntuarioAtendimento({
         proximoAtendimento={proximoAgendamento}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="border-none shadow-sm bg-card overflow-hidden">
+        <CardHeader className="bg-muted/10 border-b border-border/50">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold italic text-primary uppercase tracking-tighter">
             <Activity className="h-5 w-5" />
-            Dados Vitais
+            Monitoramento de Sinais Vitais
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <Label>Pressão Arterial</Label>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Pressão (mmHg)
+              </Label>
               <Input
                 placeholder="120/80"
                 value={formData.pressao_arterial}
                 onChange={(e) =>
                   handleInputChange("pressao_arterial", e.target.value)
                 }
+                className="bg-muted/30 border-none font-medium text-center"
               />
             </div>
-            <div>
-              <Label>FC (bpm)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                FC (bpm)
+              </Label>
               <Input
                 type="number"
                 placeholder="72"
@@ -388,10 +415,13 @@ export function ProntuarioAtendimento({
                 onChange={(e) =>
                   handleInputChange("frequencia_cardiaca", e.target.value)
                 }
+                className="bg-muted/30 border-none font-medium text-center"
               />
             </div>
-            <div>
-              <Label>Temperatura (°C)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Temp. (°C)
+              </Label>
               <Input
                 type="number"
                 step="0.1"
@@ -400,10 +430,13 @@ export function ProntuarioAtendimento({
                 onChange={(e) =>
                   handleInputChange("temperatura", e.target.value)
                 }
+                className="bg-muted/30 border-none font-medium text-center"
               />
             </div>
-            <div>
-              <Label>SpO2 (%)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                SpO2 (%)
+              </Label>
               <Input
                 type="number"
                 placeholder="98"
@@ -411,35 +444,42 @@ export function ProntuarioAtendimento({
                 onChange={(e) =>
                   handleInputChange("saturacao_o2", e.target.value)
                 }
+                className="bg-muted/30 border-none font-medium text-center"
               />
             </div>
-            <div>
-              <Label>Peso (kg)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Peso (kg)
+              </Label>
               <Input
                 type="number"
                 step="0.01"
                 placeholder="70"
                 value={formData.peso}
                 onChange={(e) => handleInputChange("peso", e.target.value)}
+                className="bg-muted/30 border-none font-medium text-center"
               />
             </div>
-            <div>
-              <Label>Altura (m)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Altura (m)
+              </Label>
               <Input
                 type="number"
                 step="0.01"
                 placeholder="1.75"
                 value={formData.altura}
                 onChange={(e) => handleInputChange("altura", e.target.value)}
+                className="bg-muted/30 border-none font-medium text-center"
               />
             </div>
-            <div>
-              <Label>IMC</Label>
-              <Input
-                value={calcularIMC() || "—"}
-                disabled
-                className="bg-muted"
-              />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                IMC
+              </Label>
+              <div className="h-10 bg-primary/5 rounded-md flex items-center justify-center font-black text-primary border border-primary/10 shadow-inner">
+                {calcularIMC() || "—"}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -463,304 +503,207 @@ export function ProntuarioAtendimento({
           </TabsTrigger>
         </TabsList>
 
-        {isPrimeiraConsulta && (
-          <TabsContent value="anamnese" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Anamnese - Primeira Consulta</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Queixa Principal</Label>
-                  <Textarea
-                    placeholder="Motivo da consulta..."
-                    value={formData.queixa_principal}
-                    onChange={(e) =>
-                      handleInputChange("queixa_principal", e.target.value)
-                    }
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label>História da Doença Atual</Label>
-                  <Textarea
-                    placeholder="Descreva a evolução dos sintomas..."
-                    value={formData.historia_doenca_atual}
-                    onChange={(e) =>
-                      handleInputChange("historia_doenca_atual", e.target.value)
-                    }
-                    rows={4}
-                  />
-                </div>
-                <div>
-                  <Label>História Patológica Pregressa</Label>
-                  <Textarea
-                    placeholder="Doenças anteriores, cirurgias, internações..."
-                    value={formData.historia_pregressa}
-                    onChange={(e) =>
-                      handleInputChange("historia_pregressa", e.target.value)
-                    }
-                    rows={3}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Alergias</Label>
-                    <Textarea
-                      placeholder="Medicamentos, alimentos..."
-                      value={formData.alergias.join(", ")}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "alergias",
-                          e.target.value
-                            .split(",")
-                            .map((s) => s.trim())
-                            .filter(Boolean),
-                        )
-                      }
-                      rows={2}
-                    />
-                  </div>
-                  <div>
-                    <Label>Medicamentos em Uso</Label>
-                    <Textarea
-                      placeholder="Liste os medicamentos atuais..."
-                      value={formData.medicamentos_uso.join(", ")}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "medicamentos_uso",
-                          e.target.value
-                            .split(",")
-                            .map((s) => s.trim())
-                            .filter(Boolean),
-                        )
-                      }
-                      rows={2}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label>História Familiar</Label>
-                  <Textarea
-                    placeholder="Doenças na família..."
-                    value={formData.historia_familiar}
-                    onChange={(e) =>
-                      handleInputChange("historia_familiar", e.target.value)
-                    }
-                    rows={2}
-                  />
-                </div>
-                <div>
-                  <Label>História Social</Label>
-                  <Textarea
-                    placeholder="Hábitos, profissão, estilo de vida..."
-                    value={formData.historia_social}
-                    onChange={(e) =>
-                      handleInputChange("historia_social", e.target.value)
-                    }
-                    rows={2}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        <TabsContent value="soap" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Registro SOAP</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>S - Subjetivo</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Queixas e sintomas relatados pelo paciente
-                </p>
-                <Textarea
-                  placeholder="Paciente relata..."
-                  value={formData.subjetivo}
-                  onChange={(e) =>
-                    handleInputChange("subjetivo", e.target.value)
-                  }
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label>O - Objetivo</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Achados do exame físico e dados objetivos
-                </p>
-                <Textarea
-                  placeholder="Ao exame físico..."
-                  value={formData.objetivo}
-                  onChange={(e) =>
-                    handleInputChange("objetivo", e.target.value)
-                  }
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label>A - Avaliação</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Impressão diagnóstica e raciocínio clínico
-                </p>
-                <Textarea
-                  placeholder="Hipótese diagnóstica..."
-                  value={formData.avaliacao}
-                  onChange={(e) =>
-                    handleInputChange("avaliacao", e.target.value)
-                  }
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label>P - Plano</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Conduta terapêutica e orientações
-                </p>
-                <Textarea
-                  placeholder="Prescrições, exames, orientações..."
-                  value={formData.plano}
-                  onChange={(e) => handleInputChange("plano", e.target.value)}
-                  rows={5}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>CID-10 Principal</Label>
-                  <Input
-                    placeholder="Ex: J00"
-                    value={formData.cid10_principal}
-                    onChange={(e) =>
-                      handleInputChange("cid10_principal", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Hipótese Diagnóstica</Label>
-                  <Input
-                    placeholder="Ex: Rinofaringite aguda"
-                    value={formData.hipotese_diagnostica}
-                    onChange={(e) =>
-                      handleInputChange("hipotese_diagnostica", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Observações Adicionais</Label>
-                <Textarea
-                  placeholder="Informações complementares..."
-                  value={formData.observacoes}
-                  onChange={(e) =>
-                    handleInputChange("observacoes", e.target.value)
-                  }
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label>Evolução do Quadro</Label>
-                <Textarea
-                  placeholder="Evolução desde o último atendimento..."
-                  value={formData.evolucao}
-                  onChange={(e) =>
-                    handleInputChange("evolucao", e.target.value)
-                  }
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="anamnese" className="space-y-8 mt-0 outline-none">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Queixa Principal
+              </Label>
+              <Textarea
+                placeholder="Relato principal do paciente..."
+                value={formData.queixa_principal}
+                onChange={(e) =>
+                  handleInputChange("queixa_principal", e.target.value)
+                }
+                className="bg-muted/30 border-none min-h-[120px] resize-none leading-relaxed"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                História da Doença
+              </Label>
+              <Textarea
+                placeholder="Desenvolvimento dos sintomas..."
+                value={formData.historia_doenca_atual}
+                onChange={(e) =>
+                  handleInputChange("historia_doenca_atual", e.target.value)
+                }
+                className="bg-muted/30 border-none min-h-[120px] resize-none leading-relaxed"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Antecedentes Pessoais
+              </Label>
+              <Textarea
+                placeholder="Doenças prévias, cirurgias..."
+                value={formData.historia_pregressa}
+                onChange={(e) =>
+                  handleInputChange("historia_pregressa", e.target.value)
+                }
+                className="bg-muted/30 border-none min-h-[120px] resize-none leading-relaxed"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Medicamentos em Uso
+              </Label>
+              <Textarea
+                placeholder="Lista de medicamentos e dosagens..."
+                value={formData.medicamentos_uso.join(", ")}
+                onChange={(e) =>
+                  handleInputChange(
+                    "medicamentos_uso",
+                    e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  )
+                }
+                className="bg-muted/30 border-none min-h-[120px] resize-none leading-relaxed"
+              />
+            </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="historico">
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico de Atendimentos</CardTitle>
+        <TabsContent value="soap" className="space-y-8 mt-0 outline-none">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3 group">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Subjetivo (S)
+              </Label>
+              <Textarea
+                placeholder="Sintomas relatados pelo paciente, queixa principal..."
+                value={formData.subjetivo}
+                onChange={(e) => handleInputChange("subjetivo", e.target.value)}
+                rows={6}
+                className="bg-muted/30 border-none focus-visible:ring-primary/20 min-h-[180px] resize-none leading-relaxed"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Objetivo (O)
+              </Label>
+              <Textarea
+                placeholder="Observações clínicas objetivas, exame físico..."
+                value={formData.objetivo}
+                onChange={(e) => handleInputChange("objetivo", e.target.value)}
+                rows={6}
+                className="bg-muted/30 border-none focus-visible:ring-primary/20 min-h-[180px] resize-none leading-relaxed"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Avaliação (A)
+              </Label>
+              <Textarea
+                placeholder="Avaliação clínica, diagnóstico, impressão..."
+                value={formData.avaliacao}
+                onChange={(e) => handleInputChange("avaliacao", e.target.value)}
+                rows={6}
+                className="bg-muted/30 border-none focus-visible:ring-primary/20 min-h-[180px] resize-none leading-relaxed"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Plano (P)
+              </Label>
+              <Textarea
+                placeholder="Plano terapêutico, orientações, conduta..."
+                value={formData.plano}
+                onChange={(e) => handleInputChange("plano", e.target.value)}
+                rows={6}
+                className="bg-muted/30 border-none focus-visible:ring-primary/20 min-h-[180px] resize-none leading-relaxed"
+              />
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-border/50">
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                Observações Adicionais & Evolução do Quadro
+              </Label>
+              <Textarea
+                placeholder="Notas internas, evolução clínica geral..."
+                value={formData.evolucao}
+                onChange={(e) => handleInputChange("evolucao", e.target.value)}
+                className="bg-muted/20 border-border/50 min-h-[100px] resize-none"
+              />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="historico" className="space-y-6 outline-none">
+          <Card className="border border-border/50 shadow-sm overflow-hidden bg-card/50">
+            <CardHeader className="bg-muted/30 border-b border-border/30">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                Histórico de Atendimentos
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {historicoLoading ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Carregando histórico...
-                </p>
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
               ) : historico.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Nenhum atendimento anterior registrado
-                </p>
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-muted/5 rounded-lg border border-dashed border-border/50">
+                  <History className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm font-medium">
+                    Primeira consulta registrada
+                  </p>
+                </div>
               ) : (
-                <ScrollArea className="h-[500px]">
+                <ScrollArea className="h-[500px] pr-4">
                   <div className="space-y-4">
-                    {historico.map((registro) => (
+                    {historico.map((record: any) => (
                       <Card
-                        key={registro.id}
-                        className="border-l-4 border-l-primary"
+                        key={record.id}
+                        className="border border-border/50 shadow-sm bg-card hover:bg-muted/5 transition-colors"
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">
-                                {format(
-                                  new Date(registro.data_atendimento),
-                                  "dd/MM/yyyy 'às' HH:mm",
-                                  { locale: ptBR },
-                                )}
-                              </span>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground italic">
+                              <Calendar className="h-3 w-3" />
+                              {format(
+                                new Date(record.data_atendimento),
+                                "dd/MM/yyyy 'às' HH:mm",
+                                { locale: ptBR },
+                              )}
                             </div>
                             <Badge
-                              variant={
-                                registro.status === "finalizado"
-                                  ? "default"
-                                  : "secondary"
-                              }
+                              variant="outline"
+                              className="text-[10px] uppercase bg-success/5 text-success border-success/20"
                             >
-                              {registro.status}
+                              Finalizado
                             </Badge>
                           </div>
-
-                          {registro.subjetivo && (
-                            <div className="mb-2">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Subjetivo:
+                          {record.avaliacao && (
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary/70 mb-1">
+                                Avaliação
                               </p>
-                              <p className="text-sm">{registro.subjetivo}</p>
+                              <p className="text-sm text-foreground/90 line-clamp-3">
+                                {record.avaliacao}
+                              </p>
                             </div>
                           )}
-
-                          {registro.avaliacao && (
-                            <div className="mb-2">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Avaliação:
+                          {record.plano && (
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary/70 mb-1 border-t border-border/30 pt-2">
+                                Plano
                               </p>
-                              <p className="text-sm">{registro.avaliacao}</p>
-                            </div>
-                          )}
-
-                          {registro.plano && (
-                            <div className="mb-2">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Plano:
+                              <p className="text-sm text-foreground/90">
+                                {record.plano}
                               </p>
-                              <p className="text-sm">{registro.plano}</p>
-                            </div>
-                          )}
-
-                          {registro.cid10_principal && (
-                            <div className="mt-3 pt-3 border-t">
-                              <Badge variant="outline">
-                                CID-10: {registro.cid10_principal}
-                                {registro.hipotese_diagnostica &&
-                                  ` - ${registro.hipotese_diagnostica}`}
-                              </Badge>
                             </div>
                           )}
                         </CardContent>

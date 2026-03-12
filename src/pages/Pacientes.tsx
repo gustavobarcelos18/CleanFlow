@@ -1,48 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Search,
-  Filter,
-  Phone,
-  Mail,
-  MessageSquare,
-  AlertTriangle,
-  User,
-  Loader2,
-  Trash2,
-} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { NewPatientDialog } from "@/components/schedule/NewPatientDialog";
-import { EditPatientDialog } from "@/components/schedule/EditPatientDialog";
-import { VincularPacoteDialog } from "@/components/pacotes/VincularPacoteDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTerminology } from "@/stores/useSegmentStore";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { NewPatientDialog } from "@/components/schedule/NewPatientDialog";
+import { EditPatientDialog } from "@/components/schedule/EditPatientDialog";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { validatePacienteDelete } from "@/lib/deleteValidation";
 
-interface Patient {
-  id: string;
-  nome: string;
-  telefone: string;
-  email: string | null;
-  preferencia_contato: "whatsapp" | "sms" | "email";
-  historico_faltas: number;
-  risco_no_show: number;
-  created_at: string;
-}
+// New Components
+import { PatientSummaryCards } from "@/components/patients/PatientSummaryCards";
+import { PatientFilters } from "@/components/patients/PatientFilters";
+import { PatientCard } from "@/components/patients/PatientCard";
+import { PatientCardSkeleton } from "@/components/patients/PatientCardSkeleton";
 
 const Pacientes = () => {
   const t = useTerminology();
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const { setTitle, setSubtitle } = useLayoutTitle();
+  const { toast } = useToast();
+
+  const [patients, setPatients] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
   const [editingId, setEditingId] = useState<string | null>(null);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
-  const { toast } = useToast();
+  const [patientToDelete, setPatientToDelete] = useState<any | null>(null);
 
   const fetchPatients = async () => {
     try {
@@ -54,7 +39,7 @@ const Pacientes = () => {
 
       if (error) throw error;
       setPatients(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao buscar pacientes:", error);
       toast({
         title: "Erro",
@@ -70,242 +55,184 @@ const Pacientes = () => {
     fetchPatients();
   }, []);
 
-  const getRiskLevel = (risco: number): "low" | "medium" | "high" => {
-    if (risco <= 30) return "low";
-    if (risco <= 70) return "medium";
-    return "high";
+  useEffect(() => {
+    setTitle(t.client_label + "s");
+    setSubtitle(`Gerenciamento de ${t.client_label.toLowerCase()}s`);
+  }, [setTitle, setSubtitle, t.client_label]);
+
+  const filteredPatients = useMemo(() => {
+    return patients.filter((p) => {
+      // Search logic
+      const matchesSearch =
+        p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.telefone?.includes(searchTerm) ||
+        p.cpf?.includes(searchTerm.replace(/\D/g, "")) ||
+        p.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Risk logic
+      const matchesRisk =
+        riskFilter === "all" ||
+        p.no_show_risk_level?.toLowerCase() === riskFilter.toLowerCase();
+
+      return matchesSearch && matchesRisk;
+    });
+  }, [patients, searchTerm, riskFilter]);
+
+  const handleDeleteClick = async (id: string) => {
+    const patient = patients.find((p) => p.id === id);
+    if (!patient) return;
+
+    try {
+      const validation = await validatePacienteDelete(id);
+
+      if (!validation.canDelete) {
+        toast({
+          title: "Não é possível excluir",
+          description: validation.message,
+          variant: "destructive",
+          duration: 10000,
+        });
+        return;
+      }
+
+      setPatientToDelete(patient);
+      setDeleteDialogOpen(true);
+    } catch (error) {
+      console.error("Erro ao validar exclusão:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao validar exclusão do paciente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const getRiskBadge = (level: "low" | "medium" | "high") => {
-    const config = {
-      low: {
-        label: "Baixo",
-        variant: "default" as const,
-        color: "text-success",
-      },
-      medium: {
-        label: "Médio",
-        variant: "secondary" as const,
-        color: "text-warning",
-      },
-      high: {
-        label: "Alto",
-        variant: "destructive" as const,
-        color: "text-destructive",
-      },
-    };
-    return config[level as keyof typeof config];
-  };
+  const confirmDelete = async () => {
+    if (!patientToDelete) return;
 
-  const filteredPatients = patients.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.telefone.includes(searchTerm) ||
-      (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase())),
-  );
+    try {
+      const { error } = await supabase
+        .from("pacientes")
+        .delete()
+        .eq("id", patientToDelete.id);
+
+      if (error) throw error;
+
+      setPatients((prev) => prev.filter((p) => p.id !== patientToDelete.id));
+
+      toast({
+        title: `${t.client_label} excluído`,
+        description: `O ${t.client_label.toLowerCase()} foi removido com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      toast({
+        title: "Erro",
+        description: `Não foi possível excluir o ${t.client_label.toLowerCase()}.`,
+        variant: "destructive",
+      });
+    } finally {
+      setPatientToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto py-2 space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               {t.client_label}s
             </h1>
-            <p className="text-muted-foreground">
-              Gerenciar cadastro e histórico de {t.client_label.toLowerCase()}s
-              ({patients.length})
+            <p className="text-muted-foreground mt-1 font-medium">
+              Gerencie o cadastro e histórico dos seus{" "}
+              {t.client_label.toLowerCase()}s de forma centralizada.
             </p>
           </div>
-          <NewPatientDialog onSuccess={() => fetchPatients()} />
+          <NewPatientDialog onSuccess={fetchPatients} />
         </div>
 
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={`Buscar por nome, telefone ou e-mail...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+        <PatientSummaryCards patients={patients} isLoading={isLoading} />
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filteredPatients.length === 0 ? (
-          <div className="text-center py-12">
-            <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              {searchTerm
-                ? `Nenhum ${t.client_label.toLowerCase()} encontrado`
-                : `Nenhum ${t.client_label.toLowerCase()} cadastrado`}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm
-                ? "Tente uma busca diferente"
-                : `Comece adicionando seu primeiro ${t.client_label.toLowerCase()}`}
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {filteredPatients.map((patient) => {
-              const riskLevel = getRiskLevel(patient.risco_no_show);
-              const riskConfig = getRiskBadge(riskLevel);
+        <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+          <PatientFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            riskFilter={riskFilter}
+            setRiskFilter={setRiskFilter}
+          />
 
-              return (
-                <div
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <PatientCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredPatients.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPatients.map((patient) => (
+                <PatientCard
                   key={patient.id}
-                  className="p-6 bg-card border border-border rounded-lg hover:bg-card-hover transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-primary-light rounded-full">
-                        <User className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {patient.nome}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Cadastrado em{" "}
-                          {new Date(patient.created_at).toLocaleDateString(
-                            "pt-BR",
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={riskConfig.variant}>
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        Risco {riskConfig.label}
-                      </Badge>
-                      {patient.historico_faltas > 0 && (
-                        <Badge variant="destructive">
-                          {patient.historico_faltas} faltas
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+                  patient={patient}
+                  onEdit={setEditingId}
+                  onDelete={handleDeleteClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 bg-muted/10 rounded-xl border border-dashed border-border/50">
+              <div className="w-20 h-20 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+                <UsersIcon className="h-10 w-10 text-muted-foreground/50" />
+              </div>
+              <h3 className="text-xl font-semibold text-muted-foreground">
+                Nenhum {t.client_label.toLowerCase()} encontrado
+              </h3>
+              <p className="text-muted-foreground mt-2">
+                Tente ajustar sua busca ou filtros para encontrar o que procura.
+              </p>
+            </div>
+          )}
+        </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{patient.telefone}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {patient.email || "Não informado"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm capitalize">
-                        Prefere {patient.preferencia_contato}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setEditingId(patient.id)}
-                    >
-                      Editar
-                    </Button>
-                    <VincularPacoteDialog
-                      pacienteId={patient.id}
-                      pacienteNome={patient.nome}
-                      onSuccess={() => fetchPatients()}
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={async () => {
-                        const { validatePacienteDelete } =
-                          await import("@/lib/deleteValidation");
-                        const validation = await validatePacienteDelete(
-                          patient.id,
-                        );
-
-                        if (!validation.canDelete) {
-                          toast({
-                            title: "Não é possível excluir",
-                            description: validation.message,
-                            variant: "destructive",
-                            duration: 10000,
-                          });
-                          return;
-                        }
-
-                        setPatientToDelete(patient);
-                        setDeleteDialogOpen(true);
-                      }}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        {editingId && (
+          <EditPatientDialog
+            patientId={editingId}
+            open={!!editingId}
+            onOpenChange={(open) => !open && setEditingId(null)}
+            onSuccess={fetchPatients}
+          />
         )}
-      </div>
 
-      {editingId && (
-        <EditPatientDialog
-          patientId={editingId}
-          open={!!editingId}
-          onOpenChange={(open) => !open && setEditingId(null)}
-          onSuccess={() => fetchPatients()}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={confirmDelete}
+          title={`Excluir ${t.client_label}`}
+          description={`Tem certeza que deseja excluir o ${t.client_label.toLowerCase()} ${patientToDelete?.nome}? Esta ação não pode ser desfeita.`}
         />
-      )}
-
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={async () => {
-          if (!patientToDelete) return;
-
-          try {
-            const { error } = await supabase
-              .from("pacientes")
-              .delete()
-              .eq("id", patientToDelete.id);
-
-            if (error) throw error;
-
-            setPatients((prev) =>
-              prev.filter((p) => p.id !== patientToDelete.id),
-            );
-
-            toast({
-              title: `${t.client_label} excluído`,
-              description: `O ${t.client_label.toLowerCase()} foi removido com sucesso.`,
-            });
-          } catch (error) {
-            console.error("Erro ao excluir:", error);
-            toast({
-              title: "Erro",
-              description: `Não foi possível excluir o ${t.client_label.toLowerCase()}.`,
-              variant: "destructive",
-            });
-          } finally {
-            setPatientToDelete(null);
-          }
-        }}
-        title={`Excluir ${t.client_label}`}
-        description={`Tem certeza que deseja excluir o ${t.client_label.toLowerCase()} ${patientToDelete?.nome}? Esta ação não pode ser desfeita.`}
-      />
+      </div>
     </MainLayout>
   );
 };
+
+// Simple icon for empty state
+const UsersIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
 
 export default Pacientes;

@@ -5,28 +5,16 @@ e sempre confirmando com o cliente sobre os dados imputados
 
 - Comprando os creditos da meta e revender para os clientes utilizarem
 
-- Dashboard interativa na homepage
-
 - Fazer integração com o whatsapp
-
-- Arrumar a homepage de forma mais bonita, deixar mais profissional
-
-- Arrumar a página de login de forma mais bonita, deixar mais profissional
 
 - Fazer login com apple na aba de login
 
 - Integrar os planos com Stripe
 
-- 
-
 - Integrar OPA Messenger com o CleanFlow, dando aos clientes link personalizado para
 divulgar o OPA, ganhando desconto nas mensalidades. Clientes que mais divulgarem ganharão
 prêmios como copos, garrafas térmicas, agendas, etc personalizadas CleanFlow + OPA Messenger.
 
--=-=-=-=-=-=-=-=- FEITO -=-=-=-=-=-=-=-=-
+- adicionar comando de voz clean flow com ia
 
-- Adicionar um olho para ver a senha no login e na pagina de cadastro.
-
-- Arrumar a seção profissionais da dashboard após logado.
-
-- ErroBoundary configurado.
+- adicionar ia interativa que simplifica estilo pix nubank novo

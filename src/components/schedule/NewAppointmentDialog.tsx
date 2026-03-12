@@ -40,6 +40,7 @@ import { ProfessionalCombobox } from "./ProfessionalCombobox";
 import { checkNewAppointmentConflict } from "@/lib/scheduleConflicts";
 import { automationEngine } from "@/domain/automations/automationEngine";
 import { noShowModel } from "@/domain/analytics/noShowModel";
+import { formatCurrencyBRL, parseCurrencyToNumber } from "@/lib/currency";
 
 interface NewAppointmentDialogProps {
   children: React.ReactNode;
@@ -435,13 +436,13 @@ export function NewAppointmentDialog({
               formData.tipo_atendimento === "plano"
                 ? formData.plano_saude_id || null
                 : null,
-            valor_consulta: formData.valor_consulta
-              ? parseFloat(formData.valor_consulta)
-              : null,
             forma_pagamento_id:
               formData.tipo_atendimento === "particular"
                 ? formData.forma_pagamento_id || null
                 : null,
+            valor_consulta: formData.valor_consulta
+              ? parseCurrencyToNumber(formData.valor_consulta)
+              : null,
             conta_pix_id: formData.conta_pix_id || null,
             no_show_score: riskAnalysis.score,
             no_show_risk_level: riskAnalysis.level,
@@ -465,7 +466,7 @@ export function NewAppointmentDialog({
           profissional_id: formData.profissional_id,
           data: format(formData.data, "yyyy-MM-dd"),
           tipo_lancamento: "entrada",
-          valor: parseFloat(formData.valor_consulta),
+          valor: parseCurrencyToNumber(formData.valor_consulta),
           forma_pagamento:
             formasPagamento.find((f) => f.id === formData.forma_pagamento_id)
               ?.nome || "Não especificado",
@@ -556,6 +557,7 @@ export function NewAppointmentDialog({
                 <div className="flex items-center justify-between">
                   <Label htmlFor="paciente">Paciente *</Label>
                   <NewPatientDialog
+                    inline
                     onSuccess={(patientId) => {
                       fetchData();
                       setFormData({ ...formData, paciente_id: patientId });
@@ -580,6 +582,7 @@ export function NewAppointmentDialog({
                 <div className="flex items-center justify-between">
                   <Label htmlFor="profissional">Profissional *</Label>
                   <NewProfessionalDialog
+                    inline
                     onSuccess={(professionalId) => {
                       fetchData();
                       setFormData({
@@ -813,13 +816,15 @@ export function NewAppointmentDialog({
                 <Label htmlFor="valor_consulta">Valor da Consulta</Label>
                 <Input
                   id="valor_consulta"
-                  type="number"
-                  step="0.01"
+                  type="text"
                   value={formData.valor_consulta}
                   onChange={(e) =>
-                    setFormData({ ...formData, valor_consulta: e.target.value })
+                    setFormData({
+                      ...formData,
+                      valor_consulta: formatCurrencyBRL(e.target.value),
+                    })
                   }
-                  placeholder="0.00"
+                  placeholder="R$ 0,00"
                 />
               </div>
             </div>

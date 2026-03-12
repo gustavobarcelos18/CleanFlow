@@ -69,12 +69,10 @@ export const WhatsAppCreditsWidget = () => {
   const creditosConsumidos = credits?.creditos_consumidos || 0;
   const limiarAlerta = credits?.limiar_alerta || 100;
 
+  const totalCreditos = creditosConsumidos + saldoCreditos;
   const percentualUsado =
-    creditosConsumidos > 0
-      ? (
-          (creditosConsumidos / (creditosConsumidos + saldoCreditos)) *
-          100
-        ).toFixed(1)
+    totalCreditos > 0
+      ? ((creditosConsumidos / totalCreditos) * 100).toFixed(1)
       : "0";
 
   const status =

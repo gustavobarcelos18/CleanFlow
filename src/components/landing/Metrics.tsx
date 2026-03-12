@@ -42,7 +42,7 @@ const metricas = [
 
 export function Metrics() {
   return (
-    <section className="py-16 md:py-24 bg-[#0B1220]" id="resultados">
+    <section className="py-12 md:py-16 bg-[#0B1220]" id="resultados">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl 2xl:max-w-7xl mx-auto">
           {/* Header */}

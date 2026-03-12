@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
+import { formatCurrencyBRL, parseCurrencyToNumber } from "@/lib/currency";
 
 interface NewProcedimentoDialogProps {
   children?: React.ReactNode;
@@ -80,7 +81,9 @@ export function NewProcedimentoDialog({
             tenant_id: profile.tenant_id,
             nome: formData.nome.trim().toUpperCase(),
             duracao_minutos: parseInt(formData.duracao_minutos),
-            preco: formData.valor ? parseFloat(formData.valor) : null,
+            preco: formData.valor
+              ? parseCurrencyToNumber(formData.valor)
+              : null,
             codigo_tuss: formData.codigo_tuss.trim() || null,
             descricao: formData.descricao.trim() || null,
             instrucoes_preparo: formData.instrucoes_preparo.trim() || null,
@@ -218,14 +221,15 @@ export function NewProcedimentoDialog({
               <Label htmlFor="valor">Valor (R$)</Label>
               <Input
                 id="valor"
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
                 value={formData.valor}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, valor: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    valor: formatCurrencyBRL(e.target.value),
+                  }))
                 }
-                placeholder="0.00"
+                placeholder="R$ 0,00"
               />
             </div>
 

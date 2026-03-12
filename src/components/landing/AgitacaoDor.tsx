@@ -25,7 +25,7 @@ const dores = [
 export function AgitacaoDor() {
   return (
     <section
-      className="py-16 md:py-24 bg-transparent relative z-10"
+      className="py-12 md:py-16 bg-transparent relative z-10"
       id="problema"
     >
       <div className="container mx-auto px-4">

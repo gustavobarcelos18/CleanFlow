@@ -59,7 +59,7 @@ const planos = [
 
 export function Pricing() {
   return (
-    <section className="py-16 md:py-24 bg-[#0B1220]" id="planos">
+    <section className="py-12 md:py-16 bg-[#0B1220]" id="planos">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
