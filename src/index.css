@@ -83,12 +83,12 @@ html {
 
     /* Medical Status Colors */
     --status-confirmed: 152 69% 40%;
-    --status-pending: 38 92% 50%;
+    --status-pending: 48 92% 50%;
     --status-cancelled: 0 72% 51%;
     --status-completed: 152 69% 40%;
     --status-no-show: 0 72% 51%;
     --status-risk-high: 0 72% 51%;
-    --status-risk-medium: 38 92% 50%;
+    --status-risk-medium: 48 92% 50%;
     --status-risk-low: 152 69% 40%;
 
     /* Sidebar Clinical Theme */
@@ -179,9 +179,9 @@ html {
     );
 
     /* Dark Mode Appointment Card Backgrounds (High Contrast) */
-    --success-light: 152 69% 10%;
-    --warning-light: 25 95% 10%;
-    --destructive-light: 0 72% 10%;
+    --success-light: 152 69% 12%;
+    --warning-light: 48 100% 12%;
+    --destructive-light: 0 72% 12%;
   }
 }
 
