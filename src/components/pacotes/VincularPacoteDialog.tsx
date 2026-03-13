@@ -19,18 +19,21 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { Loader2, Package } from "lucide-react";
 
 interface VincularPacoteDialogProps {
   pacienteId: string;
   pacienteNome: string;
   onSuccess?: () => void;
+  triggerClassName?: string;
 }
 
 export function VincularPacoteDialog({
   pacienteId,
   pacienteNome,
   onSuccess,
+  triggerClassName,
 }: VincularPacoteDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -142,8 +145,12 @@ export function VincularPacoteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Package className="h-4 w-4 mr-2" />
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className={cn("gap-2", triggerClassName)}
+        >
+          <Package className="h-4 w-4" />
           Vincular Pacote
         </Button>
       </DialogTrigger>

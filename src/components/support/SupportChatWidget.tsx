@@ -17,6 +17,12 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Message {
   id: string;
@@ -25,7 +31,11 @@ interface Message {
   created_at: string;
 }
 
-export function SupportChatWidget() {
+interface SupportChatWidgetProps {
+  variant?: "floating" | "header";
+}
+
+export function SupportChatWidget({ variant = "floating" }: SupportChatWidgetProps) {
   const { user, profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"initial" | "chat">("initial");
@@ -367,13 +377,22 @@ export function SupportChatWidget() {
   const location = useLocation();
   const isLandingPage = location.pathname === "/";
 
+  // Na landing page sempre usamos floating
+  const effectiveVariant = isLandingPage ? "floating" : variant;
+
+  const containerClasses = effectiveVariant === "floating" 
+    ? "fixed right-6 bottom-6 z-40 flex flex-col items-end gap-4 transition-all duration-300"
+    : "relative z-40";
+
   return (
-    <div className={cn(
-      "fixed right-6 z-40 flex flex-col items-end gap-4 transition-all duration-300",
-      isLandingPage ? "bottom-6" : "bottom-20"
-    )}>
+    <div className={containerClasses}>
       {isOpen && (
-        <Card className="w-[350px] h-[500px] shadow-2xl border-blue-500/20 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <Card className={cn(
+          "w-[350px] h-[500px] shadow-2xl border-blue-500/20 flex flex-col overflow-hidden animate-in fade-in duration-300",
+          effectiveVariant === "floating" 
+            ? "absolute bottom-20 right-0 slide-in-from-bottom-10" 
+            : "absolute top-full right-0 mt-4 slide-in-from-top-4"
+        )}>
           <CardHeader
             className={`p-4 shrink-0 flex flex-row items-center justify-between transition-colors ${
               isOnline
@@ -534,25 +553,43 @@ export function SupportChatWidget() {
         </Card>
       )}
 
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group relative z-40"
-        aria-label="Abrir chat de suporte"
-      >
-        {/* Animação de pulso (Halo) */}
-        <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20" />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className={cn(
+                "bg-green-500 hover:bg-green-600 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group relative z-40",
+                effectiveVariant === "floating" ? "w-12 h-12" : "w-8 h-8"
+              )}
+              aria-label="Abrir chat de suporte"
+            >
+              {/* Animação de pulso (Halo) */}
+              <span className={cn(
+                "absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20",
+                effectiveVariant === "header" && "hidden"
+              )} />
 
-        {isOpen ? (
-          <X className="h-8 w-8 text-white relative z-10" />
-        ) : (
-          <MessageCircle className="h-8 w-8 text-white relative z-10" />
-        )}
+              {isOpen ? (
+                <X className={cn(effectiveVariant === "floating" ? "h-6 w-6" : "h-4 w-4", "text-white relative z-10")} />
+              ) : (
+                <MessageCircle className={cn(effectiveVariant === "floating" ? "h-6 w-6" : "h-4 w-4", "text-white relative z-10")} />
+              )}
 
-        {/* Status indicator dot (optional, keeping it small if needed, or relying on the green button) */}
-        {isOnline && (
-          <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 border-2 border-white rounded-full z-20" />
-        )}
-      </button>
+              {/* Status indicator dot */}
+              {isOnline && (
+                <span className={cn(
+                  "absolute bg-green-400 border-2 border-white rounded-full z-20",
+                  effectiveVariant === "floating" ? "top-0 right-0 w-3 h-3" : "-top-1 -right-1 w-2.5 h-2.5"
+                )} />
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side={effectiveVariant === "header" ? "bottom" : "left"} sideOffset={10}>
+            <p className="font-medium text-xs">Suporte</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

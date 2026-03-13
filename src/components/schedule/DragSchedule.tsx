@@ -151,7 +151,7 @@ function DroppableTimeSlot({
     <div
       ref={setNodeRef}
       className={cn(
-        "min-h-[80px] p-2 border border-dashed border-border rounded-lg transition-colors w-full",
+        "min-h-[80px] p-2 border border-dashed border-muted/50 rounded-xl transition-colors w-full",
         isOver && !isPastSlot && "border-primary bg-primary/10",
         appointments.length === 0 &&
           !isPastSlot &&

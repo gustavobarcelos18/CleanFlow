@@ -9,7 +9,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useSidebarWidth } from "@/hooks/useSidebarWidth";
-import { SupportChatWidget } from "@/components/support/SupportChatWidget";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -85,7 +84,6 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           {/* Main Content */}
           <main className="flex-1 overflow-auto p-4">{children}</main>
         </div>
-        <SupportChatWidget />
       </div>
     );
   }
@@ -116,7 +114,6 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           <main className="p-6">{children}</main>
         </div>
       </div>
-      <SupportChatWidget />
     </div>
   );
 }

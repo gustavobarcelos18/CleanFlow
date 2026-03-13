@@ -140,22 +140,23 @@ const Pacientes = () => {
   return (
     <MainLayout>
       <div className="container mx-auto py-2 space-y-8 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
               {t.client_label}s
             </h1>
-            <p className="text-muted-foreground mt-1 font-medium">
-              Gerencie o cadastro e histórico dos seus{" "}
-              {t.client_label.toLowerCase()}s de forma centralizada.
+            <p className="text-muted-foreground font-medium flex items-center gap-2">
+              Gerencie o cadastro e histórico dos seus {t.client_label.toLowerCase()}s de forma centralizada.
             </p>
           </div>
-          <NewPatientDialog onSuccess={fetchPatients} />
+          <div className="flex items-center gap-3">
+            <NewPatientDialog onSuccess={fetchPatients} />
+          </div>
         </div>
 
         <PatientSummaryCards patients={patients} isLoading={isLoading} />
 
-        <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+        <div className="space-y-6">
           <PatientFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}

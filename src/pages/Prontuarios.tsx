@@ -136,25 +136,36 @@ export default function Prontuarios() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="relative flex-1 max-w-md group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input
-            placeholder={`Buscar por ${t.client_label.toLowerCase()} ou profissional...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-card border-none shadow-sm h-11 focus-visible:ring-primary/20 transition-all"
-          />
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+              Prontuários Eletrônicos
+            </h1>
+            <p className="text-muted-foreground font-medium">
+              Consulta e gerenciamento do histórico clínico de {t.client_label.toLowerCase()}s.
+            </p>
+          </div>
+          <Button
+            onClick={handleNewRecord}
+            className="h-11 px-6 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold group"
+          >
+            <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
+            Novo Prontuário
+          </Button>
         </div>
 
-        <Button
-          onClick={handleNewRecord}
-          className="h-11 px-6 shadow-md hover:shadow-lg transition-all active:scale-95 group"
-        >
-          <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
-          Novo Prontuário
-        </Button>
-      </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-muted/30 p-4 rounded-xl border border-muted/50 shadow-sm">
+          <div className="relative group w-full md:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input
+              placeholder={`Buscar por ${t.client_label.toLowerCase()} ou profissional...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-background/50 border-muted/50 shadow-inner focus:bg-background transition-all rounded-full h-10"
+            />
+          </div>
+        </div>
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -163,7 +174,7 @@ export default function Prontuarios() {
           ))}
         </div>
       ) : filteredProntuarios.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-muted/10 rounded-xl border border-dashed border-border/50">
+        <div className="flex flex-col items-center justify-center py-20 bg-muted/10 rounded-xl border border-dashed border-muted/50">
           <div className="w-20 h-20 rounded-full bg-muted/30 flex items-center justify-center mb-4">
             <FileText className="h-10 w-10 text-muted-foreground/50" />
           </div>
@@ -179,7 +190,7 @@ export default function Prontuarios() {
           {filteredProntuarios.map((prontuario) => (
             <Card
               key={prontuario.id}
-              className="group overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 bg-card flex flex-col"
+              className="group overflow-hidden bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50 h-full flex flex-col shadow-sm"
             >
               <CardContent className="p-6 flex-grow">
                 <div className="flex items-start justify-between mb-4">
@@ -193,7 +204,7 @@ export default function Prontuarios() {
                       {getStatusBadge(prontuario.status)}
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center shrink-0 border border-border/50">
+                  <div className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center shrink-0 border border-muted/50">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>
@@ -227,7 +238,7 @@ export default function Prontuarios() {
                     </span>
                   </div>
                   {prontuario.cid10_principal && (
-                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-muted/50 border border-border/50 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-muted/50 border border-muted/50 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
                       <Filter className="h-3 w-3" />
                       CID: {prontuario.cid10_principal}
                     </div>
@@ -235,7 +246,7 @@ export default function Prontuarios() {
                 </div>
 
                 {prontuario.avaliacao && (
-                  <div className="bg-muted/30 p-3 rounded-lg border border-border/30 mb-4">
+                  <div className="bg-muted/30 p-3 rounded-lg border border-muted/30 mb-4">
                     <p className="text-xs text-muted-foreground font-medium mb-1 uppercase tracking-tight">
                       Avaliação
                     </p>
@@ -246,6 +257,7 @@ export default function Prontuarios() {
                 )}
               </CardContent>
 
+{/* 
               <div className="p-4 bg-muted/20 border-t border-border/50 mt-auto">
                 <Button
                   variant="ghost"
@@ -256,6 +268,7 @@ export default function Prontuarios() {
                   <Plus className="h-4 w-4 group-hover/btn:rotate-90 transition-transform" />
                 </Button>
               </div>
+              */}
             </Card>
           ))}
         </div>
@@ -282,6 +295,7 @@ export default function Prontuarios() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </MainLayout>
   );
 }

@@ -3,11 +3,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { AlertsPopover } from "@/components/layout/AlertsPopover";
 import { WhatsAppNotificationBadge } from "@/components/admin/WhatsAppNotificationBadge";
@@ -18,6 +13,13 @@ import { Link } from "react-router-dom";
 import { startOfDay, endOfDay } from "date-fns";
 import { User, Calendar, Clock, Users, LogOut } from "lucide-react";
 import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { SupportChatWidget } from "@/components/support/SupportChatWidget";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface HeaderProps {
   className?: string;
@@ -148,52 +150,92 @@ export function Header({ className }: HeaderProps) {
 
         {/* User Actions */}
         <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <div className="h-6 w-px bg-border mx-1" />
-          <AlertsPopover />
+          <TooltipProvider>
+            <div className="flex items-center gap-3">
+              <SupportChatWidget variant="header" />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center">
+                    <ThemeToggle />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={10}>
+                  <p className="font-medium text-xs">Alternar Tema</p>
+                </TooltipContent>
+              </Tooltip>
 
-          <Button
-            variant="ghost"
-            className="flex items-center gap-3 hover:bg-muted transition-all duration-200 py-1.5 px-2 rounded-xl"
-            asChild
-          >
-            <Link to="/perfil">
-              <Avatar className="w-9 h-9 border-2 border-primary/20 shadow-lg shadow-primary/10">
-                {profile?.avatar_url ? (
-                  <AvatarImage src={profile.avatar_url} alt={profile.nome} />
-                ) : (
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-black">
-                    {profile?.nome ? (
-                      getInitials(profile.nome)
-                    ) : (
-                      <User className="h-4 w-4" />
-                    )}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-black text-foreground leading-tight">
-                  {profile?.nome || user?.email}
-                </p>
-                <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-0.5">
-                  {profile?.role === "admin"
-                    ? "Administrador"
-                    : profile?.role === "profissional"
-                      ? "Profissional"
-                      : "Usuário"}
-                </p>
-              </div>
-            </Link>
-          </Button>
+              <div className="h-6 w-px bg-border mx-1" />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center">
+                    <AlertsPopover />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={10}>
+                  <p className="font-medium text-xs">Notificações</p>
+                </TooltipContent>
+              </Tooltip>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            onClick={() => signOut()}
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-3 hover:bg-muted transition-all duration-200 py-1.5 px-2 rounded-xl"
+                    asChild
+                  >
+                    <Link to="/perfil">
+                      <Avatar className="w-9 h-9 border-2 border-primary/20 shadow-lg shadow-primary/10">
+                        {profile?.avatar_url ? (
+                          <AvatarImage src={profile.avatar_url} alt={profile.nome} />
+                        ) : (
+                          <AvatarFallback className="bg-primary/20 text-primary text-xs font-black">
+                            {profile?.nome ? (
+                              getInitials(profile.nome)
+                            ) : (
+                              <User className="h-4 w-4" />
+                            )}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="hidden md:block text-left">
+                        <p className="text-sm font-black text-foreground leading-tight">
+                          {profile?.nome || user?.email}
+                        </p>
+                        <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-0.5">
+                          {profile?.role === "admin"
+                            ? "Administrador"
+                            : profile?.role === "profissional"
+                              ? "Profissional"
+                              : "Usuário"}
+                        </p>
+                      </div>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={10}>
+                  <p className="font-medium text-xs">Meu Perfil</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => signOut()}
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={10}>
+                  <p className="font-medium text-xs">Sair</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </div>
       </div>
     </header>

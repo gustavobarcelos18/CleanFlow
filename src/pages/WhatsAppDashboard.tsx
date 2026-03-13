@@ -17,10 +17,12 @@ import {
 export default function WhatsAppDashboard() {
   return (
     <MainLayout>
-      <div className="container mx-auto py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Gestão WhatsApp Business</h1>
-          <p className="text-muted-foreground mt-2">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="border-b border-muted/30 pb-6">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+            WhatsApp Business
+          </h1>
+          <p className="text-muted-foreground font-medium mt-1">
             Risco de no-show, chat unificado, métricas e observabilidade
           </p>
         </div>

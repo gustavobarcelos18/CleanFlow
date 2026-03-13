@@ -173,15 +173,14 @@ const Servicos = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Serviços da Clínica
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+              Serviços
             </h1>
-            <p className="text-muted-foreground">
-              Gerencie os serviços oferecidos e configurações de agendamento (
-              {services.length})
+            <p className="text-muted-foreground font-medium">
+              Gerencie os serviços oferecidos e configurações de agendamento ({services.length})
             </p>
           </div>
           {!isLoading && services.length > 0 && (
@@ -189,22 +188,19 @@ const Servicos = () => {
           )}
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder="Buscar serviços..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-muted/20 border-muted/50 focus:bg-background transition-all rounded-full h-10"
           />
         </div>
 
-        {/* Estatísticas dos Serviços */}
         {!isLoading && filteredServices.length > 0 && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              Estatísticas dos Serviços
-            </h3>
+          <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Estatísticas</p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
@@ -235,7 +231,7 @@ const Servicos = () => {
                 </p>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Lista de Serviços */}
@@ -263,7 +259,7 @@ const Servicos = () => {
         ) : (
           <div className="grid gap-4">
             {filteredServices.map((service) => (
-              <Card key={service.id} className="p-6">
+              <div key={service.id} className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary-light rounded-lg">
@@ -336,7 +332,7 @@ const Servicos = () => {
                     Excluir
                   </Button>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}

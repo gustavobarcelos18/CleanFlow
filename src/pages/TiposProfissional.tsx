@@ -282,11 +282,13 @@ export default function TiposProfissional() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Tipos de Profissional</h1>
-            <p className="text-muted-foreground">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+              Tipos de Profissional
+            </h1>
+            <p className="text-muted-foreground font-medium">
               Gerencie os tipos de profissionais e suas permissões
             </p>
           </div>
@@ -299,8 +301,8 @@ export default function TiposProfissional() {
             }}
           >
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-6 rounded-xl group">
+                <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
                 Novo Tipo
               </Button>
             </DialogTrigger>
@@ -440,13 +442,9 @@ export default function TiposProfissional() {
         {loading ? (
           <div className="text-center py-12">Carregando...</div>
         ) : tipos.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                Nenhum tipo de profissional cadastrado
-              </p>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-muted/50 rounded-xl bg-muted/10">
+            <p className="text-muted-foreground">Nenhum tipo de profissional cadastrado</p>
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {tipos.map((tipo) => {
@@ -454,8 +452,8 @@ export default function TiposProfissional() {
               const IconComponent = IconData?.icon || User;
 
               return (
-                <Card key={tipo.id}>
-                  <CardHeader>
+                <div key={tipo.id} className="bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50">
+                  <div className="p-6">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         <div
@@ -498,8 +496,8 @@ export default function TiposProfissional() {
                         {tipo.descricao}
                       </CardDescription>
                     )}
-                  </CardHeader>
-                  <CardContent>
+                  </div>
+                  <div className="px-6 pb-6">
                     <div className="flex items-center gap-2">
                       {tipo.acesso_prontuarios ? (
                         <Badge variant="default">Acessa Prontuários</Badge>
@@ -509,8 +507,8 @@ export default function TiposProfissional() {
                         </Badge>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>

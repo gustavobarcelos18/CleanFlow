@@ -203,16 +203,17 @@ const Perfil = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
-          <p className="text-muted-foreground">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10 max-w-4xl mx-auto">
+        <div className="border-b border-muted/30 pb-6">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+            Meu Perfil
+          </h1>
+          <p className="text-muted-foreground font-medium mt-1">
             Gerencie suas informações pessoais e configurações
           </p>
         </div>
 
-        {/* Avatar Section */}
-        <Card className="p-6">
+        <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
           <div className="flex items-center gap-6">
             <div className="relative">
               <Avatar className="h-24 w-24">
@@ -253,10 +254,9 @@ const Perfil = () => {
               />
             </div>
           </div>
-        </Card>
+        </div>
 
-        {/* Profile Form */}
-        <Card className="p-6">
+        <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -388,10 +388,9 @@ const Perfil = () => {
               </Button>
             </div>
           </form>
-        </Card>
+        </div>
 
-        {/* Tour Settings */}
-        <Card className="p-6">
+        <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
           <h3 className="text-lg font-semibold mb-4">Tour Guiado</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Reative o tour guiado para qualquer página do sistema
@@ -427,7 +426,7 @@ const Perfil = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Reativar Todos os Tours
           </Button>
-        </Card>
+        </div>
       </div>
     </MainLayout>
   );

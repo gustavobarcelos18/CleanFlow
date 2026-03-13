@@ -207,7 +207,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
     <div className="space-y-6">
       {/* Contadores de Status */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 border-muted/50 shadow-sm rounded-xl">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -221,7 +221,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 border-muted/50 shadow-sm rounded-xl">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -237,7 +237,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-success/5 border-success/20">
+        <Card className="bg-success/5 border-success/20 shadow-sm rounded-xl">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
@@ -253,7 +253,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 border-muted/50 shadow-sm rounded-xl">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -269,7 +269,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card className="shadow-sm border-muted/50 rounded-xl">
         <CardContent className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="h-5 w-5 text-muted-foreground" />
@@ -357,7 +357,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
 
       {/* Lista de Pacientes */}
       {agendamentosFiltrados.length === 0 ? (
-        <Card>
+        <Card className="border-muted/50 shadow-sm rounded-xl">
           <CardContent className="py-12">
             <div className="text-center text-muted-foreground">
               <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -371,7 +371,7 @@ export function PacientesDoDia({ onSelectPaciente }: PacientesDoDiaProps) {
           {agendamentosFiltrados.map((agendamento) => (
             <Card
               key={agendamento.id}
-              className={`transition-all hover:shadow-lg cursor-pointer ${
+              className={`bg-muted/30 border-muted/50 rounded-xl shadow-sm transition-all hover:bg-muted/50 hover:shadow-md cursor-pointer ${
                 agendamento.status === "concluido" ? "opacity-75" : ""
               }`}
               onClick={() => onSelectPaciente(agendamento)}

@@ -49,15 +49,16 @@ const OrganizationManager = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-primary" />
-            Gestão da Organização
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie suas unidades, permissões e visualize dados consolidados
-          </p>
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+              Gestão da Organização
+            </h1>
+            <p className="text-muted-foreground font-medium">
+              Gerencie suas unidades, permissões e visualize dados consolidados
+            </p>
+          </div>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">

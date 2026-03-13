@@ -163,14 +163,14 @@ export default function SupportTickets() {
 
   return (
     <MainLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
               Suporte Técnico
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground font-medium">
               Abra chamados e acompanhe o atendimento
             </p>
           </div>
@@ -182,49 +182,43 @@ export default function SupportTickets() {
           {loading ? (
             <div className="text-center py-8">Carregando...</div>
           ) : tickets.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">Nenhum chamado aberto</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Clique em "Novo Chamado" para abrir um ticket de suporte
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-muted/30 rounded-xl border border-muted/50 py-12 text-center">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <p className="text-muted-foreground">Nenhum chamado aberto</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Clique em "Novo Chamado" para abrir um ticket de suporte
+              </p>
+            </div>
           ) : (
             tickets.map((ticket) => (
-              <Card
+              <div
                 key={ticket.id}
-                className="hover:shadow-md transition-shadow"
+                className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50"
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        {getCategoriaIcon(ticket.categoria)}
-                        <h3 className="font-semibold text-lg">
-                          {ticket.titulo}
-                        </h3>
-                      </div>
-                      <p className="text-muted-foreground mb-4">
-                        {ticket.descricao}
-                      </p>
-                      <div className="flex items-center gap-3">
-                        {getStatusBadge(ticket.status)}
-                        {getPrioridadeBadge(ticket.prioridade)}
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(ticket.created_at).toLocaleDateString(
-                            "pt-BR",
-                          )}
-                        </span>
-                      </div>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      {getCategoriaIcon(ticket.categoria)}
+                      <h3 className="font-semibold text-lg">{ticket.titulo}</h3>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Ver Detalhes
-                    </Button>
+                    <p className="text-muted-foreground mb-4">
+                      {ticket.descricao}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      {getStatusBadge(ticket.status)}
+                      {getPrioridadeBadge(ticket.prioridade)}
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(ticket.created_at).toLocaleDateString(
+                          "pt-BR",
+                        )}
+                      </span>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <Button variant="outline" size="sm">
+                    Ver Detalhes
+                  </Button>
+                </div>
+              </div>
             ))
           )}
         </div>

@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, AlertTriangle, Package } from "lucide-react";
+import { Users, UserPlus, AlertTriangle } from "lucide-react";
 import { useTerminology } from "@/stores/useSegmentStore";
 import { startOfMonth, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -67,16 +66,14 @@ export function PatientSummaryCards({
     return (
       <div className="grid gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-muted rounded" />
-              <div className="h-4 w-4 bg-muted rounded" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-12 bg-muted rounded mb-2" />
+          <div key={i} className="bg-muted/30 rounded-xl border border-muted/50 p-5 flex items-center justify-between gap-4 animate-pulse">
+            <div className="space-y-2">
+              <div className="h-3 w-24 bg-muted rounded" />
+              <div className="h-8 w-12 bg-muted rounded" />
               <div className="h-3 w-32 bg-muted rounded" />
-            </CardContent>
-          </Card>
+            </div>
+            <div className="h-11 w-11 bg-muted rounded-xl shrink-0" />
+          </div>
         ))}
       </div>
     );
@@ -85,27 +82,25 @@ export function PatientSummaryCards({
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {cards.map((card, index) => (
-        <Card
+        <div
           key={index}
-          className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow duration-300 bg-card border border-border/50"
+          className="bg-muted/30 rounded-xl border border-muted/50 p-5 flex items-center justify-between gap-4 transition-colors hover:bg-muted/50"
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               {card.title}
-            </CardTitle>
-            <div className={cn("p-2 rounded-full shrink-0", card.bgColor)}>
-              <card.icon className={cn("h-4 w-4", card.color)} />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-foreground">
+            </p>
+            <p className="text-3xl font-black tracking-tighter text-foreground">
               {card.value}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               {card.description}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className={cn("p-3 rounded-xl shrink-0", card.bgColor)}>
+            <card.icon className={cn("h-5 w-5", card.color)} />
+          </div>
+        </div>
       ))}
     </div>
   );

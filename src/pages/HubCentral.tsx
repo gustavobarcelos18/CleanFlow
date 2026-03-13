@@ -101,12 +101,12 @@ const hubModules = [
 const HubCentral = () => {
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight">
-            Hub <span className="text-primary">Central</span>
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="border-b border-muted/30 pb-6">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+            Hub Central
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground font-medium mt-1">
             Acesso rápido aos principais módulos da sua clínica.
           </p>
         </div>
@@ -118,25 +118,24 @@ const HubCentral = () => {
               <Link
                 key={module.href}
                 to={module.href}
-                className="group relative block"
+                className="group relative block outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
               >
                 <div
                   className={cn(
-                    "h-full p-6 rounded-2xl border bg-gradient-to-br transition-all duration-300",
-                    "hover:-translate-y-1 hover:shadow-xl",
-                    module.color,
-                    module.gradient,
+                    "h-full p-6 bg-muted/30 rounded-xl border border-muted/50 shadow-sm transition-all duration-300 relative overflow-hidden",
+                    "hover:-translate-y-1 hover:bg-muted/50 hover:shadow-md hover:border-muted-foreground/30",
                   )}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-background/40 backdrop-blur-sm border border-inherit">
+                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-40 pointer-events-none transition-opacity group-hover:opacity-60", module.gradient)} />
+                  <div className="relative z-10 flex items-start gap-4">
+                    <div className={cn("p-3 rounded-xl backdrop-blur-sm border transition-colors", module.color)}>
                       <Icon className="h-6 w-6" strokeWidth={2.5} />
                     </div>
-                    <div className="flex-1 space-y-1.5">
-                      <h3 className="font-bold text-foreground tracking-tight group-hover:text-inherit transition-colors">
+                    <div className="flex-1 space-y-1.5 mt-0.5">
+                      <h3 className="font-bold text-foreground text-lg tracking-tight group-hover:text-primary transition-colors">
                         {module.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground leading-snug">
+                      <p className="text-sm text-foreground/70 leading-relaxed font-medium">
                         {module.description}
                       </p>
                     </div>

@@ -167,19 +167,23 @@ export default function AlarmesLembretes() {
 
     return (
         <MainLayout>
-            <div className="container mx-auto p-6 space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Alarmes e Lembretes</h1>
-                        <p className="text-muted-foreground">Gerencie seus alarmes, lembretes e tarefas</p>
-                    </div>
-                    <NovoAlarmeDialog onCreate={handleCriarAlarme} />
+        <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+                <div className="space-y-1">
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+                        Alarmes e Lembretes
+                    </h1>
+                    <p className="text-muted-foreground font-medium flex items-center gap-2">
+                        <Bell className="h-4 w-4" />
+                        Gerencie seus alarmes, lembretes e tarefas
+                    </p>
                 </div>
+                <NovoAlarmeDialog onCreate={handleCriarAlarme} />
+            </div>
 
                 {/* Filtros */}
-                <Card>
-                    <CardContent className="pt-6">
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Filtros</p>
                         <div className="flex gap-4">
                             <div className="flex-1">
                                 <Label>Tipo</Label>
@@ -209,25 +213,22 @@ export default function AlarmesLembretes() {
                                 </Select>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                </div>
 
                 {/* Lista de Alarmes */}
-                <div className="space-y-3">
-                    {loading ? (
-                        <div className="text-center py-8">Carregando...</div>
-                    ) : alarmes.length === 0 ? (
-                        <Card>
-                            <CardContent className="py-12 text-center">
-                                <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                                <p className="text-muted-foreground">Nenhum alarme encontrado</p>
-                            </CardContent>
-                        </Card>
+            <div className="space-y-3">
+                {loading ? (
+                    <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+                ) : alarmes.length === 0 ? (
+                    <div className="bg-muted/30 rounded-xl border border-muted/50 py-12 text-center">
+                        <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground">Nenhum alarme encontrado</p>
+                    </div>
                     ) : (
                         alarmes.map((alarme) => (
-                            <Card key={alarme.id} className={`${isAtrasado(alarme.data_hora) && !alarme.concluido ? 'border-red-300 bg-red-50/50' : ''
-                                }`}>
-                                <CardContent className="p-4">
+                            <div key={alarme.id} className={`bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50 p-4 ${
+                                isAtrasado(alarme.data_hora) && !alarme.concluido ? 'border-red-400/50 bg-red-50/30 dark:bg-red-950/20' : ''
+                            }`}>
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
@@ -280,8 +281,7 @@ export default function AlarmesLembretes() {
                                             </Button>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                            </div>
                         ))
                     )}
                 </div>

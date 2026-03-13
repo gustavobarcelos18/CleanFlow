@@ -322,7 +322,7 @@ export function ProntuarioAtendimento({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-6 rounded-2xl border border-border shadow-sm mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-muted/30 p-6 rounded-2xl border border-muted/50 shadow-sm mb-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -382,8 +382,8 @@ export function ProntuarioAtendimento({
         proximoAtendimento={proximoAgendamento}
       />
 
-      <Card className="border-none shadow-sm bg-card overflow-hidden">
-        <CardHeader className="bg-muted/10 border-b border-border/50">
+      <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="bg-muted/20 border-b border-muted/50">
           <CardTitle className="flex items-center gap-2 text-lg font-bold italic text-primary uppercase tracking-tighter">
             <Activity className="h-5 w-5" />
             Monitoramento de Sinais Vitais
@@ -486,7 +486,7 @@ export function ProntuarioAtendimento({
       </Card>
 
       <Tabs defaultValue={isPrimeiraConsulta ? "anamnese" : "soap"}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 bg-muted/30 border border-muted/50 p-1 rounded-xl shadow-sm">
           {isPrimeiraConsulta && (
             <TabsTrigger value="anamnese">
               <ClipboardList className="h-4 w-4 mr-2" />
@@ -635,15 +635,15 @@ export function ProntuarioAtendimento({
                 placeholder="Notas internas, evolução clínica geral..."
                 value={formData.evolucao}
                 onChange={(e) => handleInputChange("evolucao", e.target.value)}
-                className="bg-muted/20 border-border/50 min-h-[100px] resize-none"
+                className="bg-muted/30 border-none focus-visible:ring-primary/20 min-h-[100px] resize-none"
               />
             </div>
           </div>
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-6 outline-none">
-          <Card className="border border-border/50 shadow-sm overflow-hidden bg-card/50">
-            <CardHeader className="bg-muted/30 border-b border-border/30">
+          <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm overflow-hidden">
+            <CardHeader className="bg-muted/20 border-b border-muted/50">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <History className="h-4 w-4 text-primary" />
                 Histórico de Atendimentos
@@ -667,7 +667,7 @@ export function ProntuarioAtendimento({
                     {historico.map((record: any) => (
                       <Card
                         key={record.id}
-                        className="border border-border/50 shadow-sm bg-card hover:bg-muted/5 transition-colors"
+                        className="bg-background/50 border-muted/50 rounded-lg shadow-sm hover:bg-muted/40 transition-colors"
                       >
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-center justify-between mb-1">

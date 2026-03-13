@@ -10,17 +10,14 @@ export default function Atendimento() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Stethoscope className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Atendimento</h1>
-            <p className="text-muted-foreground">
-              Atenda seus pacientes e registre os prontuários
-            </p>
-          </div>
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="border-b border-muted/30 pb-6">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+            Atendimento
+          </h1>
+          <p className="text-muted-foreground font-medium mt-1">
+            Atenda seus pacientes e registre os prontuários
+          </p>
         </div>
 
         {!selectedAgendamento ? (

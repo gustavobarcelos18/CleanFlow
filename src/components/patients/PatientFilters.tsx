@@ -25,14 +25,14 @@ export function PatientFilters({
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-      <div className="relative w-full md:max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-muted/30 p-4 rounded-xl border border-muted/50 shadow-sm">
+      <div className="relative w-full md:max-w-md group">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input
           placeholder="Pesquisar por nome, CPF, e-mail ou telefone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-card border border-border shadow-sm h-11"
+          className="pl-10 bg-background/50 border-muted/50 shadow-inner focus:bg-background transition-all rounded-full h-10"
         />
       </div>
 

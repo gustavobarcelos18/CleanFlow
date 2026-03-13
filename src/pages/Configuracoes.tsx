@@ -222,18 +222,19 @@ const Configuracoes = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Configurações da Clínica
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="border-b border-muted/30 pb-6">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+            Configurações
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground font-medium mt-1">
+            <Settings className="inline h-4 w-4 mr-1.5 mb-0.5" />
             Personalize sua clínica e configure as funcionalidades do CleanFlow
           </p>
         </div>
 
         <Tabs defaultValue="geral" className="space-y-6">
-          <TabsList className="w-full flex justify-start overflow-x-auto">
+          <TabsList className="w-full flex justify-start overflow-x-auto bg-muted/30 border border-muted/50 rounded-xl p-1 h-auto gap-1">
             <TabsTrigger value="geral">
               <Building className="h-4 w-4 mr-2" />
               Geral
@@ -281,14 +282,15 @@ const Configuracoes = () => {
           </TabsContent>
 
           <TabsContent value="equipe" className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Gestão de Equipe</h3>
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Gestão de Equipe</p>
+              <h3 className="text-lg font-bold mb-1">Convide Membros</h3>
               <p className="text-sm text-muted-foreground mb-6">
                 Convide novos membros para sua clínica e gerencie permissões.
               </p>
               <InviteMember />
               <PendingInvitationsList />
-            </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="segmento" className="space-y-6">
@@ -296,8 +298,9 @@ const Configuracoes = () => {
           </TabsContent>
 
           <TabsContent value="geral" className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Clínica</p>
+              <h3 className="text-lg font-bold mb-4">
                 Informações Básicas
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,10 +353,11 @@ const Configuracoes = () => {
                   />
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Especialidades</p>
+              <h3 className="text-lg font-bold mb-1">
                 Especialidades da Clínica
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -403,12 +407,13 @@ const Configuracoes = () => {
                   })}
                 </div>
               )}
-            </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="agenda" className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Agenda</p>
+              <h3 className="text-lg font-bold mb-4">
                 Modo de Agendamento
               </h3>
               <div className="space-y-4">
@@ -462,10 +467,11 @@ const Configuracoes = () => {
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Políticas</p>
+              <h3 className="text-lg font-bold mb-4">
                 Políticas de Agendamento
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -484,12 +490,13 @@ const Configuracoes = () => {
                   <Label htmlFor="overbooking">Permitir Overbooking</Label>
                 </div>
               </div>
-            </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="mensagens" className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Canais de Mensagem</h3>
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Comunicação</p>
+              <h3 className="text-lg font-bold mb-4">Canais de Mensagem</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -530,10 +537,11 @@ const Configuracoes = () => {
                   <Switch />
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Templates</p>
+              <h3 className="text-lg font-bold mb-4">
                 Templates de Mensagem
               </h3>
               <div className="space-y-4">
@@ -556,7 +564,7 @@ const Configuracoes = () => {
                   />
                 </div>
               </div>
-            </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="financeiro" className="space-y-6">
@@ -568,8 +576,9 @@ const Configuracoes = () => {
           </TabsContent>
 
           <TabsContent value="identidade" className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Aparência e Cores</h3>
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Personalização</p>
+              <h3 className="text-lg font-bold mb-4">Aparência e Cores</h3>
 
               <div className="space-y-8">
                 <div>
@@ -642,12 +651,13 @@ const Configuracoes = () => {
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="lgpd" className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Configurações LGPD</h3>
+            <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Privacidade</p>
+              <h3 className="text-lg font-bold mb-4">Configurações LGPD</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -677,7 +687,7 @@ const Configuracoes = () => {
                   <Switch defaultChecked />
                 </div>
               </div>
-            </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
@@ -686,6 +696,7 @@ const Configuracoes = () => {
             size="lg"
             onClick={handleSaveConfiguracoes}
             disabled={isSaving}
+            className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-8 rounded-xl"
           >
             {isSaving ? (
               <>
@@ -699,7 +710,7 @@ const Configuracoes = () => {
               </>
             )}
           </Button>
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" className="rounded-xl h-11">
             Cancelar
           </Button>
         </div>

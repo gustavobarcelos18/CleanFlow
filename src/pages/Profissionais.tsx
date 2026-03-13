@@ -111,31 +111,39 @@ const Profissionais = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-end">
-          {!isLoading && professionals.length > 0 && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  (window.location.href = "/profissionais/recontratar")
-                }
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Recontratar (CSV)
-              </Button>
-              <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />
-            </div>
-          )}
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+              Profissionais
+            </h1>
+            <p className="text-muted-foreground font-medium">
+              Gerenciar cadastro de profissionais de saúde ({professionals.length})
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {!isLoading && professionals.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => (window.location.href = "/profissionais/recontratar")}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Recontratar (CSV)
+                </Button>
+                <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder="Buscar por nome, e-mail ou registro..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-muted/20 border-muted/50 focus:bg-background transition-all rounded-full h-10"
           />
         </div>
 
@@ -144,17 +152,15 @@ const Profissionais = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredProfessionals.length === 0 ? (
-          <div className="text-center py-12">
-            <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              {searchTerm
-                ? "Nenhum profissional encontrado"
-                : "Nenhum profissional cadastrado"}
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-muted/50 rounded-xl bg-muted/10">
+            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <User className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">
+              {searchTerm ? "Nenhum profissional encontrado" : "Nenhum profissional cadastrado"}
             </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm
-                ? "Tente uma busca diferente"
-                : "Comece adicionando seu primeiro profissional"}
+            <p className="text-muted-foreground mb-6">
+              {searchTerm ? "Tente uma busca diferente" : "Comece adicionando seu primeiro profissional"}
             </p>
             {!searchTerm && (
               <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />
@@ -163,7 +169,7 @@ const Profissionais = () => {
         ) : (
           <div className="grid gap-4">
             {filteredProfessionals.map((professional) => (
-              <Card key={professional.id} className="p-6">
+              <div key={professional.id} className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-primary-light rounded-full">
@@ -214,6 +220,7 @@ const Profissionais = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => setEditingId(professional.id)}
+                    className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
                   >
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
@@ -227,13 +234,13 @@ const Profissionais = () => {
                         nome: professional.nome,
                       })
                     }
-                    className="text-destructive hover:text-destructive"
+                    className="rounded-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive transition-colors"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Excluir
                   </Button>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}

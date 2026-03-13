@@ -28,19 +28,19 @@ export function DigitalClock({ className }: DigitalClockProps) {
         {/* Relógio Digital */}
         <div className="flex items-center justify-center">
           <div className="flex items-baseline gap-1">
-            <span className="text-7xl font-bold text-foreground tabular-nums tracking-tight">
+            <span className="text-5xl font-bold text-foreground tabular-nums tracking-tight">
               {hours}
             </span>
-            <span className="text-7xl font-bold text-primary animate-pulse">
+            <span className="text-5xl font-bold text-primary animate-pulse">
               :
             </span>
-            <span className="text-7xl font-bold text-foreground tabular-nums tracking-tight">
+            <span className="text-5xl font-bold text-foreground tabular-nums tracking-tight">
               {minutes}
             </span>
-            <span className="text-7xl font-bold text-muted-foreground/50 animate-pulse">
+            <span className="text-5xl font-bold text-muted-foreground/50 animate-pulse">
               :
             </span>
-            <span className="text-5xl font-bold text-muted-foreground tabular-nums tracking-tight">
+            <span className="text-3xl font-bold text-muted-foreground tabular-nums tracking-tight">
               {seconds}
             </span>
           </div>

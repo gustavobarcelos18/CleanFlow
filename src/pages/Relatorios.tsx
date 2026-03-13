@@ -39,11 +39,7 @@ import { format, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import autoTable from "jspdf-autotable";
 import { jsPDF } from "jspdf";
-import type { Database } from "@/integrations/supabase/types_new";
 import "./Relatorios.css";
-
-type Tables<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
 
 export default function Relatorios() {
   const { toast } = useToast();
@@ -100,12 +96,12 @@ export default function Relatorios() {
 
   // Estados para cada relatório
   const [agendamentos, setAgendamentos] = useState<any[]>([]);
-  const [pacientes, setPacientes] = useState<Tables<"pacientes">[]>([]);
+  const [pacientes, setPacientes] = useState<any[]>([]);
   const [profissionais, setProfissionais] = useState<any[]>([]);
   const [confirmacoes, setConfirmacoes] = useState<any[]>([]);
   const [listaEspera, setListaEspera] = useState<any[]>([]);
   const [alertas, setAlertas] = useState<any[]>([]);
-  const [mensagens, setMensagens] = useState<Tables<"log_mensagens">[]>([]);
+  const [mensagens, setMensagens] = useState<any[]>([]);
 
   // Memoized filtered lists to avoid duplication and unnecessary re-renders
   const filteredAgendamentos = useMemo(() => {
@@ -501,16 +497,17 @@ export default function Relatorios() {
 
   return (
     <MainLayout>
-      <div className="space-y-6 reports-page">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
-          <p className="text-muted-foreground">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10 reports-page">
+        <div className="border-b border-muted/30 pb-6">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">Relatórios</h1>
+          <p className="text-muted-foreground font-medium mt-1">
+            <FileText className="inline h-4 w-4 mr-1.5 mb-0.5" />
             Visualize e exporte relatórios completos do sistema
           </p>
         </div>
 
         <Tabs defaultValue="agendamentos" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 bg-muted/30 border border-muted/50 rounded-xl p-1 h-auto">
             <TabsTrigger value="agendamentos">
               <Calendar className="h-4 w-4 mr-2" />
               Agendamentos
@@ -543,7 +540,7 @@ export default function Relatorios() {
 
           {/* Relatório de Agendamentos */}
           <TabsContent value="agendamentos">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -786,7 +783,7 @@ export default function Relatorios() {
 
           {/* Relatório de Pacientes */}
           <TabsContent value="pacientes">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -998,7 +995,7 @@ export default function Relatorios() {
 
           {/* Relatório de Profissionais */}
           <TabsContent value="profissionais">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -1146,7 +1143,7 @@ export default function Relatorios() {
 
           {/* Relatório de Confirmações */}
           <TabsContent value="confirmacoes">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -1311,7 +1308,7 @@ export default function Relatorios() {
 
           {/* Relatório de Lista de Espera */}
           <TabsContent value="lista-espera">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -1448,7 +1445,7 @@ export default function Relatorios() {
 
           {/* Relatório de Alertas */}
           <TabsContent value="alertas">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -1594,7 +1591,7 @@ export default function Relatorios() {
 
           {/* Relatório de Mensagens */}
           <TabsContent value="mensagens">
-            <Card>
+            <Card className="bg-muted/30 border-muted/50 rounded-xl shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>

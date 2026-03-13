@@ -665,44 +665,73 @@ const Agenda = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex gap-1 bg-muted p-1 rounded-lg">
+      <div className="space-y-8 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+        {/* Header Bold & Clarity */}
+        <div className="border-b border-muted/30 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
+              Agenda
+            </h1>
+            <p className="text-muted-foreground font-medium mt-1">
+              Gerencie seus agendamentos e calendário
+            </p>
+          </div>
+          <Button
+            onClick={() => setNewAppointmentDialogOpen(true)}
+            className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Agendamento
+          </Button>
+        </div>
+
+        {/* Barra de Ferramentas / Filtros (Sticky) */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-muted/30 backdrop-blur-md p-4 rounded-xl border border-muted/50 shadow-sm sticky top-0 z-40">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex bg-background/50 p-1 rounded-md shadow-inner border border-muted/50">
               <Button
                 variant={viewMode === "timeline" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("timeline")}
-                className="h-8"
+                className={`h-8 px-3 rounded-sm ${viewMode === "timeline" ? 'bg-background shadow-sm' : ''}`}
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                Timeline
+                <span className="hidden sm:inline">Timeline</span>
               </Button>
               <Button
                 variant={viewMode === "cards" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("cards")}
-                className="h-8"
+                className={`h-8 px-3 rounded-sm ${viewMode === "cards" ? 'bg-background shadow-sm' : ''}`}
               >
-                Cards
+                <span className="hidden sm:inline">Cards</span>
+                <span className="sm:hidden">Cards</span>
               </Button>
             </div>
 
-            <div className="h-6 w-px bg-border mx-2" />
+            <div className="h-6 w-px bg-border/50 hidden sm:block" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 rounded-md bg-background shadow-sm hover:bg-accent"
                 onClick={handleNavigateToPreviousDay}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
+                size="sm"
+                className="h-8 px-3 font-medium bg-background shadow-sm"
+                onClick={handleGoToToday}
+              >
+                Hoje
+              </Button>
+              <Button
+                variant="outline"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 rounded-md bg-background shadow-sm hover:bg-accent"
                 onClick={handleNavigateToNextDay}
               >
                 <ChevronRight className="h-4 w-4" />
@@ -710,28 +739,30 @@ const Agenda = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="relative flex-1 md:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar paciente..."
-                className="h-9 w-[200px] pl-9"
+                className="h-9 w-full md:w-[180px] lg:w-[220px] pl-9 bg-background shadow-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
               <Select
                 value={selectedProfessionalId}
                 onValueChange={setSelectedProfessionalId}
               >
-                <SelectTrigger className="h-9 w-[180px]">
-                  <SelectValue placeholder="Profissional" />
+                <SelectTrigger className="h-9 w-[140px] md:w-[160px] bg-background shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                    <SelectValue placeholder="Profissional" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos Profissionais</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {professionals.map((prof) => (
                     <SelectItem key={prof.id} value={prof.id}>
                       {prof.nome}
@@ -741,53 +772,42 @@ const Agenda = () => {
               </Select>
             </div>
 
-            <NewAppointmentDialog
-              selectedDate={selectedDate}
-              onSuccess={() => refetchAppointments()}
-              open={newAppointmentDialogOpen}
-              onOpenChange={(open) => {
-                setNewAppointmentDialogOpen(open);
-                if (!open) setNewAppointmentTime("");
-              }}
-              selectedTime={newAppointmentTime}
-            >
-              <Button className="h-9 px-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Consulta
-              </Button>
-            </NewAppointmentDialog>
           </div>
         </div>
 
         {isLoadingAppointments ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">
-                Carregando agendamentos...
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center p-16 h-[50vh] border rounded-xl bg-muted/30 border-dashed border-muted/50">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground font-medium">
+              Sincronizando agenda...
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-[350px_1fr_400px] lg:grid-cols-[320px_1fr] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr] xl:grid-cols-[280px_1fr_320px] 2xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
+            
             {/* Coluna Esquerda - Calendário Mensal */}
-            <div className="lg:sticky lg:top-6 lg:self-start">
+            <div className="hidden xl:block sticky top-[88px] z-30 space-y-4">
               <MonthlyCalendar
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
               />
+               {/* Digital Clock moved here for better integration */}
+               <DigitalClock className="shadow-none border bg-muted/30 w-full rounded-xl border-muted/50" />
             </div>
 
             {/* Coluna Central - Agenda do Dia */}
-            <div>
+            <div className="min-w-0 bg-background rounded-xl p-1 md:p-0">
               {viewMode === "timeline" ? (
                 <>
-                  <div className="mb-4 p-4 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Arrastar e Soltar:</strong> Arraste os
-                      agendamentos para reorganizar os horários. As alterações
-                      serão salvas automaticamente.
-                    </p>
+                  <div className="mb-4 flex items-center justify-between bg-accent/20 border border-accent/40 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                         <Calendar className="h-3 w-3 text-primary" />
+                       </span>
+                       <p className="text-xs text-foreground/80 font-medium">
+                         <strong className="text-foreground">Dica:</strong> Arraste os blocos para reorganizar os horários.
+                       </p>
+                    </div>
                   </div>
                   <DragSchedule
                     appointments={filteredAppointments}
@@ -803,11 +823,15 @@ const Agenda = () => {
                 </>
               ) : (
                 <>
-                  <div className="mb-4 p-4 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Arrastar e Soltar:</strong> Arraste os cards para
-                      reorganizar a ordem dos agendamentos.
-                    </p>
+                  <div className="mb-4 flex items-center justify-between bg-accent/20 border border-accent/40 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                         <Calendar className="h-3 w-3 text-primary" />
+                       </span>
+                       <p className="text-xs text-foreground/80 font-medium">
+                         <strong className="text-foreground">Cards View:</strong> Arraste para cima/baixo para reordenar a prioridade.
+                       </p>
+                    </div>
                   </div>
                   <DragSchedule
                     appointments={filteredAppointments}
@@ -824,8 +848,8 @@ const Agenda = () => {
               )}
             </div>
 
-            {/* Coluna Direita - Preview do Próximo Dia e Relógio (apenas em telas XL) */}
-            <div className="hidden xl:block xl:sticky xl:top-6 xl:self-start space-y-4">
+            {/* Coluna Direita - Preview do Próximo Dia */}
+            <div className="hidden xl:block sticky top-[88px] z-30">
               <NextDayPreview
                 date={addDays(selectedDate, 1)}
                 appointments={nextDayAppointments}
@@ -849,20 +873,20 @@ const Agenda = () => {
         </EditAppointmentDialog>
       )}
 
+      {/* Exclusão */}
       <AlertDialog
         open={!!deletingAppointmentId}
         onOpenChange={() => setDeletingAppointmentId(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-muted/50 rounded-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este agendamento? Esta ação não
-              pode ser desfeita.
+              Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -873,34 +897,31 @@ const Agenda = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Dialog de ajuste de conflito */}
+      {/* Dialog Ajuste Conflito */}
       <AlertDialog
         open={conflictAdjustDialogOpen}
         onOpenChange={setConflictAdjustDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-muted/50 rounded-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Ajustar Horário Conflitante</AlertDialogTitle>
             <AlertDialogDescription>
               {conflictAdjustData?.affectedCount === 0 ? (
-                <>
-                  <p className="mb-4">
-                    Ajuste o horário deste agendamento para resolver o conflito:
+                <div className="space-y-3 mt-2">
+                  <p className="text-sm">
+                    Ajuste o horário deste agendamento para resolver o conflito detectado:
                   </p>
                   <Input
                     type="time"
                     value={rescheduleTime}
                     onChange={(e) => setRescheduleTime(e.target.value)}
-                    className="mb-2"
+                    className="w-full bg-background"
                   />
-                </>
+                </div>
               ) : (
-                <p>
-                  Este ajuste afetará{" "}
-                  <strong>{conflictAdjustData?.affectedCount}</strong>{" "}
-                  agendamento(s) posterior(es), que serão automaticamente
-                  remarcados. Deseja continuar?
-                </p>
+                <div className="bg-warning/10 text-warning-foreground p-3 rounded-md text-sm border border-warning/20 mt-2">
+                  Este ajuste empurrará <strong>{conflictAdjustData?.affectedCount}</strong> agendamento(s) para frente em cascata. Deseja aplicar o ajuste geral?
+                </div>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -914,32 +935,31 @@ const Agenda = () => {
             >
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmConflictAdjust}>
-              {conflictAdjustData?.affectedCount === 0
-                ? "Verificar Ajuste"
-                : "Confirmar Alterações"}
+            <AlertDialogAction onClick={handleConfirmConflictAdjust} className="bg-primary">
+              {conflictAdjustData?.affectedCount === 0 ? "Verificar Horário" : "Confirmar Cascata"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Dialog Reagendar (Card Drop) */}
       <AlertDialog
         open={rescheduleDialogOpen}
         onOpenChange={setRescheduleDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="border-muted/50 rounded-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Novo Horário</AlertDialogTitle>
+            <AlertDialogTitle>Definir Novo Horário</AlertDialogTitle>
             <AlertDialogDescription>
-              Informe o novo horário para este agendamento:
+              Você mudou a ordem do card. Informe o novo horário base para este agendamento:
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
-            <input
+          <div className="py-2">
+            <Input
               type="time"
               value={rescheduleTime}
               onChange={(e) => setRescheduleTime(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              className="w-full bg-background"
             />
           </div>
           <AlertDialogFooter>
@@ -959,10 +979,18 @@ const Agenda = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Relógio Digital Fixo */}
-      <div className="fixed bottom-6 right-8 z-[100] hidden md:block">
-        <DigitalClock className="shadow-2xl border-primary/20 bg-background/80 backdrop-blur-md" />
-      </div>
+      <NewAppointmentDialog
+        selectedDate={selectedDate}
+        onSuccess={() => refetchAppointments()}
+        open={newAppointmentDialogOpen}
+        onOpenChange={(open) => {
+          setNewAppointmentDialogOpen(open);
+          if (!open) setNewAppointmentTime("");
+        }}
+        selectedTime={newAppointmentTime}
+      >
+        <button style={{ display: "none" }} />
+      </NewAppointmentDialog>
     </MainLayout>
   );
 };
