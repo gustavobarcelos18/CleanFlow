@@ -183,6 +183,27 @@ html {
     --warning-light: 48 100% 12%;
     --destructive-light: 0 72% 12%;
   }
+
+  /* ─────────────────────────────────────────
+     ESCOPO PROTEGIDO (APP INTERNO)
+     Aplica o Design Contract Ciano/Laranja
+     preservando a Landing externa.
+  ──────────────────────────────────────────── */
+  .app-auth {
+    --primary: 190 90% 40%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 190 90% 40%;
+    --accent: 210 20% 96%;
+    --accent-foreground: 0 0% 9%;
+  }
+
+  .dark .app-auth {
+    --primary: 189 84% 54%;
+    --primary-foreground: 222 47% 5%;
+    --ring: 189 84% 54%;
+    --accent: 215 40% 14%;
+    --accent-foreground: 0 0% 100%;
+  }
 }
 
 @layer base {

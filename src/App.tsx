@@ -127,10 +127,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <div className="app-auth contents">
       <BillingBanner />
       {children}
-    </>
+    </div>
   );
 }
 

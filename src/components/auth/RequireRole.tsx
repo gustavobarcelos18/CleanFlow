@@ -36,7 +36,7 @@ export function RequireRole({ roles, children, redirectTo }: RequireRoleProps) {
     return <AccessDenied />;
   }
 
-  return <>{children}</>;
+  return <div className="app-auth contents">{children}</div>;
 }
 
 // HOC version for wrapping components
