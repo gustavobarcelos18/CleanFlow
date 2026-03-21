@@ -3,12 +3,14 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { NewPatientDialog } from "@/components/schedule/NewPatientDialog";
 
 interface PatientFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   riskFilter: string;
   setRiskFilter: (risk: string) => void;
+  onAddSuccess?: () => void;
 }
 
 export function PatientFilters({
@@ -16,6 +18,7 @@ export function PatientFilters({
   setSearchTerm,
   riskFilter,
   setRiskFilter,
+  onAddSuccess,
 }: PatientFiltersProps) {
   const riskOptions = [
     { label: "Todos", value: "all" },
@@ -77,6 +80,10 @@ export function PatientFilters({
             );
           })}
         </div>
+      </div>
+
+      <div className="shrink-0 flex items-center gap-3">
+        <NewPatientDialog onSuccess={onAddSuccess} />
       </div>
     </div>
   );

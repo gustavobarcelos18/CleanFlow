@@ -44,28 +44,28 @@ export function StatsCard({
   return (
     <div
       className={cn(
-        "p-6 rounded-lg border transition-colors duration-200",
+        "p-4 rounded-lg border transition-colors duration-200 h-full flex flex-col justify-center",
         variantStyles[variant],
         className,
       )}
     >
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="space-y-1 min-w-0 flex-1">
+          <p className="text-sm font-medium text-muted-foreground line-clamp-1" title={title}>{title}</p>
+          <p className="text-2xl font-bold text-foreground truncate">{value}</p>
           {change && (
-            <p className={cn("text-xs font-medium", changeStyles[changeType])}>
+            <p className={cn("text-xs font-medium truncate", changeStyles[changeType])}>
               {change}
             </p>
           )}
         </div>
         <div
           className={cn(
-            "p-3 rounded-full",
-            variant === "default" ? "bg-primary/10" : "bg-background/50",
+            "p-3 rounded-full flex-shrink-0",
+            variant === "default" ? "bg-primary/10" : "bg-background/20",
           )}
         >
-          <Icon className={cn("h-6 w-6", iconStyles[variant])} />
+          <Icon className={cn("h-5 w-5", iconStyles[variant])} aria-hidden="true" />
         </div>
       </div>
     </div>

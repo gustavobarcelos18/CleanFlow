@@ -320,6 +320,8 @@ export function ProntuarioAtendimento({
 
   const isPrimeiraConsulta = historico.length === 0;
 
+  const [tempoInicio] = useState(new Date());
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-muted/30 p-6 rounded-2xl border border-muted/50 shadow-sm mb-6">
@@ -377,8 +379,8 @@ export function ProntuarioAtendimento({
 
       {/* Temporizador de Atendimento */}
       <AtendimentoTimer
-        inicioAtendimento={new Date(agendamento.inicio)}
-        duracaoMinutos={agendamento.servicos?.duracao_minutos || 60}
+        inicioAtendimento={tempoInicio}
+        duracaoMinutos={agendamento.servicos?.duracao_minutos || 30}
         proximoAtendimento={proximoAgendamento}
       />
 

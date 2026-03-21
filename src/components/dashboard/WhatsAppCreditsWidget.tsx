@@ -92,9 +92,9 @@ export const WhatsAppCreditsWidget = () => {
   const StatusIcon = config.icon;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+    <Card className="shadow-sm">
+      <CardHeader className="p-4 flex flex-col space-y-1.5 shrink-0">
+        <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
             Créditos WhatsApp
@@ -105,13 +105,13 @@ export const WhatsAppCreditsWidget = () => {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-4 pt-0 space-y-3">
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">
               Saldo Disponível
             </span>
-            <span className="text-2xl font-bold">
+            <span className="text-xl font-bold">
               {saldoCreditos.toLocaleString()}
             </span>
           </div>

@@ -19,12 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { FlexibleDatePicker } from "@/components/ui/flexible-date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, CalendarIcon, Search } from "lucide-react";
@@ -112,7 +107,8 @@ export function NewPatientDialog({
       formData.cpf.trim() !== "" ||
       formData.telefone.trim() !== "" ||
       formData.email.trim() !== "" ||
-      formData.notas_internas.trim() !== "";
+      formData.notas_internas.trim() !== "" ||
+      formData.data_nascimento !== undefined;
     setHasChanges(isDirty);
   }, [formData]);
 
@@ -324,43 +320,13 @@ export function NewPatientDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="data_nascimento">Data de Nascimento</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.data_nascimento && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.data_nascimento ? (
-                    format(formData.data_nascimento, "dd 'de' MMMM 'de' yyyy", {
-                      locale: ptBR,
-                    })
-                  ) : (
-                    <span>Selecione a data</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.data_nascimento}
-                  onSelect={(date) =>
-                    setFormData({ ...formData, data_nascimento: date })
-                  }
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          <FlexibleDatePicker
+            label="Data de Nascimento"
+            value={formData.data_nascimento}
+            onChange={(date) =>
+              setFormData({ ...formData, data_nascimento: date })
+            }
+          />
 
           <DynamicForm
             data={formData.custom_data}

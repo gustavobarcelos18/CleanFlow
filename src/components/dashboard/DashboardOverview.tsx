@@ -215,9 +215,9 @@ export function DashboardOverview() {
   }, [fetchDashboardData]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
+        className="grid gap-4 sm:gap-5 lg:gap-6 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
         data-tour="dashboard-stats"
       >
         <StatsCard
@@ -259,7 +259,7 @@ export function DashboardOverview() {
       </div>
 
       {/* Próximas Consultas e WhatsApp Credits */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-black text-foreground tracking-tight">
@@ -299,7 +299,7 @@ export function DashboardOverview() {
       </div>
 
       {/* Painel de Alertas */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         <h3 className="text-xl font-black text-foreground tracking-tight">
           Alertas e <span className="text-warning">Ações</span>
         </h3>
@@ -314,7 +314,7 @@ export function DashboardOverview() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid gap-4 sm:gap-5 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
             {alerts.map((alert, index) => (
               <div
                 key={index}

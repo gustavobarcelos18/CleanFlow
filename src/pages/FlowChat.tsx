@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 
 interface Contact {
   id: string;
@@ -99,6 +100,12 @@ const FlowChat = () => {
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [messageHistory] = useState<Message[]>([]);
   const [contactNotes, setContactNotes] = useState("");
+  const { setTitle, setSubtitle } = useLayoutTitle();
+
+  useEffect(() => {
+    setTitle("FlowChat");
+    setSubtitle("Comunique-se com seus clientes via WhatsApp Oficial");
+  }, [setTitle, setSubtitle]);
 
   const filteredContacts = contacts.filter(
     (contact) =>
@@ -147,25 +154,7 @@ const FlowChat = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-4 max-w-6xl mx-auto h-[calc(100vh-100px)] flex flex-col pb-4">
-        {/* Header Section */}
-        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-muted/30 pb-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1 flex items-center gap-3">
-              <MessageSquare className="h-8 md:h-10 w-8 md:w-10 text-primary" />
-              FlowChat
-            </h1>
-            <p className="text-muted-foreground font-medium mt-1">
-              Comunique-se com seus clientes via WhatsApp Oficial
-            </p>
-          </div>
-          <div className="bg-amber-100/50 dark:bg-amber-950/30 border border-amber-300/50 dark:border-amber-700/30 rounded-lg p-3 flex items-center gap-2 max-w-sm shadow-sm backdrop-blur-sm">
-            <span className="text-xs font-medium text-amber-900 dark:text-amber-200 leading-tight">
-              <strong>Aviso:</strong> Respostas do cliente não são sincronizadas (apenas via API Oficial no plano Enterprise).
-            </span>
-          </div>
-        </div>
-
+      <div className="max-w-6xl mx-auto h-[calc(100vh-180px)] flex flex-col overflow-hidden">
         {/* App Layout Container */}
         <div className="flex-1 flex bg-muted/30 border border-muted/50 rounded-xl shadow-sm overflow-hidden min-h-0 relative">
           
@@ -222,6 +211,13 @@ const FlowChat = () => {
                   <p>Nenhum contato encontrado na busca.</p>
                 </div>
               )}
+            </div>
+
+            {/* Aviso at the bottom of contact list */}
+            <div className="p-3 bg-amber-500/5 border-t border-amber-500/10 shrink-0">
+              <p className="text-[10px] text-amber-600/80 dark:text-amber-400/60 leading-tight text-center font-medium">
+                <strong>Aviso:</strong> Respostas não sincronizadas (apenas <span className="underline uppercase tracking-tighter">Plano Enterprise</span>).
+              </p>
             </div>
           </div>
 

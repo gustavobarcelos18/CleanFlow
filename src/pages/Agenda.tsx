@@ -43,6 +43,7 @@ import {
   endOfDay,
   isToday,
   isValid,
+  isBefore,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -96,6 +97,16 @@ const Agenda = () => {
 
   const { data: professionalsData } = useProfessionals({ pageSize: 100 });
   const professionals = professionalsData?.data || [];
+  const deveMostrarFiltro = professionals.length > 1;
+
+  // Auto-selecionar quando há apenas 1 profissional para não quebrar state
+  useEffect(() => {
+    if (professionals.length === 1 && selectedProfessionalId !== professionals[0].id) {
+      setSelectedProfessionalId(professionals[0].id);
+    } else if (professionals.length === 0 && selectedProfessionalId !== "all") {
+      setSelectedProfessionalId("all");
+    }
+  }, [professionals, selectedProfessionalId]);
 
   const { toast } = useToast();
   const { setTitle, setSubtitle } = useLayoutTitle();
@@ -118,6 +129,7 @@ const Agenda = () => {
 
   useEffect(() => {
     if (appointmentsData) {
+      const isPastDay = isBefore(selectedDate, startOfDay(new Date()));
       const formattedAppointments = appointmentsData.map((apt: any) => {
         const inicioDate = apt?.inicio ? new Date(apt.inicio) : null;
         const fimDate = apt?.fim ? new Date(apt.fim) : null;
@@ -132,18 +144,36 @@ const Agenda = () => {
             ? Math.round((fimDate.getTime() - inicioDate.getTime()) / 60000)
             : 30; // default de 30 min
 
+        // Se o dia já passou, mostramos como concluído visualmente, a menos que esteja cancelado ou seja falta
+        let currentStatus = apt.status || "pending";
+        // Regra de somente leitura (finalizado ou passado)
+        const now = new Date();
+        const slotDateTime = new Date(selectedDate);
+        if (safeTime !== "--:--") {
+          const [hours, minutes] = safeTime.split(":").map(Number);
+          slotDateTime.setHours(hours, minutes, 0, 0);
+        }
+        
+        const isExpired = slotDateTime < now;
+        if (isExpired && (currentStatus === "pending" || currentStatus === "agendado")) {
+          currentStatus = "concluido";
+        }
+        
+        const isLocked = isExpired || currentStatus === "concluido";
+
         return {
           id: apt.id,
           patientName: apt.pacientes?.nome || "Paciente",
           time: safeTime,
           doctor: apt.profiles?.nome || "Profissional",
-          status: apt.status || "pending",
+          status: currentStatus,
           phone: apt.pacientes?.telefone || "",
           duration: safeDuration,
           ordem: apt.ordem,
           inicio: apt.inicio,
           riskLevel: apt.no_show_risk_level,
           profissional_id: apt.profissional_id,
+          readOnly: isLocked,
         };
       });
 
@@ -631,12 +661,43 @@ const Agenda = () => {
     if (!deletingAppointmentId) return;
 
     try {
+      console.log("Iniciando exclusão do agendamento:", deletingAppointmentId);
+      
+      // Deletar registros em tabelas dependentes um por um para capturar o erro exato
+      try {
+        await supabase.from("prontuarios" as any).delete().eq("agendamento_id", deletingAppointmentId);
+        console.log("Prontuários deletados");
+      } catch (e) { console.error("Erro prontuarios:", e); }
+
+      try {
+        await supabase.from("contas_receber" as any).delete().eq("agendamento_id", deletingAppointmentId);
+        console.log("Contas receber deletadas");
+      } catch (e) { console.error("Erro contas_receber:", e); }
+
+      try {
+        await supabase.from("alertas_risco" as any).delete().eq("agendamento_id", deletingAppointmentId);
+        console.log("Alertas risco deletados");
+      } catch (e) { console.error("Erro alertas_risco:", e); }
+
+      try {
+        await supabase.from("appointment_transfers" as any).delete().eq("appointment_id", deletingAppointmentId);
+        console.log("Transfers deletados");
+      } catch (e) { console.error("Erro appointment_transfers:", e); }
+
+      try {
+        await supabase.from("financial_commissions" as any).delete().eq("appointment_id", deletingAppointmentId);
+        console.log("Comissões deletadas");
+      } catch (e) { console.error("Erro financial_commissions:", e); }
+
       const { error } = await supabase
         .from("agenda")
         .delete()
         .eq("id", deletingAppointmentId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao deletar da tabela agenda:", error);
+        throw error;
+      }
 
       // Atualizar UI imediatamente
       setAppointments((prev) =>
@@ -665,28 +726,9 @@ const Agenda = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
-        {/* Header Bold & Clarity */}
-        <div className="border-b border-muted/30 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Agenda
-            </h1>
-            <p className="text-muted-foreground font-medium mt-1">
-              Gerencie seus agendamentos e calendário
-            </p>
-          </div>
-          <Button
-            onClick={() => setNewAppointmentDialogOpen(true)}
-            className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Agendamento
-          </Button>
-        </div>
-
+      <div className="space-y-4 animate-in fade-in duration-500 pb-10 max-w-full lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 md:px-0">
         {/* Barra de Ferramentas / Filtros (Sticky) */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-muted/30 backdrop-blur-md p-4 rounded-xl border border-muted/50 shadow-sm sticky top-0 z-40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 backdrop-blur-md p-4 rounded-xl border border-border shadow-sm sticky top-20 z-40">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex bg-background/50 p-1 rounded-md shadow-inner border border-muted/50">
               <Button
@@ -740,6 +782,13 @@ const Agenda = () => {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              onClick={() => setNewAppointmentDialogOpen(true)}
+              className="h-9 px-4 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold flex-1 sm:flex-none order-last sm:order-first"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="inline">Agendar</span>
+            </Button>
             <div className="relative flex-1 md:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -750,27 +799,29 @@ const Agenda = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Select
-                value={selectedProfessionalId}
-                onValueChange={setSelectedProfessionalId}
-              >
-                <SelectTrigger className="h-9 w-[140px] md:w-[160px] bg-background shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                    <SelectValue placeholder="Profissional" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {professionals.map((prof) => (
-                    <SelectItem key={prof.id} value={prof.id}>
-                      {prof.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {deveMostrarFiltro && (
+              <div className="flex items-center gap-2">
+                <Select
+                  value={selectedProfessionalId}
+                  onValueChange={setSelectedProfessionalId}
+                >
+                  <SelectTrigger className="h-9 w-[140px] md:w-[160px] bg-background shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                      <SelectValue placeholder="Profissional" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    {professionals.map((prof) => (
+                      <SelectItem key={prof.id} value={prof.id}>
+                        {prof.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
           </div>
         </div>
@@ -783,20 +834,18 @@ const Agenda = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr] xl:grid-cols-[280px_1fr_320px] 2xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_320px] 2xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
             
             {/* Coluna Esquerda - Calendário Mensal */}
-            <div className="hidden xl:block sticky top-[88px] z-30 space-y-4">
+            <div className="hidden xl:block sticky top-[10.5rem] z-30 space-y-4">
               <MonthlyCalendar
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
               />
-               {/* Digital Clock moved here for better integration */}
-               <DigitalClock className="shadow-none border bg-muted/30 w-full rounded-xl border-muted/50" />
             </div>
 
             {/* Coluna Central - Agenda do Dia */}
-            <div className="min-w-0 bg-background rounded-xl p-1 md:p-0">
+            <div className="min-w-0 bg-background rounded-xl p-0.5 md:p-0">
               {viewMode === "timeline" ? (
                 <>
                   <div className="mb-4 flex items-center justify-between bg-accent/20 border border-accent/40 rounded-lg p-3">
@@ -849,13 +898,15 @@ const Agenda = () => {
             </div>
 
             {/* Coluna Direita - Preview do Próximo Dia */}
-            <div className="hidden xl:block sticky top-[88px] z-30">
+            <div className="hidden xl:block sticky top-[10.5rem] z-30 space-y-4">
               <NextDayPreview
                 date={addDays(selectedDate, 1)}
                 appointments={nextDayAppointments}
                 onNavigate={handleNavigateToNextDay}
                 isLoading={isLoadingNextDay}
               />
+              {/* Digital Clock moved here for better integration */}
+              <DigitalClock className="shadow-none border bg-muted/30 w-full rounded-xl border-muted/50" />
             </div>
           </div>
         )}

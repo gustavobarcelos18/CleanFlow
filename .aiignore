@@ -1,0 +1,81 @@
+# ==========================================
+# .aiignore
+# Otimização de Tokens / Contexto para o Agente IA
+# ==========================================
+
+# 1. Dependências (Mais gasto de tokens que existe)
+node_modules/
+
+# 2. Lockfiles (Arquivos gigantes gerados automaticamente)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+*.lock
+
+# 3. Build Artifacts, Outputs e Caches (Código já compilado)
+dist/
+build/
+out/
+.vite/
+.turbo/
+.next/
+.cache/
+coverage/
+.eslintcache
+*.tsbuildinfo
+
+# 4. Logs, Dumps e Arquivos Temporários
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.temp/
+.tmp/
+
+# 5. Bancos de Dados Locais 
+*.sqlite
+*.sqlite3
+*.db
+supabase/.temp/
+supabase/dump/
+
+# 6. Relatórios Gerados
+reports/
+*.csv
+*.pdf
+
+# 7. Mídia, Imagens e Binários (A IA não consegue extrair texto útil daqui)
+# Nota: Mantenho a pasta public/, mas ignoro mídia dentro dela
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.webp
+*.mp4
+*.webm
+*.mp3
+*.wav
+*.zip
+*.tar
+*.gz
+
+# 8. Arquivos do Sistema Operacional e IDEs (Ruído)
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ==========================================
+# IMPORTANTE: O que a IA CONTINUA lendo (Não adicione aqui):
+# - src/** (Todo seu React, TSX, Tailwind, Shadcn)
+# - supabase/** (Migrations, types, edge functions)
+# - public/ (Estrutura base, manifests)
+# - docs/ (Manter apenas os essenciais. Se tiver docs gigantes, adicione-os aqui)
+# - package.json, vite.config.ts, tsconfig.json, tailwind.config.ts
+# ==========================================

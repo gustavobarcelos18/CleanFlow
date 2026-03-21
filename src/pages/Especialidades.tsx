@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Edit, Trash2, Loader2, Search, Stethoscope } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 import { NewEspecialidadeDialog } from "@/components/schedule/NewEspecialidadeDialog";
 import { EditEspecialidadeDialog } from "@/components/schedule/EditEspecialidadeDialog";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -30,6 +31,7 @@ const Especialidades = () => {
   const [especialidadeToDelete, setEspecialidadeToDelete] =
     useState<Especialidade | null>(null);
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
 
   const fetchEspecialidades = async () => {
     try {
@@ -56,6 +58,11 @@ const Especialidades = () => {
   useEffect(() => {
     fetchEspecialidades();
   }, []);
+
+  useEffect(() => {
+    setTitle("Especialidades");
+    setSubtitle(`Gerenciar especialidades reconhecidas (${especialidades.length})`);
+  }, [setTitle, setSubtitle, especialidades.length]);
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     try {
@@ -146,15 +153,7 @@ const Especialidades = () => {
   return (
     <MainLayout>
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Especialidades
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Gerenciar especialidades reconhecidas ({especialidades.length})
-            </p>
-          </div>
+        <div className="flex justify-end">
           {!isLoading && especialidades.length > 0 && (
             <NewEspecialidadeDialog onSuccess={() => fetchEspecialidades()} />
           )}

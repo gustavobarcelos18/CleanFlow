@@ -29,12 +29,15 @@ interface Appointment {
     | "pending"
     | "cancelled"
     | "completed"
+    | "concluido"
+    | "em_atendimento"
     | "no-show"
     | "risk-high"
     | "risk-medium"
     | "risk-low";
   phone?: string;
   duration: number;
+  readOnly?: boolean;
 }
 
 interface TimeSlot {
@@ -75,7 +78,10 @@ function SortableAppointmentCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: appointment.id });
+  } = useSortable({ 
+    id: appointment.id,
+    disabled: appointment.readOnly 
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -89,8 +95,8 @@ function SortableAppointmentCard({
       {...attributes}
       {...listeners}
       className={cn(
-        "cursor-grab active:cursor-grabbing",
-        viewMode === "timeline" ? "w-full h-full" : "h-full",
+        "cursor-grab active:cursor-grabbing h-full",
+        viewMode === "timeline" ? "w-full" : "w-full",
         isDragging && "opacity-50 z-50",
       )}
     >
@@ -102,8 +108,9 @@ function SortableAppointmentCard({
         conflictMinutes={appointment.conflictMinutes}
         onResolveConflict={onResolveConflict}
         className={cn(
-          viewMode === "timeline" && "mb-2 w-full",
-          viewMode === "cards" && "h-full",
+          "w-full transition-shadow duration-200 shadow-sm hover:shadow-md",
+          viewMode === "timeline" && "mb-0",
+          viewMode === "cards" && "h-full min-h-[140px]",
         )}
       />
     </div>
@@ -151,8 +158,8 @@ function DroppableTimeSlot({
     <div
       ref={setNodeRef}
       className={cn(
-        "min-h-[80px] p-2 border border-dashed border-muted/50 rounded-xl transition-colors w-full",
-        isOver && !isPastSlot && "border-primary bg-primary/10",
+        "min-h-[100px] p-3 border border-dashed border-muted/50 rounded-xl transition-all duration-200 w-full group",
+        isOver && !isPastSlot && "border-primary bg-primary/5 ring-2 ring-primary/20",
         appointments.length === 0 &&
           !isPastSlot &&
           "border-muted-foreground/30 cursor-pointer hover:border-primary hover:bg-primary/5",
@@ -164,25 +171,33 @@ function DroppableTimeSlot({
     >
       <div
         className={cn(
-          "text-sm font-medium mb-2",
-          isPastSlot ? "text-muted-foreground/50" : "text-muted-foreground",
+          "flex items-center justify-between mb-3",
         )}
       >
-        {timeSlot.time}
+        <div className={cn(
+          "text-sm font-bold bg-muted/30 px-2 py-0.5 rounded border border-muted/50",
+          isPastSlot ? "text-muted-foreground/50" : "text-primary/70",
+        )}>
+          {timeSlot.time}
+        </div>
+        {appointments.length === 0 && !isPastSlot && (
+          <div className="text-[10px] text-primary/0 group-hover:text-primary transition-all font-semibold uppercase tracking-wider">
+            + Agendar Horário
+          </div>
+        )}
       </div>
+
       <div
         className={cn(
-          "flex flex-col gap-2 w-full",
-          appointments.length > 1 && "md:flex-row flex-wrap",
+          "grid grid-cols-1 gap-3 w-full",
+          appointments.length > 1 && "md:grid-cols-2",
+          appointments.length > 2 && "xl:grid-cols-3",
         )}
       >
         {appointments.map((appointment) => (
           <div
             key={appointment.id}
-            className={cn(
-              "w-full h-full",
-              appointments.length > 1 && "md:flex-1 md:min-w-[280px]",
-            )}
+            className="w-full h-full"
             onClick={(e) => e.stopPropagation()}
           >
             <SortableAppointmentCard
@@ -197,11 +212,12 @@ function DroppableTimeSlot({
         {appointments.length === 0 && (
           <div
             className={cn(
-              "text-xs text-center py-4 w-full",
-              isPastSlot ? "text-muted-foreground/40" : "text-muted-foreground",
+              "text-xs text-center py-4 w-full flex flex-col items-center justify-center gap-1",
+              isPastSlot ? "text-muted-foreground/30" : "text-muted-foreground/50",
             )}
           >
-            {isPastSlot ? "Horário passado" : "Clique para agendar"}
+            <span className="font-medium">{isPastSlot ? "Horário encerrado" : "Disponível"}</span>
+            {!isPastSlot && <span className="text-[10px] opacity-70">Clique para agendar</span>}
           </div>
         )}
       </div>
@@ -271,10 +287,13 @@ export function DragSchedule({
 
   // Modo Timeline: slots com agendamentos
   if (viewMode === "timeline") {
-    const slotsWithAppointments = timeSlots.map((slot) => {
-      const slotAppointments = appointments.filter(
-        (app) => app.time === slot.time,
-      );
+    const slotsWithAppointments = timeSlots.map((slot, index) => {
+      const nextSlot = timeSlots[index + 1];
+      const slotAppointments = appointments.filter((app) => {
+        const appTime = app.time;
+        if (!nextSlot) return appTime >= slot.time;
+        return appTime >= slot.time && appTime < nextSlot.time;
+      });
       return { ...slot, appointments: slotAppointments };
     });
 
@@ -292,7 +311,7 @@ export function DragSchedule({
           ]}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-2 w-full">
+          <div className="space-y-4 w-full pb-20">
             {slotsWithAppointments.map((slot) => (
               <DroppableTimeSlot
                 key={slot.id}
@@ -310,10 +329,12 @@ export function DragSchedule({
 
         <DragOverlay>
           {activeAppointment && (
-            <AppointmentCard
-              {...activeAppointment}
-              className="rotate-3 shadow-lg"
-            />
+            <div className="w-full max-w-[350px]">
+              <AppointmentCard
+                {...activeAppointment}
+                className="rotate-3 shadow-2xl ring-2 ring-primary border-primary/50"
+              />
+            </div>
           )}
         </DragOverlay>
       </DndContext>
@@ -332,7 +353,7 @@ export function DragSchedule({
         items={appointments.map((app) => app.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6 pb-20">
           {appointments.map((appointment) => (
             <SortableAppointmentCard
               key={appointment.id}
@@ -340,17 +361,25 @@ export function DragSchedule({
               viewMode="cards"
               onEdit={onEdit}
               onDelete={onDelete}
+              onResolveConflict={onResolveConflict}
             />
           ))}
+          {appointments.length === 0 && (
+            <div className="col-span-full py-20 flex flex-col items-center justify-center border border-dashed border-muted rounded-2xl bg-muted/5">
+              <p className="text-muted-foreground">Nenhum agendamento para este filtro.</p>
+            </div>
+          )}
         </div>
       </SortableContext>
 
       <DragOverlay>
         {activeAppointment && (
-          <AppointmentCard
-            {...activeAppointment}
-            className="rotate-3 shadow-lg"
-          />
+          <div className="w-[300px]">
+             <AppointmentCard
+                {...activeAppointment}
+                className="rotate-3 shadow-2xl ring-2 ring-primary border-primary/50"
+              />
+          </div>
         )}
       </DragOverlay>
     </DndContext>

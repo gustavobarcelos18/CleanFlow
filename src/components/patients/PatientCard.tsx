@@ -85,8 +85,8 @@ export function PatientCard({ patient, onEdit, onDelete }: PatientCardProps) {
   return (
     <Card className="group overflow-hidden bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50 h-full flex flex-col shadow-sm">
       <CardContent className="p-0 flex flex-col h-full">
-        <div className="p-6 flex-grow flex flex-col">
-          <div className="flex items-start justify-between mb-4 shrink-0 min-h-[60px]">
+        <div className="p-4 flex-grow flex flex-col">
+          <div className="flex items-start justify-between mb-2 shrink-0 min-h-[50px]">
             <div className="flex items-center gap-4 min-w-0 flex-1">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg border border-primary/20 shrink-0">
                 {getInitials(patient.nome)}
@@ -121,7 +121,7 @@ export function PatientCard({ patient, onEdit, onDelete }: PatientCardProps) {
             </Badge>
           </div>
 
-          <div className="space-y-3 mb-6 flex-grow">
+          <div className="space-y-2 mb-4 flex-grow">
             {patient.telefone && (
               <div className="flex items-center gap-3 text-sm text-foreground/80">
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border shrink-0">
@@ -194,7 +194,7 @@ export function PatientCard({ patient, onEdit, onDelete }: PatientCardProps) {
           </div>
         </div>
 
-        <div className="px-6 py-3 bg-muted/30 border-t border-border flex items-center justify-between group/footer cursor-pointer hover:bg-muted transition-colors mt-auto">
+        <div className="px-4 py-2.5 bg-muted/30 border-t border-border flex items-center justify-between group/footer cursor-pointer hover:bg-muted transition-colors mt-auto">
           <span className="text-xs font-bold text-foreground/60 uppercase tracking-widest flex items-center gap-2">
             <ExternalLink className="h-3 w-3" />
             Ver Prontuário Completo

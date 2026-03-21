@@ -91,27 +91,32 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   // Desktop layout
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground overflow-x-clip">
       {impersonationId && <ImpersonationBanner />}
-      <div className="flex">
-        {/* Sidebar - z-40 para ficar acima do conteúdo */}
+      <div className="flex w-full">
+        {/* Sidebar - z-50 to stay above everything */}
         <div
-          className="fixed left-0 top-0 h-full z-40"
-          style={{ top: impersonationId ? "44px" : "0" }}
+          className="fixed left-0 top-0 h-full z-50 border-r border-border/50"
+          style={{ 
+            top: impersonationId ? "44px" : "0",
+            width: `${width}px`
+          }}
         >
           <Sidebar />
         </div>
 
-        {/* Main Content - z-0 para ficar abaixo do sidebar */}
+        {/* Main Content Area - scrolls independently if needed */}
         <div
           className={cn(
-            "flex-1 relative z-0",
+            "flex-1 relative z-0 min-w-0 min-h-screen",
             !isResizing && "transition-all duration-200 ease-out",
           )}
           style={{ marginLeft: `${width}px` }}
         >
           <Header />
-          <main className="p-6">{children}</main>
+          <main className="p-6 md:p-10 max-w-full">
+            {children}
+          </main>
         </div>
       </div>
     </div>

@@ -13,6 +13,8 @@ import {
   TestTube,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { useEffect } from "react";
 
 const hubModules = [
   {
@@ -99,45 +101,61 @@ const hubModules = [
 ];
 
 const HubCentral = () => {
+  const { setTitle, setSubtitle } = useLayoutTitle();
+
+  useEffect(() => {
+    setTitle("Hub Central");
+    setSubtitle("Acesso rápido aos principais módulos da sua clínica");
+  }, [setTitle, setSubtitle]);
+
   return (
     <MainLayout>
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="border-b border-muted/30 pb-6">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-            Hub Central
-          </h1>
-          <p className="text-muted-foreground font-medium mt-1">
-            Acesso rápido aos principais módulos da sua clínica.
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {hubModules.map((module) => {
+        <div className="grid gap-6 md:gap-8 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))] max-w-[1600px] mx-auto">
+          {hubModules.map((module, index) => {
             const Icon = module.icon;
             return (
               <Link
                 key={module.href}
                 to={module.href}
-                className="group relative block outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
+                className="group relative flex flex-col h-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-[1.75rem] animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both shadow-sm hover:shadow-2xl transition-all"
+                style={{ animationDelay: `${index * 30}ms` }}
+                aria-label={`Acessar módulo ${module.title}`}
               >
                 <div
                   className={cn(
-                    "h-full p-6 bg-muted/30 rounded-xl border border-muted/50 shadow-sm transition-all duration-300 relative overflow-hidden",
-                    "hover:-translate-y-1 hover:bg-muted/50 hover:shadow-md hover:border-muted-foreground/30",
+                    "flex flex-col h-full p-6 md:p-8 lg:p-10 bg-muted/20 backdrop-blur-xl rounded-[1.75rem] border border-muted/40 transition-all duration-500 relative overflow-hidden",
+                    "hover:-translate-y-2 hover:bg-muted/30 hover:border-primary/20",
                   )}
                 >
-                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-40 pointer-events-none transition-opacity group-hover:opacity-60", module.gradient)} />
-                  <div className="relative z-10 flex items-start gap-4">
-                    <div className={cn("p-3 rounded-xl backdrop-blur-sm border transition-colors", module.color)}>
-                      <Icon className="h-6 w-6" strokeWidth={2.5} />
+                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-40", module.gradient)} />
+                  
+                  <div className="relative z-10 flex flex-col items-center text-center h-full">
+                    {/* Icon Container */}
+                    <div className={cn(
+                      "mb-6 p-4 md:p-5 rounded-2xl backdrop-blur-md border transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-lg", 
+                      module.color
+                    )}>
+                      <Icon className="h-8 w-8 md:h-10 md:w-10" strokeWidth={1.5} aria-hidden="true" />
                     </div>
-                    <div className="flex-1 space-y-1.5 mt-0.5">
-                      <h3 className="font-bold text-foreground text-lg tracking-tight group-hover:text-primary transition-colors">
+                    
+                    {/* Text Content */}
+                    <div className="flex-1 flex flex-col space-y-3 px-2">
+                      <h3 className="font-black text-foreground text-lg md:text-xl xl:text-2xl uppercase tracking-tighter group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight">
                         {module.title}
                       </h3>
-                      <p className="text-sm text-foreground/70 leading-relaxed font-medium">
+                      <p className="text-xs md:text-sm lg:text-base text-muted-foreground leading-relaxed font-semibold opacity-80 group-hover:opacity-100 transition-opacity max-w-[260px] mx-auto line-clamp-3">
                         {module.description}
                       </p>
+                    </div>
+
+                    {/* Alinhamento na Base (CTA/Indicator) */}
+                    <div className="mt-8 flex flex-col items-center gap-4 w-full">
+                      <div className="h-1.5 w-12 rounded-full bg-primary/10 group-hover:bg-primary/40 transition-all duration-500" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/0 group-hover:text-primary/60 transition-all duration-500 translate-y-2 group-hover:translate-y-0 italic">
+                        Explorar
+                      </span>
                     </div>
                   </div>
                 </div>

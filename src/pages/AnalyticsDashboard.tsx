@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -158,7 +159,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* KPIs Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
         <KPICard
           title="Taxa de Ocupação"
           value={`${(chartDataOcupacao.reduce((acc, curr) => acc + curr.taxa, 0) / (chartDataOcupacao.length || 1)).toFixed(1)}%`}
@@ -213,7 +214,7 @@ export default function AnalyticsDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(400px,1fr))]">
             <Card className="bg-[#0B1220] border-[#1B2A40] shadow-xl">
               <CardHeader>
                 <CardTitle className="text-white font-bold">
@@ -399,29 +400,29 @@ function KPICard({
   const TrendIcon = isNeutral ? Zap : isPositive ? TrendingUp : TrendingDown;
 
   return (
-    <Card className="bg-[#070B12] border-[#1B2A40] hover:border-cyan-400/30 transition-all duration-300 shadow-lg">
+    <Card className="bg-[#070B12] border-[#1B2A40] hover:border-cyan-400/30 transition-all duration-300 shadow-lg h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-bold text-[#A9B7D0] tracking-wider uppercase">
+        <CardTitle className="text-sm font-bold text-[#A9B7D0] tracking-wider uppercase line-clamp-1" title={title}>
           {title}
         </CardTitle>
-        <div className="p-2 bg-cyan-400/10 rounded-lg">
-          <Icon className="h-4 w-4 text-cyan-400" />
+        <div className="p-2 bg-cyan-400/10 rounded-lg flex-shrink-0">
+          <Icon className="h-4 w-4 text-cyan-400" aria-hidden="true" />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-black text-white">{value}</div>
-        <div className="flex items-center gap-2 mt-2">
+      <CardContent className="flex-1 flex flex-col justify-between">
+        <div className="text-3xl font-black text-white truncate">{value}</div>
+        <div className="flex items-center gap-2 mt-2 min-w-0">
           {!isNeutral && (
             <div
               className={cn(
-                "flex items-center justify-center w-5 h-5 rounded-full bg-opacity-20",
+                "flex items-center justify-center w-5 h-5 rounded-full bg-opacity-20 flex-shrink-0",
                 isPositive ? "bg-emerald-500/10" : "bg-orange-500/10",
               )}
             >
               <TrendIcon className={cn("h-3 w-3", statusColor)} />
             </div>
           )}
-          <p className={cn("text-xs font-bold tracking-tight", statusColor)}>
+          <p className={cn("text-xs font-bold tracking-tight truncate", statusColor)}>
             {description}
           </p>
         </div>

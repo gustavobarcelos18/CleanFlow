@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 import { NewProcedimentoDialog } from "@/components/schedule/NewProcedimentoDialog";
 import { EditProcedimentoDialog } from "@/components/schedule/EditProcedimentoDialog";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -57,6 +58,7 @@ const Procedimentos = () => {
   const [procedimentoToDelete, setProcedimentoToDelete] =
     useState<Procedimento | null>(null);
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
 
   const fetchProcedimentos = React.useCallback(async () => {
     try {
@@ -83,6 +85,11 @@ const Procedimentos = () => {
   useEffect(() => {
     fetchProcedimentos();
   }, [fetchProcedimentos]);
+
+  useEffect(() => {
+    setTitle("Procedimentos");
+    setSubtitle("Gestão clínica de procedimentos e intervenções");
+  }, [setTitle, setSubtitle]);
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     try {
@@ -163,17 +170,9 @@ const Procedimentos = () => {
   return (
     <MainLayout>
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Procedimentos
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Gestão clínica de procedimentos e intervenções.
-            </p>
-          </div>
+        <div className="flex justify-end">
           <NewProcedimentoDialog onSuccess={fetchProcedimentos}>
-            <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-6 rounded-xl group">
+            <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-8 rounded-xl group">
               <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
               Novo Procedimento
             </Button>

@@ -23,24 +23,24 @@ export function DigitalClock({ className }: DigitalClockProps) {
   const seconds = format(currentTime, "ss");
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardContent className="p-4">
+    <Card className={cn("overflow-hidden border-2 border-primary/20 bg-card/80 backdrop-blur shadow-lg", className)}>
+      <CardContent className="p-6">
         {/* Relógio Digital */}
         <div className="flex items-center justify-center">
-          <div className="flex items-baseline gap-1">
-            <span className="text-5xl font-bold text-foreground tabular-nums tracking-tight">
+          <div className="flex items-baseline gap-1 md:gap-2">
+            <span className="text-6xl md:text-7xl font-bold text-foreground tabular-nums tracking-tighter">
               {hours}
             </span>
-            <span className="text-5xl font-bold text-primary animate-pulse">
+            <span className="text-6xl md:text-7xl font-bold text-primary animate-pulse">
               :
             </span>
-            <span className="text-5xl font-bold text-foreground tabular-nums tracking-tight">
+            <span className="text-6xl md:text-7xl font-bold text-foreground tabular-nums tracking-tighter">
               {minutes}
             </span>
-            <span className="text-5xl font-bold text-muted-foreground/50 animate-pulse">
+            <span className="text-6xl md:text-7xl font-bold text-muted-foreground/50 animate-pulse">
               :
             </span>
-            <span className="text-3xl font-bold text-muted-foreground tabular-nums tracking-tight">
+            <span className="text-4xl md:text-5xl font-bold text-muted-foreground tabular-nums tracking-tighter">
               {seconds}
             </span>
           </div>

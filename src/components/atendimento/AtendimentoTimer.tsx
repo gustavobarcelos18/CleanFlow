@@ -23,8 +23,8 @@ export function AtendimentoTimer({
     const interval = setInterval(() => {
       const now = new Date();
       
-      // Tempo decorrido desde o início
-      const decorrido = differenceInSeconds(now, inicioAtendimento);
+      // Tempo decorrido desde o início (garantindo que nunca seja negativo)
+      const decorrido = Math.max(0, differenceInSeconds(now, inicioAtendimento));
       setTempoDecorrido(decorrido);
 
       // Tempo até o próximo atendimento
@@ -126,7 +126,7 @@ export function AtendimentoTimer({
             <div className="text-xs text-muted-foreground text-center">
               {percentualTempo >= 100 
                 ? `Excedido em ${Math.floor(tempoDecorrido / 60) - duracaoMinutos} minutos`
-                : `${Math.floor(percentualTempo)}% do tempo previsto`
+                : `${Math.max(0, Math.floor(percentualTempo))}% do tempo previsto`
               }
             </div>
           </div>

@@ -84,24 +84,30 @@ export function NextDayPreview({
 
       <CardContent className="space-y-4">
         {/* Estatísticas */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="text-center p-2 rounded-lg bg-primary/10">
-            <div className="text-2xl font-bold text-primary">
+        <div className="grid grid-cols-3 gap-1.5">
+          <div className="text-center px-1 py-2 rounded-lg bg-primary/10 min-w-0">
+            <div className="text-2xl font-bold text-primary truncate">
               {totalAppointments}
             </div>
-            <div className="text-xs text-muted-foreground">Total</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground truncate" title="Total">
+              Total
+            </div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-green-500/10">
-            <div className="text-2xl font-bold text-success">
+          <div className="text-center px-1 py-2 rounded-lg bg-green-500/10 min-w-0">
+            <div className="text-2xl font-bold text-success truncate">
               {confirmedCount}
             </div>
-            <div className="text-xs text-muted-foreground">Confirmados</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground truncate" title="Confirmados">
+              Confirmados
+            </div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-yellow-500/10">
-            <div className="text-2xl font-bold text-warning">
+          <div className="text-center px-1 py-2 rounded-lg bg-yellow-500/10 min-w-0">
+            <div className="text-2xl font-bold text-warning truncate">
               {pendingCount}
             </div>
-            <div className="text-xs text-muted-foreground">Pendentes</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground truncate" title="Pendentes">
+              Pendentes
+            </div>
           </div>
         </div>
 

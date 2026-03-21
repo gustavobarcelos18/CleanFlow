@@ -19,6 +19,8 @@ import {
   endOfWeek,
   addDays,
   subDays,
+  isBefore,
+  startOfDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -215,18 +217,19 @@ export function MonthlyCalendar({
             </div>
 
             {/* Grid de dias */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1 content-start">
               {calendarDays.map((day) => {
                 const stats = dayStats.find((s) => isSameDay(s.date, day));
                 const isCurrentMonth = isSameMonth(day, currentMonth);
                 const isSelected = isSameDay(day, selectedDate);
                 const isToday = isSameDay(day, new Date());
+                const isPast = isBefore(day, startOfDay(new Date()));
 
                 return (
                   <button
                     key={day.toISOString()}
                     onClick={() => onDateSelect(day)}
-                    disabled={!isCurrentMonth}
+                    disabled={!isCurrentMonth && !isPast}
                     className={cn(
                       "relative aspect-square rounded-md border transition-all",
                       "flex flex-col items-center justify-center text-sm",
@@ -238,6 +241,7 @@ export function MonthlyCalendar({
                         "border-2 border-primary font-bold shadow-sm z-10",
                       isToday && !isSelected && "scale-105",
                       "hover:scale-105 active:scale-95",
+                      isPast && !isToday && "opacity-40 grayscale-[0.5]",
                     )}
                   >
                     <span

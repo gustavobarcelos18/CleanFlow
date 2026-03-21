@@ -29,7 +29,7 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="animate-in fade-in duration-500 pb-6">
         <DashboardOverview />
       </div>
 

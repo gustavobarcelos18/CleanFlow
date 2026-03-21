@@ -24,6 +24,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 
+export interface ProfessionalType {
+  id: string;
+  tenant_id?: string;
+  nome: string;
+  ativo?: boolean;
+}
+
+export interface Especialidade {
+  id: string;
+  tenant_id: string;
+  nome: string;
+  ativo?: boolean | null;
+  conselho?: string | null;
+}
+
 interface NewProfessionalDialogProps {
   onSuccess?: (professionalId: string) => void;
   inline?: boolean;
@@ -35,8 +50,10 @@ export function NewProfessionalDialog({
 }: NewProfessionalDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [tiposProfissional, setTiposProfissional] = useState<any[]>([]);
-  const [especialidades, setEspecialidades] = useState<any[]>([]);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [isSeedingEspecialidades, setIsSeedingEspecialidades] = useState(false);
+  const [tiposProfissional, setTiposProfissional] = useState<ProfessionalType[]>([]);
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [selectedEspecialidades, setSelectedEspecialidades] = useState<
     string[]
   >([]);
@@ -60,31 +77,181 @@ export function NewProfessionalDialog({
 
   const fetchTiposProfissional = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("tipos_profissional")
         .select("*")
         .eq("ativo", true)
         .order("nome");
 
       if (error) throw error;
-      setTiposProfissional(data || []);
+      setTiposProfissional(data as ProfessionalType[] || []);
     } catch (error) {
       console.error("Erro ao buscar tipos de profissional:", error);
     }
   };
 
+  const handleSeedTiposPadrao = async () => {
+    try {
+      setIsSeeding(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!profile?.tenant_id) throw new Error("Tenant não encontrado.");
+
+      const tenant_id = profile.tenant_id;
+      
+      const defaultTypes = [
+        "Médico",
+        "Dentista",
+        "Fisioterapeuta",
+        "Esteticista",
+        "Psicólogo",
+        "Fonoaudiólogo",
+        "Nutricionista",
+        "Terapeuta Ocupacional",
+        "Biomédico",
+        "Enfermeiro",
+      ];
+
+      // Seed idempotente: verifica na lista atual quais tipos faltam
+      const existingNames = tiposProfissional.map((t) => t.nome);
+      const missingTypes = defaultTypes.filter((nome) => !existingNames.includes(nome));
+
+      if (missingTypes.length > 0) {
+        // Inserimos explicitamente o tenant_id como uma garantia 
+        // (mesmo que haja trigger no banco, isso cobre todas as bases/RLS)
+        const payload = missingTypes.map((nome) => ({
+          tenant_id,
+          nome,
+          ativo: true,
+        }));
+
+        const { error } = await supabase
+          .from("tipos_profissional")
+          .insert(payload);
+
+        if (error) throw error;
+      }
+      
+      await fetchTiposProfissional();
+      
+      toast({
+        title: "Sucesso",
+        description: "Tipos de profissional criados com sucesso.",
+      });
+    } catch (error: any) {
+      console.error("Erro no seed:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar os tipos padrão.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   const fetchEspecialidades = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!profile?.tenant_id) return;
+
+      // Tabela possui tenant_id. Aplicado filtro explícito além da RLS.
       const { data, error } = await supabase
         .from("especialidades")
-        .select("id, nome, conselho")
+        .select("id, nome, conselho, tenant_id, ativo")
+        .eq("tenant_id", profile.tenant_id)
         .eq("ativo", true)
         .order("nome");
 
+      if (import.meta.env.DEV) {
+         console.log(`[DEV] especialidades fetched (tenant: ${profile.tenant_id.substring(0, 8)}...): ${data?.length || 0} itens`);
+         if (error) console.error("[DEV] Erro fetchEspecialidades resumido:", error.message);
+      }
+
       if (error) throw error;
-      setEspecialidades(data || []);
+      setEspecialidades(data as Especialidade[] || []);
     } catch (error) {
       console.error("Erro ao buscar especialidades:", error);
+    }
+  };
+
+  const handleSeedEspecialidades = async () => {
+    try {
+      setIsSeedingEspecialidades(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!profile?.tenant_id) throw new Error("Tenant não encontrado.");
+
+      const tenant_id = profile.tenant_id;
+      
+      const defaultEspecialidades = [
+        "Clínica Médica",
+        "Dermatologia",
+        "Ortopedia",
+        "Pediatria",
+        "Ginecologia",
+        "Cardiologia",
+        "Fisioterapia",
+        "Psicologia",
+        "Nutrição",
+        "Estética/Procedimentos"
+      ];
+
+      // Seed idempotente: verifica na lista atual
+      const existingNames = especialidades.map((e) => e.nome);
+      const missingEspecialidades = defaultEspecialidades.filter((nome) => !existingNames.includes(nome));
+
+      if (missingEspecialidades.length > 0) {
+        const payload = missingEspecialidades.map((nome) => ({
+          tenant_id,
+          nome,
+          ativo: true,
+        }));
+
+        const { error } = await supabase
+          .from("especialidades")
+          .insert(payload);
+
+        if (error) throw error;
+      }
+      
+      await fetchEspecialidades();
+      
+      toast({
+        title: "Sucesso",
+        description: "Especialidades padrão criadas com sucesso.",
+      });
+    } catch (error: any) {
+      console.error("Erro no seed de especialidades:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar as especialidades padrão.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSeedingEspecialidades(false);
     }
   };
 
@@ -314,29 +481,48 @@ export function NewProfessionalDialog({
 
           <div className="space-y-2">
             <Label htmlFor="tipo">Tipo de Profissional</Label>
-            <Select
-              value={formData.tipo_profissional_id}
-              onValueChange={(value) =>
-                setFormData({
-                  ...formData,
-                  tipo_profissional_id: value,
-                  outro_especifique:
-                    value === "outro" ? formData.outro_especifique : "",
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {tiposProfissional.map((tipo) => (
-                  <SelectItem key={tipo.id} value={tipo.id}>
-                    {tipo.nome}
-                  </SelectItem>
-                ))}
-                <SelectItem value="outro">Outro</SelectItem>
-              </SelectContent>
-            </Select>
+            {tiposProfissional.length === 0 ? (
+              <div className="flex flex-col gap-3 p-4 bg-muted/50 rounded-md border text-sm">
+                <p className="text-muted-foreground">
+                  Nenhum tipo cadastrado ainda para sua clínica.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSeedTiposPadrao}
+                  disabled={isSeeding}
+                  className="w-fit"
+                >
+                  {isSeeding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Criar tipos padrão
+                </Button>
+              </div>
+            ) : (
+              <Select
+                value={formData.tipo_profissional_id}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    tipo_profissional_id: value,
+                    outro_especifique:
+                      value === "outro" ? formData.outro_especifique : "",
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposProfissional.map((tipo) => (
+                    <SelectItem key={tipo.id} value={tipo.id}>
+                      {tipo.nome}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="outro">Outro (especificar)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {formData.tipo_profissional_id === "outro" && (
@@ -359,6 +545,27 @@ export function NewProfessionalDialog({
 
           <div className="space-y-2">
             <Label>Especialidades</Label>
+            {especialidades.length <= 1 && (
+              <div className="flex flex-col gap-3 p-4 bg-muted/50 rounded-md border text-sm mb-2">
+                <p className="text-muted-foreground">
+                  {especialidades.length === 0 
+                    ? "Nenhuma especialidade cadastrada ainda para sua clínica."
+                    : "Existem poucas especialidades cadastradas. Deseja adicionar lista padrão?"}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSeedEspecialidades}
+                  disabled={isSeedingEspecialidades}
+                  className="w-fit"
+                >
+                  {isSeedingEspecialidades && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Criar especialidades padrão
+                </Button>
+              </div>
+            )}
+            
             <Select
               value=""
               onValueChange={(value) => {
@@ -366,6 +573,7 @@ export function NewProfessionalDialog({
                   setSelectedEspecialidades([...selectedEspecialidades, value]);
                 }
               }}
+              disabled={especialidades.length === 0}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Adicionar especialidade" />

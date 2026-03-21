@@ -7,6 +7,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { useEffect } from "react";
 
 function StatCard({
   icon: Icon,
@@ -83,24 +85,19 @@ export default function Financeiro() {
     },
   });
 
+  const { setTitle, setSubtitle } = useLayoutTitle();
+
+  useEffect(() => {
+    setTitle("Financeiro");
+    setSubtitle("Gerencie pagamentos, planos e contas a receber");
+  }, [setTitle, setSubtitle]);
+
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <MainLayout>
       <div className="space-y-7 max-w-[1400px] mx-auto animate-in fade-in duration-500 pb-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Financeiro
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              <Landmark className="inline h-4 w-4 mr-1.5 mb-0.5" />
-              Gerencie pagamentos, planos e contas a receber
-            </p>
-          </div>
-        </div>
 
         {/* Stat Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

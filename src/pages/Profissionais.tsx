@@ -112,21 +112,14 @@ const Profissionais = () => {
   return (
     <MainLayout>
       <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Profissionais
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Gerenciar cadastro de profissionais de saúde ({professionals.length})
-            </p>
-          </div>
+        <div className="flex justify-end">
           <div className="flex gap-2">
             {!isLoading && professionals.length > 0 && (
               <>
                 <Button
                   variant="outline"
                   onClick={() => (window.location.href = "/profissionais/recontratar")}
+                  className="rounded-xl h-10 px-4"
                 >
                   <Upload className="mr-2 h-4 w-4" />
                   Recontratar (CSV)

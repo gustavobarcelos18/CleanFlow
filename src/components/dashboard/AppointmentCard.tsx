@@ -19,7 +19,15 @@ import {
   Edit,
   Trash2,
   AlertCircle,
+  MoreHorizontal,
+  Activity,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AppointmentCardProps {
   id: string;
@@ -31,6 +39,8 @@ interface AppointmentCardProps {
     | "pending"
     | "cancelled"
     | "completed"
+    | "concluido"
+    | "em_atendimento"
     | "no-show"
     | "risk-high"
     | "risk-medium"
@@ -42,6 +52,7 @@ interface AppointmentCardProps {
   hasConflict?: boolean;
   conflictMinutes?: number;
   onResolveConflict?: (id: string) => void;
+  readOnly?: boolean;
 }
 
 const statusConfig = {
@@ -70,12 +81,28 @@ const statusConfig = {
     iconColor: "text-destructive",
   },
   completed: {
-    label: "Realizado",
+    label: "Concluído",
     variant: "default" as const,
-    bgColor: "bg-blue-500/10 dark:bg-blue-500/20",
-    borderColor: "border-blue-500/30",
+    bgColor: "bg-success-light/20",
+    borderColor: "border-success/40",
     icon: CheckCircle,
-    iconColor: "text-blue-600 dark:text-blue-400",
+    iconColor: "text-success",
+  },
+  concluido: {
+    label: "Concluído",
+    variant: "default" as const,
+    bgColor: "bg-success-light/20",
+    borderColor: "border-success/40",
+    icon: CheckCircle,
+    iconColor: "text-success",
+  },
+  em_atendimento: {
+    label: "Atendendo",
+    variant: "default" as const,
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/40",
+    icon: Activity,
+    iconColor: "text-primary",
   },
   "no-show": {
     label: "Faltou",
@@ -124,6 +151,7 @@ export function AppointmentCard({
   hasConflict,
   conflictMinutes,
   onResolveConflict,
+  readOnly,
 }: AppointmentCardProps) {
   const config =
     statusConfig[status as keyof typeof statusConfig] ?? statusConfig.pending;
@@ -132,98 +160,135 @@ export function AppointmentCard({
   return (
     <div
       className={cn(
-        "p-4 rounded-lg border transition-all duration-200 hover:shadow-md flex flex-col bg-card",
+        "group p-4 rounded-xl border transition-all duration-200 hover:shadow-lg flex flex-col h-full bg-card min-w-0 relative overflow-hidden",
         config.borderColor,
+        "border-border/60 hover:border-primary/40",
         hasConflict && "ring-2 ring-orange-500/50",
         className,
       )}
     >
+      {/* Decorative vertical bar for status */}
+      <div className={cn("absolute left-0 top-0 bottom-0 w-1", config.iconColor.replace('text-', 'bg-'))} />
+
       {/* Cabeçalho com Nome do Paciente e Status */}
       <div className="flex items-start justify-between mb-3 gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="p-2 bg-foreground/5 rounded-full flex-shrink-0">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className={cn("p-2 rounded-lg flex-shrink-0 mt-0.5", config.bgColor)}>
             <StatusIcon className={cn("h-4 w-4", config.iconColor)} />
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="font-bold text-foreground text-lg mb-0.5 break-words leading-tight">
+            <h4 
+              className="font-bold text-foreground text-sm md:text-base mb-1 line-clamp-1 leading-tight group-hover:text-primary transition-colors" 
+              title={patientName}
+            >
               {patientName}
             </h4>
-            <p className="text-xs text-muted-foreground break-words flex items-center gap-1">
-              <User className="h-3 w-3 flex-shrink-0" />
-              <span className="break-words">{doctor}</span>
-            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 min-w-0">
+                <User className="h-3 w-3 flex-shrink-0 text-primary/70" />
+                <span className="truncate">{doctor}</span>
+              </p>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+                <Clock className="h-3 w-3 text-primary/70" />
+                <span>{time}</span>
+              </div>
+            </div>
           </div>
         </div>
-        {hasConflict && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onResolveConflict?.(id);
-                  }}
-                  className="flex-shrink-0 p-1.5 hover:bg-orange-500/20 rounded-full transition-colors"
-                >
-                  <AlertCircle className="h-4 w-4 text-orange-500" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Sobreposição de {conflictMinutes} minutos com agendamento
-                  anterior
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Clique para ajustar
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        <Badge
-          variant={config.variant}
-          className={cn(
-            "text-[10px] px-2 py-0.5 flex-shrink-0 uppercase font-black tracking-wider",
-            config.iconColor,
-            "bg-foreground/5 border-none",
+
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {hasConflict && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onResolveConflict?.(id);
+                    }}
+                    className="p-1.5 hover:bg-orange-500/20 rounded-full transition-colors"
+                  >
+                    <AlertCircle className="h-4 w-4 text-orange-500 animate-pulse" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="font-bold">Conflito de Horário</p>
+                  <p className="text-xs">Sobreposição de {conflictMinutes} min</p>
+                  <p className="text-[10px] mt-1 opacity-80">Clique para ajustar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
-        >
-          {config.label}
-        </Badge>
-      </div>
-
-      {/* Informações de Horário e Contato */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="h-3.5 w-3.5 text-primary" />
-          <span className="font-bold">{time}</span>
-        </div>
-        {phone && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Phone className="h-3.5 w-3.5 text-primary" />
-            <span className="font-bold">{phone}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Botões de Ação Rápidos (Opcional - Reduzido) */}
-      {status === "pending" && (
-        <div className="flex gap-2 mb-2">
-          <Button
-            size="xs"
-            variant="outline"
-            className="flex-1 h-7 text-[10px]"
+          
+          <Badge
+            variant={config.variant}
+            className={cn(
+              "text-[10px] px-2 py-0.5 uppercase font-black tracking-wider hidden sm:flex",
+              config.iconColor,
+              "bg-foreground/5 border-none",
+            )}
           >
-            <MessageSquare className="h-3 w-3 mr-1" />
-            Lembrete
-          </Button>
+            {config.label}
+          </Badge>
+
+          {/* Mobile Actions Dropdown */}
+          <div className="sm:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onEdit && !readOnly && (
+                  <DropdownMenuItem onClick={() => onEdit(id)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                )}
+                {onDelete && status !== "concluido" && status !== "completed" && (
+                  <DropdownMenuItem onClick={() => onDelete(id)} className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+
+      {/* Detalhes Adicionais (Telefone) */}
+      {phone && (
+        <div className="flex items-center gap-3 mt-1 mb-3">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md border border-border/40">
+            <Phone className="h-3 w-3 text-primary/70" />
+            <span className="font-medium whitespace-nowrap">{phone}</span>
+          </div>
+          {status === "pending" && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-primary hover:text-primary hover:bg-primary/10"
+                    aria-label={`Enviar mensagem para ${patientName}`}
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Enviar lembrete WhatsApp</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       )}
 
-      {/* Ícones de Edição e Exclusão - Parte Inferior */}
+      {/* Botões de Ação - Desktop e Tablets (Sempre alinhados ao fundo) */}
       {(onEdit || onDelete) && (
-        <div className="flex items-center justify-end gap-2 mt-auto pt-2 border-t border-border/50">
-          {onEdit && (
+        <div className="hidden sm:flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40">
+          {onEdit && !readOnly && (
             <Button
               size="sm"
               variant="ghost"
@@ -231,14 +296,15 @@ export function AppointmentCard({
                 e.stopPropagation();
                 onEdit(id);
               }}
-              className="h-7 px-2 text-xs"
+              className="h-8 px-3 text-xs font-medium hover:bg-primary/5 hover:text-primary transition-colors"
               title="Editar agendamento"
+              aria-label={`Editar agendamento de ${patientName}`}
             >
-              <Edit className="h-3.5 w-3.5 mr-1" />
+              <Edit className="h-3.5 w-3.5 mr-1.5" />
               Editar
             </Button>
           )}
-          {onDelete && (
+          {onDelete && status !== "concluido" && status !== "completed" && (
             <Button
               size="sm"
               variant="ghost"
@@ -246,15 +312,50 @@ export function AppointmentCard({
                 e.stopPropagation();
                 onDelete(id);
               }}
-              className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-8 px-3 text-xs font-medium text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
               title="Excluir agendamento"
+              aria-label={`Excluir agendamento de ${patientName}`}
             >
-              <Trash2 className="h-3.5 w-3.5 mr-1" />
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
               Excluir
             </Button>
           )}
         </div>
       )}
+
+      {/* Badge mobile e Ação Primária */}
+      <div className={cn("mt-auto pt-3 border-t border-border/40 flex items-center justify-between gap-4", readOnly && "pb-1")}>
+         <Badge
+            variant={config.variant}
+            className={cn(
+              "text-[9px] px-1.5 py-0.5 uppercase font-black tracking-wider whitespace-nowrap",
+              config.iconColor,
+              "bg-foreground/5 border-none",
+            )}
+          >
+            {config.label}
+          </Badge>
+          
+          {status === "pending" && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-7 px-2 text-[10px] flex-1 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Lógica de WhatsApp ou lembrete (pode ser o mesmo do ícone acima)
+              }}
+            >
+              <MessageSquare className="h-3 w-3 mr-1" />
+              Lembrete
+            </Button>
+          )}
+          
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold whitespace-nowrap">
+             <Clock className="h-2.5 w-2.5 text-primary" />
+             <span>{time}</span>
+          </div>
+      </div>
     </div>
   );
 }

@@ -99,33 +99,33 @@ export function Header({ className }: HeaderProps) {
         className,
       )}
     >
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between w-full gap-2 md:gap-4">
         {/* Date and Quick Stats */}
-        <div className="flex items-center gap-6">
-          <div>
-            <h2 className="text-xl font-bold text-foreground capitalize tracking-tight">
+        <div className="flex items-center gap-3 md:gap-6 shrink-0">
+          <div className="hidden lg:block shrink-0">
+            <h2 className="text-sm xl:text-lg font-bold text-foreground capitalize tracking-tight truncate max-w-[150px] xl:max-w-none">
               {currentDate}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Painel de controle da clínica
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              Painel de Controle
             </p>
           </div>
 
           {/* Quick Stats - Only show when there's data */}
           {(stats.today > 0 || stats.pending > 0 || stats.waiting > 0) && (
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2">
               {stats.today > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
-                  <Calendar className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-bold text-primary">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full whitespace-nowrap">
+                  <Calendar className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-bold text-primary italic">
                     {stats.today} hoje
                   </span>
                 </div>
               )}
               {stats.pending > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 border border-warning/20 rounded-full">
-                  <Clock className="h-3.5 w-3.5 text-warning" />
-                  <span className="text-xs font-bold text-warning">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full whitespace-nowrap">
+                  <Clock className="h-3 w-3 text-amber-500" />
+                  <span className="text-[10px] font-bold text-amber-500 italic">
                     {stats.pending} alertas
                   </span>
                 </div>
@@ -135,14 +135,14 @@ export function Header({ className }: HeaderProps) {
         </div>
 
         {/* Dynamic Center Title */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 animate-in fade-in slide-in-from-top-2 duration-500">
+        <div className="flex-1 flex flex-col items-center justify-center px-2 min-w-0 animate-in fade-in slide-in-from-top-2 duration-500">
           {title && (
-            <h1 className="text-2xl font-black text-foreground tracking-tight leading-none">
+            <h1 className="text-base md:text-lg lg:text-2xl font-black text-foreground tracking-tighter leading-none truncate w-full text-center uppercase italic">
               {title}
             </h1>
           )}
           {subtitle && (
-            <p className="text-[11px] text-muted-foreground font-medium mt-1 uppercase tracking-[0.2em] opacity-70">
+            <p className="hidden md:block text-[9px] lg:text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-[0.1em] lg:tracking-[0.2em] opacity-60 truncate w-full text-center">
               {subtitle}
             </p>
           )}
