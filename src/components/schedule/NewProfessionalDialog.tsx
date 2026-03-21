@@ -145,7 +145,7 @@ export function NewProfessionalDialog({
         title: "Sucesso",
         description: "Tipos de profissional criados com sucesso.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro no seed:", error);
       toast({
         title: "Erro",
@@ -243,7 +243,7 @@ export function NewProfessionalDialog({
         title: "Sucesso",
         description: "Especialidades padrão criadas com sucesso.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro no seed de especialidades:", error);
       toast({
         title: "Erro",
@@ -306,24 +306,9 @@ export function NewProfessionalDialog({
       // Criar usuário no auth (senha temporária será enviada por email)
       const tempPassword = Math.random().toString(36).slice(-12) + "A1!";
 
-      const { data: authData, error: authError } =
-        await supabase.functions.invoke("create-user", {
-          body: {
-            email: formData.email,
-            password: tempPassword,
-            userData: {
-              nome: formData.nome,
-              telefone: formData.telefone,
-            },
-          },
-        });
-
-      if (authError)
-        throw new Error(
-          authError.message || "Erro ao chamar função de criação de usuário",
-        );
-      if (authData.error) throw new Error(authData.error);
-      if (!authData.user) throw new Error("Erro ao criar usuário");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error("Sessão expirada. Faça login novamente.");
 
       // Validar e formatar data de nascimento
       let dataNascimentoFormatada = null;
@@ -337,31 +322,69 @@ export function NewProfessionalDialog({
         );
       }
 
-      // Atualizar perfil com role profissional
-      const { error: updateError } = await (supabase as any)
-        .from("profiles")
-        .update({
-          nome: formData.nome,
-          telefone: formData.telefone || null,
-          role: "profissional",
-          tenant_id: profile.tenant_id,
-          tipo_profissional_id: formData.tipo_profissional_id || null,
-          data_nascimento: dataNascimentoFormatada,
-        })
-        .eq("id", authData.user.id);
+      const { data: authData, error: authError } =
+        await supabase.functions.invoke("create-user", {
+          body: {
+            email: formData.email,
+            password: tempPassword,
+            userData: {
+              nome: formData.nome,
+              telefone: formData.telefone,
+              tipo_profissional_id: formData.tipo_profissional_id || null,
+              data_nascimento: dataNascimentoFormatada,
+            },
+          },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
 
-      if (updateError) throw updateError;
+      if (import.meta.env.DEV) {
+        console.log('[DEV] create-user response', { data: authData, error: authError });
+      }
 
-      // Inserir especialidades
+      if (authError) {
+        const msg = authError.message || "";
+        if (msg.includes("Failed to fetch")) {
+          throw new Error("Falha de rede/CORS na Edge Function. Verifique CORS e preflight.");
+        }
+        const authErrorRecord = authError as Record<string, unknown>;
+        const details = typeof authErrorRecord.details === 'string' ? authErrorRecord.details : "";
+        throw new Error(details ? `${msg} - ${details}` : msg || "Erro ao chamar função de criação de usuário");
+      }
+
+      if (authData?.error) throw new Error(authData.error);
+
+      const newProfessionalId = authData?.user?.id;
+      if (!newProfessionalId) {
+        if (import.meta.env.DEV) {
+          console.error('[DEV] create-user did not return user.id', authData);
+        }
+        throw new Error("Edge Function não retornou o ID do profissional.");
+      }
+
+      if (import.meta.env.DEV) {
+        console.log('[DEV] Professional created with ID:', newProfessionalId);
+      }
+
+      // Inserir especialidades usando o ID retornado pela Edge Function
       if (selectedEspecialidades.length > 0) {
-        const { error: espError } = await (supabase as any)
+        if (import.meta.env.DEV) {
+          console.log('[DEV] Inserting profissional_especialidades', {
+            profissional_id: newProfessionalId,
+            especialidades: selectedEspecialidades,
+            tenant_id: profile.tenant_id,
+          });
+        }
+
+        const { error: espError } = await supabase
           .from("profissional_especialidades")
           .insert(
             selectedEspecialidades.map((esp_id) => ({
               tenant_id: profile.tenant_id,
-              profissional_id: authData.user.id,
+              profissional_id: newProfessionalId,
               especialidade_id: esp_id,
-            })),
+            })) as never[],
           );
 
         if (espError) throw espError;
@@ -384,15 +407,19 @@ export function NewProfessionalDialog({
       });
       setSelectedEspecialidades([]);
 
-      if (onSuccess && authData.user) {
-        onSuccess(authData.user.id);
+      if (onSuccess) {
+        onSuccess(newProfessionalId);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao cadastrar profissional:", error);
 
       let errorMessage = "Não foi possível cadastrar o profissional.";
-      if (error.message?.includes("already registered")) {
-        errorMessage = "Este e-mail já está cadastrado no sistema.";
+      if (error instanceof Error) {
+        if (error.message?.includes("already registered")) {
+          errorMessage = "Este e-mail já está cadastrado no sistema.";
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
       }
 
       toast({

@@ -26,6 +26,8 @@ import { useToast } from "@/hooks/use-toast";
 import { NewPacoteDialog } from "@/components/pacotes/NewPacoteDialog";
 import { EditPacoteDialog } from "@/components/pacotes/EditPacoteDialog";
 import { formatCurrencyBRL } from "@/lib/currency";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { cn } from "@/lib/utils";
 
 interface Pacote {
   id: string;
@@ -47,6 +49,15 @@ export default function Pacotes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
+  const hasGlobalSubtitle = !!setSubtitle;
+
+  useEffect(() => {
+    if (setTitle) setTitle("Catálogo de Pacotes");
+    if (setSubtitle) {
+      setSubtitle("Gerencie seus combos e pacotes de serviços");
+    }
+  }, [setTitle, setSubtitle]);
 
   const fetchPacotes = useCallback(async () => {
     try {
@@ -75,32 +86,32 @@ export default function Pacotes() {
     fetchPacotes();
   }, [fetchPacotes]);
 
-  const togglePacoteStatus = async (pacoteId: string, currentStatus: boolean) => {
+  const togglePacoteStatus = async (pacoteId: string, newStatus: boolean) => {
     // UI Otimística
     setPacotes(prev => prev.map(pacote => 
       pacote.id === pacoteId 
-        ? { ...pacote, ativo: !currentStatus }
+        ? { ...pacote, ativo: newStatus }
         : pacote
     ));
 
     try {
       const { error } = await supabase
         .from('pacotes')
-        .update({ ativo: !currentStatus })
+        .update({ ativo: newStatus })
         .eq('id', pacoteId);
 
       if (error) throw error;
 
       toast({
-        title: !currentStatus ? "Pacote Ativado" : "Pacote Arquivado",
-        description: `O pacote foi ${!currentStatus ? "ativado" : "arquivado"} com sucesso.`
+        title: newStatus ? "Pacote Ativado" : "Pacote Arquivado",
+        description: `O pacote foi ${newStatus ? "ativado" : "arquivado"} com sucesso.`
       });
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       // Reverter UI em caso de erro
       setPacotes(prev => prev.map(pacote => 
         pacote.id === pacoteId 
-          ? { ...pacote, ativo: currentStatus }
+          ? { ...pacote, ativo: !newStatus }
           : pacote
       ));
       toast({
@@ -158,31 +169,31 @@ export default function Pacotes() {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-        {/* Massive Typographic Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Catálogo de Pacotes
-            </h1>
-            <p className="text-muted-foreground font-medium flex items-center gap-2">
-              <Package className="h-4 w-4" /> 
-              Gerencie seus combos e pacotes de serviços ({pacotes.length} no total)
-            </p>
+      <div className="flex flex-col min-h-[calc(100vh-140px)] space-y-6 animate-in fade-in duration-500 pb-12">
+        {/* Compact Header Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/30 p-4 rounded-xl border border-border/50 backdrop-blur-sm">
+          <div className="flex flex-col items-start gap-1">
+             <div className="relative w-full sm:w-64 md:w-80 lg:w-[520px] group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input
+                  placeholder="Buscar pacotes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-background/50 border-border/50 focus:bg-background transition-all rounded-lg h-10 w-full"
+                />
+             </div>
+             {/* Subtitle Fallback if not in Layout Header */}
+             {!hasGlobalSubtitle && (
+               <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1 px-1">
+                 Gerencie seus combos e pacotes de serviços ({pacotes.length} no total)
+               </p>
+             )}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative w-full md:w-64 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <Input
-                placeholder="Buscar pacotes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-muted/20 border-muted/50 focus:bg-background transition-all rounded-full h-10"
-              />
-            </div>
+          
+          <div className="flex items-center gap-3 shrink-0">
             {!isLoading && (
               <NewPacoteDialog onSuccess={() => fetchPacotes()}>
-                <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-6 rounded-xl group">
+                <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-xl group whitespace-nowrap">
                   <Zap className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
                   Criar Pacote
                 </Button>
@@ -193,19 +204,26 @@ export default function Pacotes() {
 
         {/* Estatísticas / Quick Insights */}
         {!isLoading && pacotes.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-muted/20 border border-muted/40 rounded-xl p-5 flex flex-col justify-center">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Total Ativos</p>
+          <div className={cn(
+            "grid gap-4",
+            pacotes.length <= 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+          )}>
+            <div className="bg-card/30 border border-border/50 backdrop-blur-sm rounded-xl p-5 flex flex-col justify-center transition-all hover:bg-card/40">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Total Ativos</p>
               <div className="flex items-end gap-2">
-                <span className="text-3xl font-black">{activePacotes.length}</span>
-                <span className="text-sm font-medium text-emerald-500 mb-1 flex items-center"><Star className="h-3 w-3 mr-1" fill="currentColor" /> Prontos para Venda</span>
+                <span className="text-3xl font-black tracking-tighter">{activePacotes.length}</span>
+                <span className="text-xs font-bold text-emerald-500 mb-1 flex items-center bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <Star className="h-3 w-3 mr-1" fill="currentColor" /> Prontos
+                </span>
               </div>
             </div>
-            <div className="bg-muted/20 border border-muted/40 rounded-xl p-5 flex flex-col justify-center">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Arquivados / Inativos</p>
+            <div className="bg-card/30 border border-border/50 backdrop-blur-sm rounded-xl p-5 flex flex-col justify-center transition-all hover:bg-card/40">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Arquivados / Inativos</p>
               <div className="flex items-end gap-2">
-                <span className="text-3xl font-black text-muted-foreground">{archivedPacotes.length}</span>
-                <span className="text-sm font-medium text-amber-500 mb-1 flex items-center"><Archive className="h-3 w-3 mr-1" /> Fora de catálogo</span>
+                <span className="text-3xl font-black tracking-tighter text-muted-foreground">{archivedPacotes.length}</span>
+                <span className="text-xs font-bold text-amber-500 mb-1 flex items-center bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  <Archive className="h-3 w-3 mr-1" /> Fora de catálogo
+                </span>
               </div>
             </div>
           </div>
@@ -240,7 +258,10 @@ export default function Pacotes() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className={cn(
+            "grid grid-cols-1 gap-6",
+            filteredPacotes.length === 1 ? "max-w-2xl mx-auto w-full" : "sm:grid-cols-2 xl:grid-cols-3"
+          )}>
             {filteredPacotes.map((pacote) => (
               <Card 
                 key={pacote.id} 
@@ -276,8 +297,8 @@ export default function Pacotes() {
                          <Badge variant="outline" className={`rounded-md font-mono text-[10px] uppercase tracking-wider ${pacote.ativo ? 'border-primary/30 text-primary' : 'border-muted-foreground/30 text-muted-foreground'}`}>
                            ID: {pacote.id.substring(0,6)}
                          </Badge>
-                         {pacote.procedimentos && (
-                            <Badge variant="secondary" className="rounded-md font-medium text-xs truncate max-w-[150px]">
+                          {pacote.procedimentos && (
+                            <Badge variant="secondary" className="rounded-md font-medium text-xs truncate max-w-[200px] inline-block">
                               {pacote.procedimentos.nome}
                             </Badge>
                          )}

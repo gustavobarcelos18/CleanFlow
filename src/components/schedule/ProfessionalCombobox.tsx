@@ -44,14 +44,12 @@ export function ProfessionalCombobox({ value, onValueChange, professionals }: Pr
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="relative w-full justify-between pr-10 min-w-0 overflow-hidden"
         >
-          {selectedProfessional ? (
-            <span className="truncate">{selectedProfessional.nome}</span>
-          ) : (
-            "Selecione o profissional..."
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <span className="flex-1 text-left min-w-0 whitespace-normal lg:whitespace-nowrap lg:truncate">
+            {selectedProfessional ? selectedProfessional.nome : "Selecione o profissional..."}
+          </span>
+          <ChevronsUpDown className="absolute right-3 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0 bg-background" align="start">

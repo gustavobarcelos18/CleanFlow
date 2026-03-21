@@ -51,16 +51,16 @@ export function PatientCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="relative w-full justify-between pr-10 min-w-0 overflow-hidden"
         >
-          {selectedPatient ? (
-            <span className="truncate">
-              {selectedPatient.nome} - {selectedPatient.telefone}
-            </span>
-          ) : (
-            "Selecione o paciente..."
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <span className="flex-1 text-left min-w-0 whitespace-normal lg:whitespace-nowrap lg:truncate">
+            {selectedPatient ? (
+              `${selectedPatient.nome} - ${selectedPatient.telefone}`
+            ) : (
+              "Selecione o paciente..."
+            )}
+          </span>
+          <ChevronsUpDown className="absolute right-3 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0 bg-background" align="start">

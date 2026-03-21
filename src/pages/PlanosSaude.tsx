@@ -12,6 +12,7 @@ import { EditPlanoSaudeDialog } from "@/components/planos/EditPlanoSaudeDialog";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 
 interface PlanoSaude {
   id: string;
@@ -29,6 +30,12 @@ export default function PlanosSaude() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planoToDelete, setPlanoToDelete] = useState<PlanoSaude | null>(null);
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
+
+  useEffect(() => {
+    setTitle("Planos de Saúde");
+    setSubtitle("Gerencie os convênios e planos aceitos pela clínica");
+  }, [setTitle, setSubtitle]);
 
   const fetchPlanos = async () => {
     try {
@@ -106,35 +113,27 @@ export default function PlanosSaude() {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10 max-w-[1400px] mx-auto px-4 md:px-0">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Planos de Saúde
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Gerencie os convênios e planos aceitos pela clínica
-            </p>
+      <div className="flex flex-col space-y-6 animate-in fade-in duration-500 pb-10 w-full px-4 md:px-0">
+        {/* Compact Toolbar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-card/30 p-4 rounded-xl border border-border/50 backdrop-blur-sm">
+          <div className="relative group flex-1 w-full md:max-w-[560px]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            </div>
+            <Input
+              placeholder="Buscar por nome do convênio..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 h-10 bg-background/50 border-muted/20 rounded-xl shadow-sm focus-visible:ring-primary focus-visible:ring-offset-0 transition-all text-sm placeholder:text-muted-foreground/60 w-full min-w-0"
+            />
           </div>
+
           <NewPlanoSaudeDialog onSuccess={fetchPlanos}>
-            <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-6 rounded-xl group">
+            <Button className="w-full md:w-auto shrink-0 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-xl group">
               <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
               Novo Plano
             </Button>
           </NewPlanoSaudeDialog>
-        </div>
-
-        {/* Search and Filters Section */}
-        <div className="relative group max-w-2xl">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          </div>
-          <Input
-            placeholder="Buscar por nome do convênio..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-11 h-12 bg-muted/20 border-muted/50 rounded-xl shadow-sm focus-visible:ring-primary focus-visible:ring-offset-0 transition-all text-base placeholder:text-muted-foreground/60 w-full"
-          />
         </div>
 
         {/* content Section */}
@@ -183,16 +182,20 @@ export default function PlanosSaude() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
+          <div className={cn(
+            "grid gap-6 w-full auto-rows-fr",
+            filteredPlanos.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+          )}>
             {filteredPlanos.map((plano) => (
               <Card 
                 key={plano.id} 
                 className={cn(
-                  "group relative rounded-xl border border-muted/50 bg-muted/30 overflow-hidden transition-all duration-300 hover:shadow-md hover:bg-muted/50",
-                  !plano.ativo && "grayscale-[0.4] bg-muted/10 opacity-80"
+                  "group relative rounded-xl border border-muted/50 bg-muted/30 overflow-hidden transition-all duration-300 hover:shadow-md hover:bg-muted/50 flex flex-col",
+                  !plano.ativo && "grayscale-[0.4] bg-muted/10 opacity-80",
+                  filteredPlanos.length === 1 && "col-span-full max-w-2xl mx-auto w-full"
                 )}
               >
-                <CardHeader className="pb-4">
+                <CardHeader className="p-5 pb-4">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-center gap-3">
                        <div className={cn(
@@ -201,50 +204,49 @@ export default function PlanosSaude() {
                       )}>
                         <Shield className="h-5 w-5" />
                       </div>
-                      <CardTitle className="text-xl font-bold tracking-tight group-hover:text-primary transition-colors line-clamp-1">
-                        {plano.nome}
-                      </CardTitle>
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg font-bold tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+                          {plano.nome}
+                        </CardTitle>
+                        <Badge 
+                          className={cn(
+                            "rounded-full px-2 py-0 text-[9px] font-bold uppercase tracking-wider mt-1",
+                            plano.ativo 
+                              ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/20" 
+                              : "bg-muted text-muted-foreground border-muted/50"
+                          )}
+                        >
+                          {plano.ativo ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
                     </div>
-                    <Badge 
-                      className={cn(
-                        "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                        plano.ativo 
-                          ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 shadow-sm" 
-                          : "bg-muted text-muted-foreground border-muted/50"
-                      )}
-                    >
-                      {plano.ativo ? "ATIVO" : "INATIVO"}
-                    </Badge>
+                    
+                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingId(plano.id)}
+                        className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(plano.id)}
+                        className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   {plano.observacoes && (
-                    <CardDescription className="line-clamp-2 text-sm leading-relaxed text-muted-foreground min-h-[2.5rem]">
+                    <CardDescription className="line-clamp-2 text-xs leading-relaxed text-muted-foreground mt-2">
                       {plano.observacoes}
                     </CardDescription>
                   )}
                 </CardHeader>
-                <CardContent className="pt-0 pb-6 mt-auto">
-                  <div className="flex items-center gap-2 pt-4 border-t border-muted/40">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingId(plano.id)}
-                      className="flex-1 rounded-xl h-10 font-semibold border-muted/60 hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all gap-2"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(plano.id)}
-                      className="flex-1 rounded-xl h-10 font-semibold border-muted/60 text-muted-foreground hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 transition-all gap-2"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Excluir
-                    </Button>
-                  </div>
-                  
-                </CardContent>
+                {/* Removido CardContent com botões redundantes e padding excessivo */}
               </Card>
             ))}
           </div>

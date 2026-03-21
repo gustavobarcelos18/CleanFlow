@@ -169,62 +169,54 @@ const Procedimentos = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex justify-end">
+      <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+        {/* Slim Toolbar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-md border border-muted/50 p-4 rounded-xl shadow-sm">
+          <div className="relative flex-1 w-full max-w-[560px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filtrar por nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-background/50 border-muted/50 focus-visible:ring-primary/20 h-10 w-full"
+            />
+          </div>
           <NewProcedimentoDialog onSuccess={fetchProcedimentos}>
-            <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-8 rounded-xl group">
+            <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-lg group shrink-0">
               <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
               Novo Procedimento
             </Button>
           </NewProcedimentoDialog>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 bg-gradient-to-br from-primary/5 via-transparent to-transparent border-primary/10 shadow-sm relative overflow-hidden group">
-            <div className="absolute right-[-10%] top-[-10%] opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
-              <Activity size={120} />
+        {/* Compact KPI Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          <Card className="p-4 md:p-5 bg-gradient-to-br from-primary/5 via-transparent to-transparent border-primary/10 shadow-sm relative overflow-hidden group">
+            <div className="absolute right-[-5%] top-[-5%] opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+              <Activity size={80} />
             </div>
             <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3 rounded-xl bg-primary/20 text-primary">
-                <Settings className="h-7 w-7" />
+              <div className="p-2.5 rounded-lg bg-primary/20 text-primary">
+                <Settings className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Ativos</p>
-                <p className="text-3xl font-black text-foreground">{activeProcedimentos}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ativos</p>
+                <p className="text-2xl font-black text-foreground">{activeProcedimentos}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-6 bg-gradient-to-br from-secondary/5 via-transparent to-transparent border-secondary/10 shadow-sm relative overflow-hidden group">
-            <div className="absolute right-[-10%] top-[-10%] opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
-              <CheckCircle2 size={120} />
+          <Card className="p-4 md:p-5 bg-gradient-to-br from-secondary/5 via-transparent to-transparent border-secondary/10 shadow-sm relative overflow-hidden group">
+            <div className="absolute right-[-5%] top-[-5%] opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+              <CheckCircle2 size={80} />
             </div>
             <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3 rounded-xl bg-secondary/20 text-secondary-foreground">
-                <CheckCircle2 className="h-7 w-7" />
+              <div className="p-2.5 rounded-lg bg-secondary/20 text-secondary-foreground">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-                <p className="text-3xl font-black text-foreground">{procedimentos.length}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-gradient-to-br from-muted/5 via-transparent to-transparent border-muted/10 shadow-sm relative overflow-hidden group">
-            <div className="absolute right-[-10%] top-[-10%] opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
-              <Filter size={120} />
-            </div>
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3 rounded-xl bg-muted/20 text-muted-foreground">
-                <Search className="h-7 w-7" />
-              </div>
-              <div className="flex-1">
-                <Input
-                  placeholder="Filtrar por nome..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent border-none shadow-none text-base focus-visible:ring-0 px-0 h-10"
-                />
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total</p>
+                <p className="text-2xl font-black text-foreground">{procedimentos.length}</p>
               </div>
             </div>
           </Card>
@@ -258,68 +250,64 @@ const Procedimentos = () => {
             )}
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
             <TooltipProvider>
               {filteredProcedimentos.map((procedimento, index) => (
                 <Card 
                   key={procedimento.id} 
                   className={`
-                    relative group/card overflow-hidden bg-muted/30 backdrop-blur-sm border-muted/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-muted/50 rounded-xl p-6
+                    relative group/card overflow-hidden bg-muted/30 backdrop-blur-sm border-muted/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-muted/50 rounded-xl p-5 md:p-6
                     animate-in slide-in-from-bottom-4 duration-500 fill-mode-both
+                    ${filteredProcedimentos.length === 1 ? 'md:col-span-2 xl:col-span-3 max-w-2xl mx-auto w-full' : ''}
                   `}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <div className="flex justify-between items-start gap-4 mb-6">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-xl font-bold tracking-tight text-foreground group-hover/card:text-primary transition-colors">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-bold tracking-tight text-foreground group-hover/card:text-primary transition-colors truncate">
                           {procedimento.nome}
                         </h3>
                         <Badge 
                           variant={procedimento.ativo ? "default" : "secondary"}
                           className={`
-                            px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-widest
+                            px-2 py-0.5 rounded-full text-[9px] uppercase font-black tracking-widest
                             ${procedimento.ativo ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-muted text-muted-foreground"}
                           `}
                         >
                           {procedimento.ativo ? "Ativo" : "Inativo"}
                         </Badge>
-                        {procedimento.anestesia_necessaria && (
-                           <Badge variant="outline" className="bg-amber-500/5 text-amber-500 border-amber-500/20 rounded-full text-[10px] uppercase font-bold px-2 py-0.5">
-                             Anestesia
-                           </Badge>
-                        )}
                       </div>
                       
                       {procedimento.codigo_tuss && (
-                        <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground bg-muted/30 w-fit px-2 py-1 rounded-md">
-                          <Badge variant="outline" className="h-4 p-0 px-1 text-[9px] border-primary/20 text-primary">TUSS</Badge>
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground bg-muted/30 w-fit px-2 py-0.5 rounded-md">
+                          <span className="text-primary font-bold">TUSS</span>
                           {procedimento.codigo_tuss}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex gap-2">
-                      <div className="flex items-center gap-2 mr-2 pr-4 border-r border-muted/50">
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 h-8 px-2 border-r border-muted/50 mr-1">
                         <Switch
                           checked={procedimento.ativo}
                           onCheckedChange={() => toggleStatus(procedimento.id, procedimento.ativo)}
                         />
                       </div>
                       
-                      <div className="flex gap-1">
+                      <div className="flex items-center gap-1">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => setEditingId(procedimento.id)}
-                              className="h-10 w-10 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                              className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
                             >
-                              <Edit className="h-5 w-5" />
+                              <Edit className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Editar Procedimento</TooltipContent>
+                          <TooltipContent>Editar</TooltipContent>
                         </Tooltip>
 
                         <Tooltip>
@@ -328,80 +316,82 @@ const Procedimentos = () => {
                               variant="ghost"
                               size="icon"
                               onClick={() => deleteProcedimento(procedimento.id)}
-                              className="h-10 w-10 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+                              className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
                             >
-                              <Trash2 className="h-5 w-5" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Excluir permanentemente</TooltipContent>
+                          <TooltipContent>Excluir</TooltipContent>
                         </Tooltip>
                       </div>
                     </div>
                   </div>
 
                   {procedimento.descricao && (
-                    <p className="text-sm text-muted-foreground/80 line-clamp-2 mb-6 leading-relaxed bg-muted/5 p-3 rounded-xl border border-border/10 italic">
+                    <p className="text-xs text-muted-foreground/80 line-clamp-2 mb-4 leading-relaxed italic bg-muted/5 p-2 rounded-lg border border-border/5">
                       "{procedimento.descricao}"
                     </p>
                   )}
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-background/50 border border-muted/50 backdrop-blur-md shadow-inner">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-background/40 border border-muted/30 backdrop-blur-sm shadow-inner">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                         <Clock className="h-3 w-3 text-primary" />
                         Duração
                       </div>
-                      <p className="text-sm font-semibold">{procedimento.duracao_minutos || "---"} min</p>
+                      <p className="text-xs font-bold truncate">{procedimento.duracao_minutos || "---"} min</p>
                     </div>
                     
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                         <DollarSign className="h-3 w-3 text-emerald-500" />
-                        Valor Base
+                        Valor
                       </div>
-                      <p className="text-sm font-bold text-emerald-500">
+                      <p className="text-xs font-bold text-emerald-500 truncate">
                         {procedimento.preco ? formatCurrencyBRL(procedimento.preco) : "---"}
                       </p>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                         <ShieldCheck className="h-3 w-3 text-sky-500" />
-                        Segurança
+                        Nível
                       </div>
-                      <p className="text-sm font-semibold">{procedimento.anestesia_necessaria ? "Req. Anestesia" : "Simples"}</p>
+                      <p className="text-xs font-bold truncate">{procedimento.anestesia_necessaria ? "Anestesia" : "Simples"}</p>
                     </div>
                   </div>
 
                   {(procedimento.instrucoes_preparo || procedimento.instrucoes_pos) && (
-                    <div className="mt-6 flex gap-2">
-                       {procedimento.instrucoes_preparo && (
-                         <Tooltip>
-                           <TooltipTrigger asChild>
-                            <div className="h-8 w-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center cursor-help">
-                              <Eye className="h-4 w-4 text-primary" />
-                            </div>
-                           </TooltipTrigger>
-                           <TooltipContent className="max-w-[300px]">
-                             <p className="font-bold mb-1">Preparo:</p>
-                             <p className="text-xs text-muted-foreground leading-relaxed">{procedimento.instrucoes_preparo}</p>
-                           </TooltipContent>
-                         </Tooltip>
-                       )}
-                       {procedimento.instrucoes_pos && (
-                         <Tooltip>
-                           <TooltipTrigger asChild>
-                            <div className="h-8 w-8 rounded-lg bg-orange-500/5 border border-orange-500/10 flex items-center justify-center cursor-help">
-                              <Activity className="h-4 w-4 text-orange-500" />
-                            </div>
-                           </TooltipTrigger>
-                           <TooltipContent className="max-w-[300px]">
-                             <p className="font-bold mb-1">Cuidados Pós:</p>
-                             <p className="text-xs text-muted-foreground leading-relaxed">{procedimento.instrucoes_pos}</p>
-                           </TooltipContent>
-                         </Tooltip>
-                       )}
-                       <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-2 ml-1">Instruções clínicas disponíveis</span>
+                    <div className="mt-4 pt-4 border-t border-muted/30 flex items-center justify-between">
+                       <div className="flex gap-2">
+                          {procedimento.instrucoes_preparo && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="h-7 w-7 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center cursor-help">
+                                  <Eye className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[280px]">
+                                <p className="font-bold text-xs mb-1">Preparo:</p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed">{procedimento.instrucoes_preparo}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {procedimento.instrucoes_pos && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="h-7 w-7 rounded-lg bg-orange-500/5 border border-orange-500/10 flex items-center justify-center cursor-help">
+                                  <Activity className="h-3.5 w-3.5 text-orange-500" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[280px]">
+                                <p className="font-bold text-xs mb-1">Pós-Procedimento:</p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed">{procedimento.instrucoes_pos}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                       </div>
+                       <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Instruções OK</span>
                     </div>
                   )}
                 </Card>
