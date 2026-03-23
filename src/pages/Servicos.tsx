@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -14,9 +13,11 @@ import {
   Loader2,
   CheckCircle2,
   Search,
+  Plus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 import { NewServiceDialog } from "@/components/schedule/NewServiceDialog";
 import { EditServiceDialog } from "@/components/schedule/EditServiceDialog";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -27,7 +28,7 @@ interface Service {
   duracao_minutos: number;
   preco: number | null;
   ativo: boolean;
-  confirmacao_24h: boolean;
+  confirmacao_24h?: boolean;
   created_at: string;
 }
 
@@ -39,6 +40,7 @@ const Servicos = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
 
   const fetchServices = useCallback(async () => {
     try {
@@ -65,6 +67,11 @@ const Servicos = () => {
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
+
+  useEffect(() => {
+    setTitle("Serviços");
+    setSubtitle("Gerencie os serviços oferecidos e configurações de agendamento");
+  }, [setTitle, setSubtitle]);
 
   const toggleServiceStatus = async (
     serviceId: string,
@@ -101,10 +108,8 @@ const Servicos = () => {
   };
 
   const deleteService = async (serviceId: string) => {
-    // Importar validação
     const { validateServicoDelete } = await import("@/lib/deleteValidation");
 
-    // Validar antes de excluir
     const validation = await validateServicoDelete(serviceId);
 
     if (!validation.canDelete) {
@@ -173,31 +178,24 @@ const Servicos = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Serviços
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Gerencie os serviços oferecidos e configurações de agendamento ({services.length})
-            </p>
+      <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+        {/* Slim Toolbar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-md border border-muted/50 p-4 rounded-xl shadow-sm">
+          <div className="relative flex-1 w-full max-w-[560px] min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filtrar por nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-background/50 border-muted/50 focus-visible:ring-primary/20 h-10 w-full"
+            />
           </div>
-          {!isLoading && services.length > 0 && (
+          <div className="shrink-0 w-full sm:w-auto">
             <NewServiceDialog onSuccess={() => fetchServices()} />
-          )}
+          </div>
         </div>
 
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input
-            placeholder="Buscar serviços..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-muted/20 border-muted/50 focus:bg-background transition-all rounded-full h-10"
-          />
-        </div>
-
+        {/* Estatísticas */}
         {!isLoading && filteredServices.length > 0 && (
           <div className="bg-muted/30 rounded-xl border border-muted/50 p-6">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Estatísticas</p>
@@ -236,11 +234,11 @@ const Servicos = () => {
 
         {/* Lista de Serviços */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex justify-center items-center py-24">
+            <Loader2 className="h-12 w-12 animate-spin text-primary opacity-50" />
           </div>
         ) : filteredServices.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 border border-dashed border-muted/50 rounded-xl bg-muted/10">
             <Settings className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">
               {searchTerm
@@ -257,80 +255,85 @@ const Servicos = () => {
             )}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
             {filteredServices.map((service) => (
-              <div key={service.id} className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary-light rounded-lg">
-                      <Settings className="h-5 w-5 text-primary" />
+              <div
+                key={service.id}
+                className={filteredServices.length === 1 ? "sm:col-span-2 xl:col-span-3 max-w-2xl mx-auto w-full" : ""}
+              >
+                <div className="bg-muted/30 rounded-xl border border-muted/50 p-5 transition-colors hover:bg-muted/50 h-full">
+                  <div className="flex items-start justify-between mb-4 gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="p-2 bg-primary-light rounded-lg shrink-0">
+                        <Settings className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-base font-semibold text-foreground truncate">
+                          {service.nome}
+                        </h3>
+                        {!!service.confirmacao_24h && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
+                            <p className="text-xs text-muted-foreground truncate">
+                              Confirmação 24h antes
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {service.nome}
-                      </h3>
-                      {service.confirmacao_24h && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <CheckCircle2 className="h-3 w-3 text-success" />
-                          <p className="text-xs text-muted-foreground">
-                            Confirmação 24h antes
-                          </p>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={service.ativo ? "default" : "secondary"}>
+                        {service.ativo ? "Ativo" : "Inativo"}
+                      </Badge>
+                      <Switch
+                        checked={service.ativo}
+                        onCheckedChange={() =>
+                          toggleServiceStatus(service.id, service.ativo)
+                        }
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={service.ativo ? "default" : "secondary"}>
-                      {service.ativo ? "Ativo" : "Inativo"}
-                    </Badge>
-                    <Switch
-                      checked={service.ativo}
-                      onCheckedChange={() =>
-                        toggleServiceStatus(service.id, service.ativo)
-                      }
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      {service.duracao_minutos} minutos
-                    </span>
-                  </div>
-                  {service.preco && service.preco > 0 && (
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        R$ {service.preco.toFixed(2)}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate">
+                        {service.duracao_minutos} minutos
                       </span>
                     </div>
-                  )}
-                  <div className="text-xs text-muted-foreground">
-                    Criado em{" "}
-                    {new Date(service.created_at).toLocaleDateString("pt-BR")}
+                    {service.preco && service.preco > 0 && (
+                      <div className="flex items-center gap-2 min-w-0">
+                        <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm truncate">
+                          R$ {service.preco.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground truncate">
+                      Criado em{" "}
+                      {new Date(service.created_at).toLocaleDateString("pt-BR")}
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditingId(service.id)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => deleteService(service.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditingId(service.id)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => deleteService(service.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

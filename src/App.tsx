@@ -15,6 +15,7 @@ import { RequireRole, RoleGuards } from "@/components/auth/RequireRole";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/erros/ErrorBoundary";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import { AppAuthScope } from "@/components/auth/AppAuthScope";
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import("./pages/Landing"));
@@ -127,10 +128,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-auth contents">
+    <AppAuthScope>
       <BillingBanner />
       {children}
-    </div>
+    </AppAuthScope>
   );
 }
 

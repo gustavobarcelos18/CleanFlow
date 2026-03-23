@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -97,47 +97,50 @@ const Profissionais = () => {
 
   useEffect(() => {
     setTitle("Profissionais");
-    setSubtitle(
-      `Gerenciar cadastro de profissionais de saúde (${professionals.length})`,
-    );
-  }, [setTitle, setSubtitle, professionals.length]);
+    setSubtitle("Gerencie profissionais e permissões");
+  }, [setTitle, setSubtitle]);
 
-  const filteredProfessionals = professionals.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.email && p.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (p.numero_registro && p.numero_registro.includes(searchTerm)),
-  );
+  const filteredProfessionals = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase().trim();
+    return professionals.filter(
+      (p) =>
+        searchLower === "" ||
+        p.nome.toLowerCase().includes(searchLower) ||
+        (p.email && p.email.toLowerCase().includes(searchLower)) ||
+        (p.numero_registro && p.numero_registro.includes(searchLower)),
+    );
+  }, [professionals, searchTerm]);
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex justify-end">
-          <div className="flex gap-2">
-            {!isLoading && professionals.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => (window.location.href = "/profissionais/recontratar")}
-                  className="rounded-xl h-10 px-4"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Recontratar (CSV)
-                </Button>
-                <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />
-              </>
-            )}
-          </div>
-        </div>
+      <div className="w-full space-y-4 animate-in fade-in duration-500 pb-10">
 
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input
-            placeholder="Buscar por nome, e-mail ou registro..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-muted/20 border-muted/50 focus:bg-background transition-all rounded-full h-10"
-          />
+        {/* Slim Toolbar */}
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-card/30 border border-border/50 backdrop-blur-sm rounded-xl p-4 md:p-5 w-full min-w-0">
+          <div className="relative w-full md:flex-1 md:min-w-[240px] md:max-w-[560px] group min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
+            <Input
+              placeholder="Buscar por nome, e-mail ou registro..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-background/50 border-muted/50 shadow-inner focus:bg-background transition-all rounded-full h-10 min-w-0"
+            />
+          </div>
+          <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+            {!isLoading && professionals.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => (window.location.href = "/profissionais/recontratar")}
+                className="rounded-xl h-10 px-4 w-full md:w-auto"
+              >
+                <Upload className="mr-2 h-4 w-4 shrink-0" />
+                Recontratar (CSV)
+              </Button>
+            )}
+            <div className="w-full md:w-auto shrink-0">
+              <NewProfessionalDialog onSuccess={() => fetchProfessionals()} />
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
@@ -145,7 +148,7 @@ const Profissionais = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredProfessionals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-muted/50 rounded-xl bg-muted/10">
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-border/50 rounded-xl bg-muted/10">
             <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <User className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -160,78 +163,79 @@ const Profissionais = () => {
             )}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredProfessionals.map((professional) => (
-              <div key={professional.id} className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary-light rounded-full">
-                      <User className="h-6 w-6 text-primary" />
+              <div
+                key={professional.id}
+                className={`bg-card/30 border border-border/50 backdrop-blur-sm rounded-xl transition-colors hover:bg-muted/50 flex flex-col min-w-0${filteredProfessionals.length === 1 ? " col-span-full max-w-2xl mx-auto w-full" : ""}`}
+              >
+                {/* Card Header: avatar + name + badge | actions */}
+                <div className="flex items-start justify-between p-5 pb-3 gap-2 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="p-2.5 bg-primary/10 rounded-full border border-primary/20 shrink-0">
+                      <User className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-semibold text-foreground truncate block">
                         {professional.nome}
                       </h3>
                       {professional.especialidades && (
-                        <Badge variant="secondary" className="mt-1">
+                        <Badge variant="secondary" className="mt-1 text-[11px]">
                           {professional.especialidades.nome}
                         </Badge>
                       )}
                     </div>
                   </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setEditingId(professional.id)}
+                      className="h-8 w-8 text-foreground/60 hover:text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() =>
+                        setDeletingProfessional({
+                          id: professional.id,
+                          nome: professional.nome,
+                        })
+                      }
+                      className="h-8 w-8 text-destructive/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                {/* Card Body: metadata grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 px-5 pb-5 min-w-0">
                   {professional.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{professional.email}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate flex-1">{professional.email}</span>
                     </div>
                   )}
                   {professional.telefone && (
-                    <div className="flex items-center gap-2">
-                      <IconeTelefone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{professional.telefone}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <IconeTelefone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate flex-1">{professional.telefone}</span>
                     </div>
                   )}
-                  {professional.conselho_profissional &&
-                    professional.numero_registro && (
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {professional.conselho_profissional}{" "}
-                          {professional.numero_registro}
-                          {professional.uf_registro &&
-                            ` - ${professional.uf_registro}`}
-                        </span>
-                      </div>
-                    )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditingId(professional.id)}
-                    className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      setDeletingProfessional({
-                        id: professional.id,
-                        nome: professional.nome,
-                      })
-                    }
-                    className="rounded-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
-                  </Button>
+                  {professional.conselho_profissional && professional.numero_registro && (
+                    <div className="flex items-center gap-2 min-w-0 sm:col-span-2">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate flex-1">
+                        {professional.conselho_profissional}{" "}
+                        {professional.numero_registro}
+                        {professional.uf_registro && ` - ${professional.uf_registro}`}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

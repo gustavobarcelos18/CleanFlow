@@ -13,43 +13,62 @@ import {
   Bell,
   FileText
 } from "lucide-react";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { useEffect } from "react";
 
 export default function WhatsAppDashboard() {
+  const { setTitle, setSubtitle } = useLayoutTitle();
+
+  useEffect(() => {
+    if (setTitle) setTitle("WhatsApp Business");
+    if (setSubtitle) setSubtitle("Risco de no-show, chat unificado e métricas");
+  }, [setTitle, setSubtitle]);
+
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="border-b border-muted/30 pb-6">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-            WhatsApp Business
-          </h1>
-          <p className="text-muted-foreground font-medium mt-1">
-            Risco de no-show, chat unificado, métricas e observabilidade
-          </p>
-        </div>
-
+      <div className="animate-in fade-in duration-500 pb-12">
+        <span className="sr-only">Risco de no-show, chat unificado, métricas e observabilidade</span>
+        
         <Tabs defaultValue="risco" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-[1000px]">
-            <TabsTrigger value="risco" className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Risco No-Show
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="metricas" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Métricas
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="alarmes" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Alarmes
-            </TabsTrigger>
-          </TabsList>
+          <div className="bg-card/30 p-1 rounded-xl border border-border/50 backdrop-blur-md sticky top-0 z-10">
+            <TabsList className="w-full justify-start bg-transparent h-12 gap-2 overflow-x-auto whitespace-nowrap scrollbar-none px-1">
+              <TabsTrigger 
+                value="risco" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all px-4 h-10 gap-2 font-bold"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                No-Show
+              </TabsTrigger>
+              <TabsTrigger 
+                value="chat" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all px-4 h-10 gap-2 font-bold"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Chat Unificado
+              </TabsTrigger>
+              <TabsTrigger 
+                value="metricas" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all px-4 h-10 gap-2 font-bold"
+              >
+                <Activity className="h-4 w-4" />
+                Métricas
+              </TabsTrigger>
+              <TabsTrigger 
+                value="templates" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all px-4 h-10 gap-2 font-bold"
+              >
+                <FileText className="h-4 w-4" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger 
+                value="alarmes" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all px-4 h-10 gap-2 font-bold"
+              >
+                <Bell className="h-4 w-4" />
+                Alarmes
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="risco" className="space-y-6">
             <RiscoNoShowDashboard />

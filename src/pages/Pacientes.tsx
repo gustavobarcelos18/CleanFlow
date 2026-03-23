@@ -57,17 +57,21 @@ const Pacientes = () => {
 
   useEffect(() => {
     setTitle(t.client_label + "s");
-    setSubtitle(`Gerenciamento de ${t.client_label.toLowerCase()}s`);
+    setSubtitle("Gerencie cadastro e histórico de pacientes");
   }, [setTitle, setSubtitle, t.client_label]);
 
   const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
       // Search logic
+      const searchLower = searchTerm.toLowerCase().trim();
+      const searchDigits = searchTerm.replace(/\D/g, "");
+
       const matchesSearch =
-        p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.telefone?.includes(searchTerm) ||
-        p.cpf?.includes(searchTerm.replace(/\D/g, "")) ||
-        p.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        searchLower === "" ||
+        p.nome.toLowerCase().includes(searchLower) ||
+        (searchLower && p.telefone?.includes(searchLower)) ||
+        (searchDigits && p.cpf?.includes(searchDigits)) ||
+        (p.email && p.email.toLowerCase().includes(searchLower));
 
       // Risk logic
       const matchesRisk =
@@ -139,8 +143,7 @@ const Pacientes = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto space-y-4 animate-in fade-in duration-500 pb-10">
-
+      <div className="w-full space-y-4 animate-in fade-in duration-500 pb-10">
 
         <PatientSummaryCards patients={patients} isLoading={isLoading} />
 
@@ -154,20 +157,24 @@ const Pacientes = () => {
           />
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <PatientCardSkeleton key={i} />
               ))}
             </div>
           ) : filteredPatients.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPatients.map((patient) => (
-                <PatientCard
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredPatients.map((patient, idx) => (
+                <div
                   key={patient.id}
-                  patient={patient}
-                  onEdit={setEditingId}
-                  onDelete={handleDeleteClick}
-                />
+                  className={filteredPatients.length === 1 ? "col-span-full max-w-2xl mx-auto w-full" : ""}
+                >
+                  <PatientCard
+                    patient={patient}
+                    onEdit={setEditingId}
+                    onDelete={handleDeleteClick}
+                  />
+                </div>
               ))}
             </div>
           ) : (

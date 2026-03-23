@@ -170,30 +170,28 @@ export default function Pacotes() {
   return (
     <MainLayout>
       <div className="flex flex-col min-h-[calc(100vh-140px)] space-y-6 animate-in fade-in duration-500 pb-12">
-        {/* Compact Header Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card/30 p-4 rounded-xl border border-border/50 backdrop-blur-sm">
-          <div className="flex flex-col items-start gap-1">
-             <div className="relative w-full sm:w-64 md:w-80 lg:w-[520px] group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  placeholder="Buscar pacotes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 bg-background/50 border-border/50 focus:bg-background transition-all rounded-lg h-10 w-full"
-                />
-             </div>
-             {/* Subtitle Fallback if not in Layout Header */}
-             {!hasGlobalSubtitle && (
-               <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1 px-1">
-                 Gerencie seus combos e pacotes de serviços ({pacotes.length} no total)
-               </p>
-             )}
+        {/* Slim Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/30 p-4 md:p-5 rounded-xl border border-border/50 backdrop-blur-md shrink-0">
+          <div className="flex-1 min-w-0 max-w-[560px] w-full">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Buscar pacotes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 bg-background/50 border-border/50 focus:bg-background transition-all rounded-lg h-10 w-full"
+              />
+            </div>
+            {/* Subtitle Fallback (Acessibilidade / SR-Only) */}
+            <p className="sr-only">
+              Gerencie seus combos e pacotes de serviços ({pacotes.length} no total)
+            </p>
           </div>
           
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
             {!isLoading && (
               <NewPacoteDialog onSuccess={() => fetchPacotes()}>
-                <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-xl group whitespace-nowrap">
+                <Button className="w-full md:w-auto shadow-lg shadow-primary/20 transition-colors bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-xl group whitespace-nowrap">
                   <Zap className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
                   Criar Pacote
                 </Button>
@@ -205,7 +203,7 @@ export default function Pacotes() {
         {/* Estatísticas / Quick Insights */}
         {!isLoading && pacotes.length > 0 && (
           <div className={cn(
-            "grid gap-4",
+            "grid gap-6",
             pacotes.length <= 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
           )}>
             <div className="bg-card/30 border border-border/50 backdrop-blur-sm rounded-xl p-5 flex flex-col justify-center transition-all hover:bg-card/40">
@@ -258,14 +256,17 @@ export default function Pacotes() {
             )}
           </div>
         ) : (
-          <div className={cn(
-            "grid grid-cols-1 gap-6",
-            filteredPacotes.length === 1 ? "max-w-2xl mx-auto w-full" : "sm:grid-cols-2 xl:grid-cols-3"
-          )}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
             {filteredPacotes.map((pacote) => (
+              <div 
+                key={pacote.id}
+                className={cn(
+                  "h-full",
+                  filteredPacotes.length === 1 && "col-span-full max-w-2xl mx-auto w-full"
+                )}
+              >
               <Card 
-                key={pacote.id} 
-                className={`relative overflow-hidden group transition-all duration-300 border
+                className={`h-full relative overflow-hidden group transition-all duration-300 border
                   ${pacote.ativo 
                     ? 'bg-muted/30 border-muted/50 hover:bg-muted/50 hover:shadow-md' 
                     : 'bg-muted/10 border-muted/30 opacity-70 grayscale-[0.2]'}
@@ -289,35 +290,37 @@ export default function Pacotes() {
                   </div>
                 )}
 
-                <CardContent className="p-0">
-                  <div className="p-6 md:p-8 space-y-6">
+                <CardContent className="p-0 h-full flex flex-col">
+                  <div className="p-4 md:p-5 flex-1 space-y-5">
                     {/* Header */}
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                         <Badge variant="outline" className={`rounded-md font-mono text-[10px] uppercase tracking-wider ${pacote.ativo ? 'border-primary/30 text-primary' : 'border-muted-foreground/30 text-muted-foreground'}`}>
+                         <Badge variant="outline" className={`rounded-md font-mono text-[10px] uppercase tracking-wider shrink-0 ${pacote.ativo ? 'border-primary/30 text-primary' : 'border-muted-foreground/30 text-muted-foreground'}`}>
                            ID: {pacote.id.substring(0,6)}
                          </Badge>
                           {pacote.procedimentos && (
-                            <Badge variant="secondary" className="rounded-md font-medium text-xs truncate max-w-[200px] inline-block">
+                            <Badge variant="secondary" className="rounded-md font-medium text-xs truncate inline-block">
                               {pacote.procedimentos.nome}
                             </Badge>
-                         )}
+                          )}
                       </div>
-                      <h3 className={`text-2xl font-black leading-tight tracking-tight ${pacote.ativo ? 'text-foreground' : 'text-muted-foreground'} line-clamp-2 min-h-[56px] flex items-center`}>
+                      <h3 className={`text-xl md:text-2xl font-black leading-tight tracking-tight ${pacote.ativo ? 'text-foreground' : 'text-muted-foreground'} line-clamp-2 min-h-[56px] flex items-center min-w-0`}>
                         {pacote.nome}
                       </h3>
-                      {pacote.descricao ? (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2 h-10">{pacote.descricao}</p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground/50 italic mt-2 h-10">Sem descrição detalhada.</p>
-                      )}
+                      <div className="h-10">
+                        {pacote.descricao ? (
+                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{pacote.descricao}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground/50 italic mt-2">Sem descrição detalhada.</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Pricing Highlight */}
-                    <div className="bg-gradient-to-br from-muted/30 to-muted/10 p-4 rounded-xl border border-muted/50 flex justify-between items-center">
-                       <div>
-                         <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-0.5">Valor do Pacote</p>
-                         <p className={`text-3xl font-black tracking-tighter ${pacote.ativo ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className="bg-gradient-to-br from-muted/30 to-muted/10 p-4 rounded-xl border border-muted/50 flex justify-between items-center group/price transition-colors hover:border-primary/20">
+                       <div className="min-w-0">
+                         <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-0.5 truncate">Valor do Pacote</p>
+                         <p className={`text-2xl md:text-3xl font-black tracking-tighter truncate ${pacote.ativo ? 'text-primary' : 'text-muted-foreground'}`}>
                            <span className="text-lg font-bold opacity-50 mr-1">R$</span>
                            {formatCurrencyBRL(pacote.preco).replace("R$", "").trim()}
                          </p>
@@ -358,14 +361,14 @@ export default function Pacotes() {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="border-t border-muted/50 p-4 bg-muted/10 group-hover:bg-muted/30 transition-colors flex items-center justify-between">
+                  <div className="border-t border-muted/50 p-4 bg-muted/10 group-hover:bg-muted/30 transition-colors flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-2">
                        <Switch
                          checked={pacote.ativo}
                          onCheckedChange={(checked) => togglePacoteStatus(pacote.id, checked)}
                          className="data-[state=checked]:bg-primary"
                        />
-                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate">
                          {pacote.ativo ? "Catálogo" : "Arquivado"}
                        </span>
                     </div>
@@ -374,7 +377,7 @@ export default function Pacotes() {
                       <Button 
                         size="icon" 
                         variant="ghost"
-                        className="h-8 w-8 rounded-full hover:bg-background hover:shadow-sm"
+                        className="h-8 w-8 rounded-full hover:bg-background hover:shadow-sm transition-all"
                         onClick={() => setEditingId(pacote.id)}
                         title="Editar Pacote"
                       >
@@ -383,7 +386,7 @@ export default function Pacotes() {
                       <Button
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                        className="h-8 w-8 rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
                         onClick={() => deletePacote(pacote.id)}
                         title={pacote.ativo ? "Excluir Pacote" : "Excluir Definitivamente"}
                       >
@@ -393,6 +396,7 @@ export default function Pacotes() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             ))}
           </div>
         )}

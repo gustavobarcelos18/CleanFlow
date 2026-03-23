@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -61,8 +60,8 @@ const Especialidades = () => {
 
   useEffect(() => {
     setTitle("Especialidades");
-    setSubtitle(`Gerenciar especialidades reconhecidas (${especialidades.length})`);
-  }, [setTitle, setSubtitle, especialidades.length]);
+    setSubtitle("Gerenciar especialidades médicas reconhecidas pelo CFM");
+  }, [setTitle, setSubtitle]);
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     try {
@@ -92,11 +91,9 @@ const Especialidades = () => {
   };
 
   const deleteEspecialidade = async (id: string) => {
-    // Importar validação
     const { validateEspecialidadeDelete } =
       await import("@/lib/deleteValidation");
 
-    // Validar antes de excluir
     const validation = await validateEspecialidadeDelete(id);
 
     if (!validation.canDelete) {
@@ -152,26 +149,26 @@ const Especialidades = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex justify-end">
-          {!isLoading && especialidades.length > 0 && (
+      <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+        {/* Slim Toolbar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-md border border-muted/50 p-4 rounded-xl shadow-sm">
+          <div className="relative flex-1 w-full max-w-[560px] min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome ou código CFM..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-background/50 border-muted/50 focus-visible:ring-primary/20 h-10 w-full"
+            />
+          </div>
+          <div className="shrink-0 w-full sm:w-auto">
             <NewEspecialidadeDialog onSuccess={() => fetchEspecialidades()} />
-          )}
-        </div>
-
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input
-            placeholder="Buscar por nome ou código CFM..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-muted/20 border-muted/50 focus:bg-background transition-all rounded-full h-10"
-          />
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex justify-center items-center py-24">
+            <Loader2 className="h-12 w-12 animate-spin text-primary opacity-50" />
           </div>
         ) : filteredEspecialidades.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-muted/50 rounded-xl bg-muted/10">
@@ -189,64 +186,69 @@ const Especialidades = () => {
             )}
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
             {filteredEspecialidades.map((especialidade) => (
-              <div key={especialidade.id} className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary-light rounded-full">
-                      <Stethoscope className="h-6 w-6 text-primary" />
+              <div
+                key={especialidade.id}
+                className={filteredEspecialidades.length === 1 ? "sm:col-span-2 xl:col-span-3 max-w-2xl mx-auto w-full" : ""}
+              >
+                <div className="bg-muted/30 rounded-xl border border-muted/50 p-5 transition-colors hover:bg-muted/50 h-full">
+                  <div className="flex items-start justify-between mb-4 gap-3">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                      <div className="p-3 bg-primary-light rounded-full shrink-0">
+                        <Stethoscope className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-base font-semibold text-foreground truncate">
+                          {especialidade.nome}
+                        </h3>
+                        {especialidade.codigo_cfm && (
+                          <p className="text-sm text-muted-foreground truncate">
+                            Código CFM: {especialidade.codigo_cfm}
+                          </p>
+                        )}
+                        {especialidade.descricao && (
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            {especialidade.descricao}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {especialidade.nome}
-                      </h3>
-                      {especialidade.codigo_cfm && (
-                        <p className="text-sm text-muted-foreground">
-                          Código CFM: {especialidade.codigo_cfm}
-                        </p>
-                      )}
-                      {especialidade.descricao && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {especialidade.descricao}
-                        </p>
-                      )}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge
+                        variant={especialidade.ativo ? "default" : "secondary"}
+                      >
+                        {especialidade.ativo ? "Ativo" : "Inativo"}
+                      </Badge>
+                      <Switch
+                        checked={especialidade.ativo}
+                        onCheckedChange={() =>
+                          toggleStatus(especialidade.id, especialidade.ativo)
+                        }
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={especialidade.ativo ? "default" : "secondary"}
-                    >
-                      {especialidade.ativo ? "Ativo" : "Inativo"}
-                    </Badge>
-                    <Switch
-                      checked={especialidade.ativo}
-                      onCheckedChange={() =>
-                        toggleStatus(especialidade.id, especialidade.ativo)
-                      }
-                    />
-                  </div>
-                </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditingId(especialidade.id)}
-                    className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => deleteEspecialidade(especialidade.id)}
-                    className="rounded-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditingId(especialidade.id)}
+                      className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => deleteEspecialidade(especialidade.id)}
+                      className="rounded-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

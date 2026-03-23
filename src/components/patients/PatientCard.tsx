@@ -84,15 +84,15 @@ export function PatientCard({ patient, onEdit, onDelete }: PatientCardProps) {
 
   return (
     <Card className="group overflow-hidden bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50 h-full flex flex-col shadow-sm">
-      <CardContent className="p-0 flex flex-col h-full">
-        <div className="p-4 flex-grow flex flex-col">
-          <div className="flex items-start justify-between mb-2 shrink-0 min-h-[50px]">
+      <CardContent className="p-0 flex flex-col h-full min-w-0">
+        <div className="p-5 flex-grow flex flex-col min-w-0">
+          <div className="flex items-start justify-between mb-4 shrink-0 min-w-0 gap-2">
             <div className="flex items-center gap-4 min-w-0 flex-1">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg border border-primary/20 shrink-0">
                 {getInitials(patient.nome)}
               </div>
               <div className="space-y-1 min-w-0 flex-1">
-                <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors text-foreground line-clamp-2">
+                <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors text-foreground truncate block">
                   {patient.nome}
                 </h3>
                 <div className="flex items-center text-sm text-muted-foreground gap-2">
@@ -131,11 +131,11 @@ export function PatientCard({ patient, onEdit, onDelete }: PatientCardProps) {
               </div>
             )}
             {patient.email && (
-              <div className="flex items-center gap-3 text-sm text-foreground/80">
+              <div className="flex items-center gap-3 text-sm text-foreground/80 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border shrink-0">
                   <Mail className="h-3.5 w-3.5" />
                 </div>
-                <span className="truncate max-w-[200px] font-medium">
+                <span className="truncate flex-1 font-medium">
                   {patient.email}
                 </span>
               </div>

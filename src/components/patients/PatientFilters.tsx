@@ -28,20 +28,22 @@ export function PatientFilters({
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-muted/30 p-4 rounded-xl border border-muted/50 shadow-sm">
-      <div className="relative w-full md:max-w-md group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-        <Input
-          placeholder="Pesquisar por nome, CPF, e-mail ou telefone..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-background/50 border-muted/50 shadow-inner focus:bg-background transition-all rounded-full h-10"
-        />
-      </div>
+    <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-card/30 border border-border/50 backdrop-blur-sm rounded-xl p-4 md:p-5 w-full min-w-0">
+      <div className="flex flex-col md:flex-row items-center gap-3 w-full min-w-0">
+        <div className="relative w-full md:flex-1 md:min-w-[240px] md:max-w-[560px] group min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
+          <Input
+            placeholder="Pesquisar por nome, CPF, e-mail ou telefone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-background/50 border-muted/50 shadow-inner focus:bg-background transition-all rounded-full h-10 min-w-0"
+          />
+        </div>
 
-      <div className="flex items-center gap-2 w-full md:w-auto overflow-visible">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mr-1 whitespace-nowrap">
-          <Filter className="h-4 w-4" />
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide shrink-0">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mr-1 whitespace-nowrap shrink-0">
+            <Filter className="h-4 w-4" />
+
           <span>Filtrar por Risco:</span>
         </div>
         <div className="flex gap-2 p-1">
@@ -81,9 +83,12 @@ export function PatientFilters({
           })}
         </div>
       </div>
+      </div>
 
-      <div className="shrink-0 flex items-center gap-3">
-        <NewPatientDialog onSuccess={onAddSuccess} />
+      <div className="shrink-0 w-full md:w-auto">
+        <div className="w-full md:w-auto">
+          <NewPatientDialog onSuccess={onAddSuccess} />
+        </div>
       </div>
     </div>
   );

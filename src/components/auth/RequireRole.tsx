@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles, AppRole } from '@/hooks/useUserRoles';
 import { AccessDenied } from '@/pages/AccessDenied';
+import { AppAuthScope } from './AppAuthScope';
 
 interface RequireRoleProps {
   roles: AppRole[];
@@ -36,7 +37,7 @@ export function RequireRole({ roles, children, redirectTo }: RequireRoleProps) {
     return <AccessDenied />;
   }
 
-  return <div className="app-auth contents">{children}</div>;
+  return <AppAuthScope>{children}</AppAuthScope>;
 }
 
 // HOC version for wrapping components

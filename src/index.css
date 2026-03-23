@@ -189,7 +189,7 @@ html {
      Aplica o Design Contract Ciano/Laranja
      preservando a Landing externa.
   ──────────────────────────────────────────── */
-  .app-auth {
+  html.app-auth {
     --primary: 190 90% 40%;
     --primary-foreground: 0 0% 100%;
     --ring: 190 90% 40%;
@@ -197,7 +197,7 @@ html {
     --accent-foreground: 0 0% 9%;
   }
 
-  .dark .app-auth {
+  html.dark.app-auth {
     --primary: 189 84% 54%;
     --primary-foreground: 222 47% 5%;
     --ring: 189 84% 54%;

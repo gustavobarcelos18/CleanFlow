@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
-  Card,
-  CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Plus,
@@ -63,7 +61,6 @@ interface TipoProfissional {
   ativo: boolean;
 }
 
-// Ícones disponíveis para tipos de profissional
 const HEALTH_ICONS = [
   { name: "Stethoscope", icon: Stethoscope, label: "Estetoscópio" },
   { name: "Syringe", icon: Syringe, label: "Seringa" },
@@ -91,7 +88,7 @@ const HEALTH_ICONS = [
 ];
 
 export default function TiposProfissional() {
-  const [tipos, setTipos] = useState<any[]>([]);
+  const [tipos, setTipos] = useState<TipoProfissional[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTipo, setEditingTipo] = useState<TipoProfissional | null>(null);
@@ -110,6 +107,7 @@ export default function TiposProfissional() {
     null,
   );
   const { toast } = useToast();
+  const { setTitle, setSubtitle } = useLayoutTitle();
 
   const fetchTipos = useCallback(async () => {
     try {
@@ -135,6 +133,11 @@ export default function TiposProfissional() {
   useEffect(() => {
     fetchTipos();
   }, [fetchTipos]);
+
+  useEffect(() => {
+    setTitle("Tipos de Profissional");
+    setSubtitle("Gerencie os tipos de profissionais e suas permissões");
+  }, [setTitle, setSubtitle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +185,7 @@ export default function TiposProfissional() {
           description: "Tipo de profissional atualizado.",
         });
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await (supabase as unknown as { from: (table: string) => { insert: (data: object) => Promise<{ error: Error | null }> } })
           .from("tipos_profissional")
           .insert({
             tenant_id: profile.tenant_id,
@@ -205,12 +208,12 @@ export default function TiposProfissional() {
       setDialogOpen(false);
       resetForm();
       fetchTipos();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao salvar:", error);
       toast({
         title: "Erro",
         description:
-          error.message || "Não foi possível salvar o tipo de profissional.",
+          (error as Error)?.message || "Não foi possível salvar o tipo de profissional.",
         variant: "destructive",
       });
     }
@@ -240,7 +243,7 @@ export default function TiposProfissional() {
     if (!tipoToDelete) return;
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as unknown as { from: (table: string) => { delete: () => { eq: (col: string, val: string) => Promise<{ error: Error | null }> } } })
         .from("tipos_profissional")
         .delete()
         .eq("id", tipoToDelete.id);
@@ -253,12 +256,12 @@ export default function TiposProfissional() {
       });
 
       fetchTipos();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao excluir:", error);
       toast({
         title: "Erro",
         description:
-          error.message || "Não foi possível excluir the profissional type.",
+          (error as Error)?.message || "Não foi possível excluir o tipo de profissional.",
         variant: "destructive",
       });
     } finally {
@@ -282,238 +285,248 @@ export default function TiposProfissional() {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Tipos de Profissional
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Gerencie os tipos de profissionais e suas permissões
-            </p>
-          </div>
-
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) resetForm();
-            }}
-          >
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) resetForm();
+        }}
+      >
+        <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+          {/* Slim Toolbar */}
+          <div className="flex items-center justify-end bg-card/30 backdrop-blur-md border border-muted/50 p-4 rounded-xl shadow-sm">
             <DialogTrigger asChild>
-              <Button className="shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 px-6 rounded-xl group">
+              <Button className="w-full sm:w-auto shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-lg group shrink-0">
                 <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
                 Novo Tipo
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader className="pb-3">
-                <DialogTitle>
-                  {editingTipo ? "Editar" : "Novo"} Tipo de Profissional
-                </DialogTitle>
-              </DialogHeader>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="nome">Nome *</Label>
-                  <Input
-                    id="nome"
-                    value={formData.nome}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nome: e.target.value })
-                    }
-                    placeholder="Ex: Médico, Fisioterapeuta, Recepcionista"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="descricao">Descrição</Label>
-                  <Textarea
-                    id="descricao"
-                    value={formData.descricao}
-                    onChange={(e) =>
-                      setFormData({ ...formData, descricao: e.target.value })
-                    }
-                    placeholder="Descrição do tipo de profissional"
-                    rows={2}
-                    className="resize-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="cor">Cor</Label>
-                  <Input
-                    id="cor"
-                    type="color"
-                    value={formData.cor}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cor: e.target.value })
-                    }
-                    className="h-10"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label>Selecione um Ícone *</Label>
-                  <div className="grid grid-cols-8 gap-2 p-2 border rounded-lg max-h-[120px] overflow-y-auto">
-                    {HEALTH_ICONS.map(
-                      ({ name, icon: IconComponent, label }) => (
-                        <button
-                          key={name}
-                          type="button"
-                          onClick={() =>
-                            setFormData({ ...formData, icone: name })
-                          }
-                          className={cn(
-                            "flex flex-col items-center justify-center p-1.5 rounded-lg border-2 transition-all hover:bg-accent",
-                            formData.icone === name
-                              ? "border-primary bg-primary/10"
-                              : "border-border",
-                          )}
-                          title={label}
-                        >
-                          <IconComponent className="h-4 w-4" />
-                          <span className="text-[8px] mt-0.5 text-center line-clamp-1">
-                            {label}
-                          </span>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm">Acesso a Prontuários</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Permite que este tipo de profissional acesse prontuários
-                      de pacientes
-                    </p>
-                  </div>
-                  <Switch
-                    checked={formData.acesso_prontuarios}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, acesso_prontuarios: checked })
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm">Ativo</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Define se este tipo está disponível para uso
-                    </p>
-                  </div>
-                  <Switch
-                    checked={formData.ativo}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, ativo: checked })
-                    }
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-3">
-                  {hasChanges && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setFormData(initialFormData);
-                        setHasChanges(false);
-                      }}
-                    >
-                      Cancelar
-                    </Button>
-                  )}
-                  <Button
-                    type="submit"
-                    disabled={!hasChanges || !formData.nome.trim()}
-                  >
-                    {editingTipo ? "Atualizar" : "Criar"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-12">Carregando...</div>
-        ) : tipos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-muted/50 rounded-xl bg-muted/10">
-            <p className="text-muted-foreground">Nenhum tipo de profissional cadastrado</p>
           </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {tipos.map((tipo) => {
-              const IconData = HEALTH_ICONS.find((i) => i.name === tipo.icone);
-              const IconComponent = IconData?.icon || User;
 
-              return (
-                <div key={tipo.id} className="bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50">
-                  <div className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: tipo.cor + "20" }}
-                        >
-                          <IconComponent
-                            className="h-5 w-5"
-                            style={{ color: tipo.cor }}
-                          />
+          {loading ? (
+            <div className="text-center py-12 text-muted-foreground">Carregando...</div>
+          ) : tipos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-muted/50 rounded-xl bg-muted/10">
+              <p className="text-muted-foreground mb-4">Nenhum tipo de profissional cadastrado</p>
+              <DialogTrigger asChild>
+                <Button className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-lg group">
+                  <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
+                  Novo Tipo
+                </Button>
+              </DialogTrigger>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
+              {tipos.map((tipo) => {
+                const IconData = HEALTH_ICONS.find((i) => i.name === tipo.icone);
+                const IconComponent = IconData?.icon || User;
+
+                return (
+                  <div
+                    key={tipo.id}
+                    className={tipos.length === 1 ? "sm:col-span-2 xl:col-span-3 max-w-2xl mx-auto w-full" : ""}
+                  >
+                    <div className="bg-muted/30 rounded-xl border border-muted/50 transition-colors hover:bg-muted/50 h-full">
+                      <div className="p-5">
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div
+                              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: tipo.cor + "20" }}
+                            >
+                              <IconComponent
+                                className="h-5 w-5"
+                                style={{ color: tipo.cor }}
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <CardTitle className="text-base truncate">{tipo.nome}</CardTitle>
+                              {!tipo.ativo && (
+                                <Badge variant="secondary" className="mt-1">
+                                  Inativo
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(tipo)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(tipo.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-lg">{tipo.nome}</CardTitle>
-                          {!tipo.ativo && (
-                            <Badge variant="secondary" className="mt-1">
-                              Inativo
+                        {tipo.descricao && (
+                          <CardDescription className="mt-2 line-clamp-2">
+                            {tipo.descricao}
+                          </CardDescription>
+                        )}
+                      </div>
+                      <div className="px-5 pb-5">
+                        <div className="flex items-center gap-2">
+                          {tipo.acesso_prontuarios ? (
+                            <Badge variant="default">Acessa Prontuários</Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              Sem Acesso a Prontuários
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(tipo)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(tipo.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
-                    {tipo.descricao && (
-                      <CardDescription className="mt-2">
-                        {tipo.descricao}
-                      </CardDescription>
-                    )}
                   </div>
-                  <div className="px-6 pb-6">
-                    <div className="flex items-center gap-2">
-                      {tipo.acesso_prontuarios ? (
-                        <Badge variant="default">Acessa Prontuários</Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          Sem Acesso a Prontuários
-                        </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-3">
+            <DialogTitle>
+              {editingTipo ? "Editar" : "Novo"} Tipo de Profissional
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="nome">Nome *</Label>
+              <Input
+                id="nome"
+                value={formData.nome}
+                onChange={(e) => {
+                  setFormData({ ...formData, nome: e.target.value });
+                  setHasChanges(true);
+                }}
+                placeholder="Ex: Médico, Fisioterapeuta, Recepcionista"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="descricao">Descrição</Label>
+              <Textarea
+                id="descricao"
+                value={formData.descricao}
+                onChange={(e) => {
+                  setFormData({ ...formData, descricao: e.target.value });
+                  setHasChanges(true);
+                }}
+                placeholder="Descrição do tipo de profissional"
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cor">Cor</Label>
+              <Input
+                id="cor"
+                type="color"
+                value={formData.cor}
+                onChange={(e) => {
+                  setFormData({ ...formData, cor: e.target.value });
+                  setHasChanges(true);
+                }}
+                className="h-10"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Selecione um Ícone *</Label>
+              <div className="grid grid-cols-8 gap-2 p-2 border rounded-lg max-h-[120px] overflow-y-auto">
+                {HEALTH_ICONS.map(
+                  ({ name, icon: IconComponent, label }) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, icone: name });
+                        setHasChanges(true);
+                      }}
+                      className={cn(
+                        "flex flex-col items-center justify-center p-1.5 rounded-lg border-2 transition-all hover:bg-accent",
+                        formData.icone === name
+                          ? "border-primary bg-primary/10"
+                          : "border-border",
                       )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                      title={label}
+                    >
+                      <IconComponent className="h-4 w-4" />
+                      <span className="text-[8px] mt-0.5 text-center line-clamp-1">
+                        {label}
+                      </span>
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Acesso a Prontuários</Label>
+                <p className="text-xs text-muted-foreground">
+                  Permite que este tipo de profissional acesse prontuários
+                  de pacientes
+                </p>
+              </div>
+              <Switch
+                checked={formData.acesso_prontuarios}
+                onCheckedChange={(checked) => {
+                  setFormData({ ...formData, acesso_prontuarios: checked });
+                  setHasChanges(true);
+                }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Ativo</Label>
+                <p className="text-xs text-muted-foreground">
+                  Define se este tipo está disponível para uso
+                </p>
+              </div>
+              <Switch
+                checked={formData.ativo}
+                onCheckedChange={(checked) => {
+                  setFormData({ ...formData, ativo: checked });
+                  setHasChanges(true);
+                }}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3">
+              {hasChanges && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setFormData(initialFormData);
+                    setHasChanges(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+              )}
+              <Button
+                type="submit"
+                disabled={!hasChanges || !formData.nome.trim()}
+              >
+                {editingTipo ? "Atualizar" : "Criar"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteDialogOpen}

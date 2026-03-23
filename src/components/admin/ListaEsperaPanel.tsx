@@ -179,25 +179,32 @@ export function ListaEsperaPanel() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            <CardTitle>Lista de Espera Inteligente</CardTitle>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Paciente
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Adicionar à Lista de Espera</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAdd} className="space-y-4">
+    <div className="space-y-6">
+      {/* Slim Toolbar for Panel */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/30 p-4 md:p-5 rounded-xl border border-border/50 backdrop-blur-md">
+         <div className="flex-1 min-w-0 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-foreground truncate">Fila de Prioridade</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest truncate">Ordenada por score de IA</p>
+            </div>
+         </div>
+
+         <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+             <DialogTrigger asChild>
+               <Button className="w-full md:w-auto shadow-lg shadow-primary/20 transition-colors bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-xl group uppercase tracking-wider text-xs">
+                 <Plus className="h-4 w-4 mr-2" />
+                 Adicionar Paciente
+               </Button>
+             </DialogTrigger>
+             <DialogContent className="max-w-2xl bg-card border-border/50">
+               <DialogHeader>
+                 <DialogTitle className="text-2xl font-black tracking-tight">Adicionar à Lista de Espera</DialogTitle>
+               </DialogHeader>
+               <form onSubmit={handleAdd} className="space-y-4 pt-4">
                 <div>
                   <Label>Paciente *</Label>
                   <Select name="paciente_id" required>
@@ -280,26 +287,32 @@ export function ListaEsperaPanel() {
                   <Switch name="consentimento_ofertas" id="consentimento" />
                   <Label htmlFor="consentimento">
                     Paciente consentiu receber ofertas de vagas via WhatsApp
-                    (LGPD)
-                  </Label>
-                </div>
+                  (LGPD)
+                </Label>
+              </div>
 
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button type="submit">Adicionar</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
+              <div className="flex gap-2 justify-end pt-4 border-t border-border/20">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="rounded-lg h-10 px-6 font-semibold"
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" className="rounded-lg h-10 px-8 font-bold bg-primary hover:bg-primary/90">
+                  Adicionar à Fila
+                </Button>
+              </div>
+
+               </form>
+             </DialogContent>
+           </Dialog>
+         </div>
+      </div>
+
+      {/* Main Table Content */}
+      <div className="bg-card/20 rounded-xl border border-border/50 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -355,11 +368,13 @@ export function ListaEsperaPanel() {
         </Table>
 
         {listaEspera.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            Nenhum paciente na lista de espera
+          <div className="text-center py-16 text-muted-foreground bg-muted/5">
+            <Users className="h-12 w-12 mx-auto mb-3 opacity-20" />
+            <p className="font-medium">Nenhum paciente na lista de espera</p>
+            <p className="text-xs opacity-60">Novos pacientes aparecerão aqui conforme forem adicionados</p>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -31,6 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   Plus,
+  PlusCircle,
   MessageSquare,
   Clock,
   CheckCircle2,
@@ -40,12 +41,15 @@ import {
   Bug,
   Lightbulb,
   DollarSign,
+  Search
 } from "lucide-react";
+import { useLayoutTitle } from "@/hooks/useLayoutTitle";
+import { cn } from "@/lib/utils";
 
 interface SupportTicket {
   id: string;
-  titulo: string;
-  descricao: string;
+  title: string;
+  description: string;
   categoria: string;
   prioridade: string;
   status: string;
@@ -57,6 +61,12 @@ export default function SupportTickets() {
   const { profile } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
+  const { setTitle, setSubtitle } = useLayoutTitle();
+
+  useEffect(() => {
+    if (setTitle) setTitle("Suporte Técnico");
+    if (setSubtitle) setSubtitle("Abra chamados e acompanhe o atendimento");
+  }, [setTitle, setSubtitle]);
 
   const loadTickets = useCallback(async () => {
     try {
@@ -68,7 +78,7 @@ export default function SupportTickets() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setTickets(data || []);
+      setTickets((data as any) || []);
     } catch (error) {
       console.error("Erro ao carregar chamados:", error);
       toast.error("Erro ao carregar chamados");
@@ -87,8 +97,11 @@ export default function SupportTickets() {
     try {
       const { error } = await supabase.from("support_tickets").insert({
         tenant_id: profile.tenant_id,
-        usuario_id: profile.id,
-        ...data,
+        user_id: profile.id,
+        title: data.title as string,
+        description: data.description as string,
+        categoria: data.categoria as any,
+        prioridade: data.prioridade as any,
       });
 
       if (error) throw error;
@@ -163,22 +176,32 @@ export default function SupportTickets() {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-muted/30 pb-6">
-          <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-600 pr-2 pb-1">
-              Suporte Técnico
-            </h1>
-            <p className="text-muted-foreground font-medium">
-              Abra chamados e acompanhe o atendimento
-            </p>
-          </div>
-          <NovoTicketDialog onCreate={handleCreateTicket} />
+      <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+        {/* Slim Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/30 p-4 md:p-5 rounded-xl border border-border/50 backdrop-blur-md">
+           <div className="flex-1 min-w-0 max-w-[560px] flex items-center gap-2">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                <MessageSquare className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">Canal de Suporte</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest truncate">Acompanhe seu histórico</p>
+              </div>
+           </div>
+
+           <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+             <NovoTicketDialog onCreate={handleCreateTicket} />
+           </div>
         </div>
 
-        {/* Lista de Chamados */}
-        <div className="grid gap-4">
+        {/* Fallback SR-Only (Acessibilidade) */}
+        <p className="sr-only">Abra chamados e acompanhe o atendimento em tempo real</p>
+
+        {/* Lista de Chamados (Grid Híbrida Premium) */}
+        <div className={cn(
+          "grid gap-6 w-full",
+          tickets.length === 1 ? "grid-cols-1" : "grid-cols-1 xl:grid-cols-2"
+        )}>
           {loading ? (
             <div className="text-center py-8">Carregando...</div>
           ) : tickets.length === 0 ? (
@@ -193,28 +216,41 @@ export default function SupportTickets() {
             tickets.map((ticket) => (
               <div
                 key={ticket.id}
-                className="bg-muted/30 rounded-xl border border-muted/50 p-6 transition-colors hover:bg-muted/50"
+                className="bg-card/30 backdrop-blur-sm rounded-xl border border-border/50 p-4 md:p-5 transition-all hover:bg-card/40 hover:border-border group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      {getCategoriaIcon(ticket.categoria)}
-                      <h3 className="font-semibold text-lg">{ticket.titulo}</h3>
+                <div className="flex flex-col md:flex-row items-start justify-between gap-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center border border-border/50 shrink-0 group-hover:scale-110 transition-transform">
+                        {getCategoriaIcon(ticket.categoria)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-mono text-muted-foreground uppercase opacity-50">#{ticket.id.split('-')[0]}</span>
+                          {getPrioridadeBadge(ticket.prioridade)}
+                        </div>
+                        <h3 className="font-bold text-lg text-foreground truncate">{ticket.title}</h3>
+                      </div>
                     </div>
-                    <p className="text-muted-foreground mb-4">
-                      {ticket.descricao}
+                    
+                    <p className="text-sm text-muted-foreground mb-5 line-clamp-2 min-h-[40px] leading-relaxed">
+                      {ticket.description}
                     </p>
-                    <div className="flex items-center gap-3">
+                    
+                    <div className="flex items-center flex-wrap gap-4 pt-4 border-t border-border/20">
                       {getStatusBadge(ticket.status)}
-                      {getPrioridadeBadge(ticket.prioridade)}
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(ticket.created_at).toLocaleDateString(
-                          "pt-BR",
-                        )}
-                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                        <Clock className="h-3.5 w-3.5" />
+                        {new Date(ticket.created_at).toLocaleDateString("pt-BR", {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  
+                  <Button variant="outline" size="sm" className="shrink-0 w-full md:w-auto h-9 rounded-lg border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors">
                     Ver Detalhes
                   </Button>
                 </div>
@@ -233,22 +269,22 @@ function NovoTicketDialog({
   onCreate: (data: Partial<SupportTicket>) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [categoria, setCategoria] = useState("tecnico");
   const [prioridade, setPrioridade] = useState("media");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onCreate({
-      titulo,
-      descricao,
+      title,
+      description,
       categoria,
       prioridade,
     });
     setOpen(false);
-    setTitulo("");
-    setDescricao("");
+    setTitle("");
+    setDescription("");
     setCategoria("tecnico");
     setPrioridade("media");
   };
@@ -256,8 +292,8 @@ function NovoTicketDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Novo Chamado
+        <Button className="w-full md:w-auto shadow-lg shadow-primary/20 transition-colors bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 rounded-xl group">
+          <PlusCircle className="mr-2 h-4 w-4" /> Novo Chamado
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
@@ -269,8 +305,8 @@ function NovoTicketDialog({
             <Label>Título</Label>
             <Input
               placeholder="Descreva resumidamente o problema"
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               required
             />
           </div>
@@ -279,8 +315,8 @@ function NovoTicketDialog({
             <Label>Descrição Detalhada</Label>
             <Textarea
               placeholder="Descreva o problema em detalhes, incluindo passos para reproduzir se aplicável"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={5}
               required
             />
