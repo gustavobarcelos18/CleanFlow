@@ -1,0 +1,26 @@
+{
+  "name": "whatsapp-worker",
+  "version": "1.0.0",
+  "description": "WhatsApp Automation Worker for CleanFlow",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "lint": "eslint src/**/*.ts",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.42.0",
+    "@whiskeysockets/baileys": "^6.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pino": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.7",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  }
+}

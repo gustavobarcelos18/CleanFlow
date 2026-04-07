@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  whatsapp-worker:
+    build:
+      context: ./whatsapp-worker
+      dockerfile: Dockerfile
+    container_name: cleanflow-wa-worker
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - WORKER_ENCRYPTION_KEY=${WORKER_ENCRYPTION_KEY} # Para AES-GCM do session_data
+    volumes:
+      - ./whatsapp-worker/logs:/app/logs
+      - ./whatsapp-worker/auth:/app/auth # Cache persistente secundário do Baileys
+    ports:
+      - "3001:3001"
+    networks:
+      - cleanflow-network
+
+networks:
+  cleanflow-network:
+    driver: bridge
