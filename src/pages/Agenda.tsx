@@ -725,10 +725,10 @@ const Agenda = () => {
   );
 
   return (
-    <MainLayout>
+    <MainLayout contentClassName="pt-3 md:pt-4 lg:pt-4">
       <div className="space-y-4 animate-in fade-in duration-500 pb-10 max-w-full lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 md:px-0">
         {/* Barra de Ferramentas / Filtros (Sticky) */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 backdrop-blur-md p-4 rounded-xl border border-border shadow-sm sticky top-20 z-40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 backdrop-blur-md p-4 rounded-xl border border-border shadow-sm sticky top-20 z-10">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex bg-background/50 p-1 rounded-md shadow-inner border border-muted/50">
               <Button
@@ -837,7 +837,7 @@ const Agenda = () => {
           <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_320px] 2xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
             
             {/* Coluna Esquerda - Calendário Mensal */}
-            <div className="hidden xl:block sticky top-[10.5rem] z-30 space-y-4">
+            <div className="hidden xl:block sticky top-[10.5rem] z-10 space-y-4">
               <MonthlyCalendar
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
@@ -898,7 +898,7 @@ const Agenda = () => {
             </div>
 
             {/* Coluna Direita - Preview do Próximo Dia */}
-            <div className="hidden xl:block sticky top-[10.5rem] z-30 space-y-4">
+            <div className="hidden xl:block sticky top-[10.5rem] z-10 space-y-4">
               <NextDayPreview
                 date={addDays(selectedDate, 1)}
                 appointments={nextDayAppointments}

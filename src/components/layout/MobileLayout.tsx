@@ -12,9 +12,10 @@ import { useSidebarWidth } from "@/hooks/useSidebarWidth";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
+  contentClassName?: string;
 }
 
-export function MobileLayout({ children }: MobileLayoutProps) {
+export function MobileLayout({ children, contentClassName }: MobileLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const { profile, loading } = useAuth();
@@ -40,50 +41,53 @@ export function MobileLayout({ children }: MobileLayoutProps) {
   };
 
   const ImpersonationBanner = () => (
-    <div className="bg-orange-600 text-white px-4 py-2 flex items-center justify-between shadow-md z-50 relative">
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4" />
-        <span className="text-sm font-medium">
-          Acessando como Suporte Administrativo
+    <div className="bg-orange-600 text-white px-2 sm:px-4 py-2 flex items-center justify-between shadow-md z-[60] relative">
+      <div className="flex items-center gap-1 sm:gap-2">
+        <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+        <span className="text-[10px] sm:text-sm font-medium truncate">
+          Modo Suporte Administrador
         </span>
       </div>
       <Button
         variant="secondary"
         size="sm"
-        className="h-7 text-xs bg-white text-orange-600 hover:bg-orange-50 border-0"
+        className="h-6 sm:h-7 text-[10px] sm:text-xs bg-white text-orange-600 hover:bg-orange-50 border-0"
         onClick={handleExitImpersonation}
       >
         <LogOut className="h-3 w-3 mr-1" />
-        Sair do Acesso
+        Sair
       </Button>
     </div>
   );
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground flex flex-col overflow-x-hidden">
         {impersonationId && <ImpersonationBanner />}
-        <div className="flex flex-col h-screen">
-          {/* Mobile Header with Menu Button */}
-          <div className="flex items-center gap-2 p-4 bg-card border-b border-border">
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-64">
-                <Sidebar onLinkClick={() => setSidebarOpen(false)} />
-              </SheetContent>
-            </Sheet>
-            <div className="flex-1">
-              <Header className="p-0 border-0" />
-            </div>
-          </div>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto p-4">{children}</main>
+        {/* Mobile Header with Menu Button */}
+        <div className="sticky top-0 z-50 flex items-center gap-2 p-2 sm:p-4 bg-card/80 backdrop-blur-md border-b border-border h-16 sm:h-20">
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72 sm:w-80 border-r-0">
+              <Sidebar onLinkClick={() => setSidebarOpen(false)} />
+            </SheetContent>
+          </Sheet>
+          <div className="flex-1 min-w-0">
+            <Header className="p-0 border-0 h-auto bg-transparent backdrop-blur-none sticky-none" />
+          </div>
         </div>
+
+        {/* Main Content */}
+        <main className={cn("flex-1 p-4 overflow-x-hidden pt-6", contentClassName)}>
+          <div className="max-w-full overflow-x-hidden">
+            {children}
+          </div>
+        </main>
       </div>
     );
   }
@@ -96,7 +100,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
       <div className="flex w-full">
         {/* Sidebar - z-50 to stay above everything */}
         <div
-          className="fixed left-0 top-0 h-full z-50 border-r border-border/50"
+          className="fixed left-0 top-0 h-full z-50 border-r border-border/50 hidden md:block"
           style={{ 
             top: impersonationId ? "44px" : "0",
             width: `${width}px`
@@ -111,10 +115,10 @@ export function MobileLayout({ children }: MobileLayoutProps) {
             "flex-1 relative z-0 min-w-0 min-h-screen",
             !isResizing && "transition-all duration-200 ease-out",
           )}
-          style={{ marginLeft: `${width}px` }}
+          style={{ marginLeft: isMobile ? "0px" : `${width}px` }}
         >
-          <Header />
-          <main className="p-6 md:p-10 max-w-full">
+          <Header className="hidden md:flex" />
+          <main className={cn("p-6 md:p-10 max-w-full overflow-x-hidden", contentClassName)}>
             {children}
           </main>
         </div>

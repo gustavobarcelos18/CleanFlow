@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-import { QueryProvider } from "./providers/QueryProvider";
 import { reportarErro } from "./lib/reportarErro";
 
 // Captura de erros globais fora do React
@@ -23,8 +22,6 @@ window.onunhandledrejection = (event) => {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryProvider>
-      <App />
-    </QueryProvider>
+    <App />
   </React.StrictMode>
 );

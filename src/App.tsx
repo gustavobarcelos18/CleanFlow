@@ -95,7 +95,14 @@ const SupportSettings = lazy(() => import("./pages/admin/SupportSettings"));
 const AdminWhatsApp = lazy(() => import("./pages/admin/WhatsApp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
 
 import { useEffect } from "react";
 import { useSegmentStore } from "@/stores/useSegmentStore";
@@ -159,6 +166,7 @@ const App = () => (
     <ThemeProvider defaultTheme="dark" storageKey="cleanflow-ui-theme">
       <TooltipProvider>
         <Toaster />
+        <Sonner />
         <BrowserRouter>
           <AuthProvider>
             <ThemeSync />

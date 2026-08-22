@@ -95,38 +95,38 @@ export function Header({ className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "bg-background/80 backdrop-blur-md border-b border-border px-6 h-20 flex items-center sticky top-0 z-40",
+        "bg-background/80 backdrop-blur-md border-b border-border px-6 h-20 flex items-center sticky top-0 z-[90]",
         className,
       )}
     >
       <div className="flex items-center justify-between w-full gap-2 md:gap-4">
-        {/* Date and Quick Stats */}
-        <div className="flex items-center gap-3 md:gap-6 shrink-0">
-          <div className="hidden lg:block shrink-0">
-            <h2 className="text-sm xl:text-lg font-bold text-foreground capitalize tracking-tight truncate max-w-[150px] xl:max-w-none">
+        {/* Date and Quick Stats - Oculto em mobile extremo */}
+        <div className="flex items-center gap-2 md:gap-6 shrink-0">
+          <div className="hidden sm:block shrink-0">
+            <h2 className="text-[10px] sm:text-sm lg:text-lg font-bold text-foreground capitalize tracking-tight truncate max-w-[80px] sm:max-w-none">
               {currentDate}
             </h2>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+            <p className="hidden lg:block text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
               Painel de Controle
             </p>
           </div>
 
-          {/* Quick Stats - Only show when there's data */}
+          {/* Quick Stats - Resumido em telas pequenas */}
           {(stats.today > 0 || stats.pending > 0 || stats.waiting > 0) && (
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 md:gap-2">
               {stats.today > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full whitespace-nowrap">
-                  <Calendar className="h-3 w-3 text-primary" />
-                  <span className="text-[10px] font-bold text-primary italic">
-                    {stats.today} hoje
+                <div className="flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 bg-primary/10 border border-primary/20 rounded-full whitespace-nowrap">
+                  <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+                  <span className="text-[9px] sm:text-[10px] font-bold text-primary italic">
+                    {stats.today}
                   </span>
                 </div>
               )}
               {stats.pending > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full whitespace-nowrap">
-                  <Clock className="h-3 w-3 text-amber-500" />
-                  <span className="text-[10px] font-bold text-amber-500 italic">
-                    {stats.pending} alertas
+                <div className="flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 bg-amber-500/10 border border-amber-500/20 rounded-full whitespace-nowrap">
+                  <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-500" />
+                  <span className="text-[9px] sm:text-[10px] font-bold text-amber-500 italic">
+                    {stats.pending}
                   </span>
                 </div>
               )}
@@ -134,100 +134,71 @@ export function Header({ className }: HeaderProps) {
           )}
         </div>
 
-        {/* Dynamic Center Title */}
-        <div className="flex-1 flex flex-col items-center justify-center px-2 min-w-0 animate-in fade-in slide-in-from-top-2 duration-500">
+        {/* Dynamic Center Title - Centralizado e Reduzido */}
+        <div className="flex-1 flex flex-col items-center justify-center px-1 md:px-2 min-w-0">
           {title && (
-            <h1 className="text-base md:text-lg lg:text-2xl font-black text-foreground tracking-tighter leading-none truncate w-full text-center uppercase italic">
+            <h1 className="text-[11px] sm:text-sm md:text-lg lg:text-2xl font-black text-foreground tracking-tight leading-loose truncate w-full text-center uppercase italic">
               {title}
             </h1>
           )}
           {subtitle && (
-            <p className="hidden md:block text-[9px] lg:text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-[0.1em] lg:tracking-[0.2em] opacity-60 truncate w-full text-center">
+            <p className="hidden md:block text-[9px] lg:text-[11px] text-muted-foreground font-bold mt-0.5 uppercase tracking-[0.05em] lg:tracking-[0.2em] opacity-60 truncate w-full text-center">
               {subtitle}
             </p>
           )}
         </div>
-
-        {/* User Actions */}
-        <div className="flex items-center gap-3">
+        {/* User Actions - Priorização de itens */}
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <TooltipProvider>
-            <div className="flex items-center gap-3">
-              <SupportChatWidget variant="header" />
+            <div className="flex items-center gap-1 sm:gap-3">
+              <div className="hidden xs:flex">
+                <SupportChatWidget variant="header" />
+              </div>
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center">
-                    <ThemeToggle />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={10}>
-                  <p className="font-medium text-xs">Alternar Tema</p>
-                </TooltipContent>
-              </Tooltip>
+              <div className="hidden xs:flex">
+                <ThemeToggle />
+              </div>
 
-              <div className="h-6 w-px bg-border mx-1" />
+              <div className="hidden sm:block h-6 w-px bg-border mx-0.5" />
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center">
-                    <AlertsPopover />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={10}>
-                  <p className="font-medium text-xs">Notificações</p>
-                </TooltipContent>
-              </Tooltip>
+              <AlertsPopover />
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-3 hover:bg-muted transition-all duration-200 py-1.5 px-2 rounded-xl"
-                    asChild
-                  >
-                    <Link to="/perfil">
-                      <Avatar className="w-9 h-9 border-2 border-primary/20 shadow-lg shadow-primary/10">
-                        {profile?.avatar_url ? (
-                          <AvatarImage src={profile.avatar_url} alt={profile.nome} />
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 hover:bg-muted py-1 px-1 sm:px-2 rounded-xl"
+                asChild
+              >
+                <Link to="/perfil">
+                  <Avatar className="w-7 h-7 sm:w-9 sm:h-9 border-2 border-primary/20 shadow-lg shadow-primary/10">
+                    {profile?.avatar_url ? (
+                      <AvatarImage src={profile.avatar_url} alt={profile.nome} />
+                    ) : (
+                      <AvatarFallback className="bg-primary/20 text-primary text-[10px] sm:text-xs font-black">
+                        {profile?.nome ? (
+                          getInitials(profile.nome)
                         ) : (
-                          <AvatarFallback className="bg-primary/20 text-primary text-xs font-black">
-                            {profile?.nome ? (
-                              getInitials(profile.nome)
-                            ) : (
-                              <User className="h-4 w-4" />
-                            )}
-                          </AvatarFallback>
+                          <User className="h-3 w-3 sm:h-4 sm:w-4" />
                         )}
-                      </Avatar>
-                      <div className="hidden md:block text-left">
-                        <p className="text-sm font-black text-foreground leading-tight">
-                          {profile?.nome || user?.email}
-                        </p>
-                        <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-0.5">
-                          {profile?.role === "admin"
-                            ? "Administrador"
-                            : profile?.role === "profissional"
-                              ? "Profissional"
-                              : "Usuário"}
-                        </p>
-                      </div>
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={10}>
-                  <p className="font-medium text-xs">Meu Perfil</p>
-                </TooltipContent>
-              </Tooltip>
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-xs font-black text-foreground leading-tight truncate max-w-[80px]">
+                      {profile?.nome || user?.email}
+                    </p>
+                  </div>
+                </Link>
+              </Button>
 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors h-8 w-8 sm:h-9 sm:w-9"
                     onClick={() => signOut()}
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={10}>
