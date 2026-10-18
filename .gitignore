@@ -27,3 +27,15 @@ dist-ssr
 
 # Large files
 cleanflow.zip
+
+# Supabase CLI local state
+supabase/.temp/
+
+# Generated reports and scratch files (root only)
+/*lint*.json
+/*lint*.txt
+/build_output.txt
+/tmp_*
+
+# Large files / local archives (keep outside the repo)
+*.7z
