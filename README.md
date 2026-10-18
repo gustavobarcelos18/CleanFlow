@@ -104,7 +104,10 @@ Exemplo típico:
 
 ```bash
 VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+```
+
+Todas as variáveis (frontend, edge functions e WhatsApp worker) estão descritas em `docs/CONFIGURACAO_AMBIENTE.md`.
 
 ## Roadmap
 
@@ -144,7 +147,7 @@ Sugestão simples:
 ## Troubleshooting
 
 ### O Vite sobe mas a tela fica em branco
-- verifique se as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` estão no `.env`
+- verifique se as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` estão no `.env`
 - confira no console do navegador se há erro de rota ou import
 - rode `npm run lint` para pegar erro bobo de TypeScript
 
