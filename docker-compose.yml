@@ -11,8 +11,9 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - WORKER_ENCRYPTION_KEY=${WORKER_ENCRYPTION_KEY} # Para AES-GCM do session_data
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - WA_MASTER_KEY=${WA_MASTER_KEY} # AES-256-GCM do session_data, exatamente 32 caracteres
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ./whatsapp-worker/logs:/app/logs
       - ./whatsapp-worker/auth:/app/auth # Cache persistente secundário do Baileys
