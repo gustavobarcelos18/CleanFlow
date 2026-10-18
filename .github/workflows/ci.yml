@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (Vite + React)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências (npm ci)
+        run: npm ci
+
+      # Informativo: há vulnerabilidades conhecidas que dependem de atualização de pacotes (decisão do mantenedor).
+      - name: Auditoria de dependências (informativa)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
+      # Só src/: o erro de lint existente fica em arquivo de terceiros (.agents/skills/ui-ux-design-pro).
+      - name: Executar lint
+        run: npx eslint src
+
+      - name: Executar testes
+        run: npx vitest run
+
+      - name: Compilar (build)
+        run: npm run build
