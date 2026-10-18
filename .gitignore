@@ -40,3 +40,6 @@ supabase/.temp/
 
 # Large files / local archives (keep outside the repo)
 *.7z
+
+# Local project brain (plans, reports, solved problems)
+.agents/brain/
